@@ -23,7 +23,7 @@ b) Build the project
 ```
 mkdir build-wasm
 cd build-wasm
-emcmake cmake ../neo -DCMAKE_BUILD_TYPE=Release
+emcmake cmake ./neo -DCMAKE_BUILD_TYPE=Release
 emmake make
 ```
 Normaly, this should have generated *d3wasm.html*, *d3wasm.js*, and *d3wasm.wasm* files.

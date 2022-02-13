@@ -1,6 +1,6 @@
 project(d3wasm)
 
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.2 FATAL_ERROR)
 
 # don't add these as options, but document them?
 # IDNET_HOST		-DIDNET_HOST=\\"%s\\"' % IDNET_HOST
@@ -230,14 +230,14 @@ if (EMSCRIPTEN)
   endif()
 
   # demo data preload
-  set(ldflags "${ldflags} --pre-js ../neo/sys/wasm/pre.js")
+  set(ldflags "${ldflags} --pre-js ./neo/sys/wasm/pre.js")
   # chunked demo data preload
   #set(ldflags "${ldflags} --pre-js ../neo/sys/wasm/pre-chunked.js")
   #set(ldflags "${ldflags} --post-js ../neo/sys/wasm/post-chunked.js")
   # full data preload
   #set(ldflags "${ldflags} --pre-js ../neo/sys/wasm/pre-full.js")
 
-  set(ldflags "${ldflags} --shell-file ../neo/sys/wasm/shell.html")
+  set(ldflags "${ldflags} --shell-file ./neo/sys/wasm/shell.html")
   set(ldflags "${ldflags} -o d3wasm.html")
   set(ldflags "${ldflags} -s FORCE_FILESYSTEM=1")
   set(ldflags "${ldflags} -s TOTAL_MEMORY=402653184") # 384MB. Going below 320MB lead to crashes after a couple of levels played.
