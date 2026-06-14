@@ -280,7 +280,11 @@ TODO: OSX - use the native API instead? NSModule
 =================
 */
 uintptr_t Sys_DLL_Load( const char *path ) {
+#ifndef __EMSCRIPTEN__
 	return (uintptr_t)dlopen( path, RTLD_NOW );
+#else
+	return NULL;
+#endif
 }
 
 /*
@@ -289,12 +293,17 @@ Sys_DLL_GetProcAddress
 =================
 */
 void* Sys_DLL_GetProcAddress( uintptr_t handle, const char *sym ) {
+#ifndef __EMSCRIPTEN__
 	const char *error;
 	void *ret = dlsym( (void *)handle, sym );
 	if ((error = dlerror()) != NULL)  {
 		Sys_Printf( "dlsym '%s' failed: %s\n", sym, error );
 	}
 	return ret;
+#else
+	Sys_Printf( "dlsym '%s' failed: not available\n", sym );
+	return NULL;
+#endif
 }
 
 /*
@@ -303,7 +312,11 @@ Sys_DLL_Unload
 =================
 */
 void Sys_DLL_Unload( uintptr_t handle ) {
+#ifndef __EMSCRIPTEN__
 	dlclose( (void *)handle );
+#else
+	return;
+#endif
 }
 
 /*

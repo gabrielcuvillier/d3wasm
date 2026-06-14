@@ -184,6 +184,7 @@ if the command contains spaces, system() is used. Otherwise the more straightfor
 ==================
 */
 void Sys_DoStartProcess( const char *exeName, bool dofork ) {
+#ifndef __EMSCRIPTEN__
 	bool use_system = false;
 	if ( strchr( exeName, ' ' ) ) {
 		use_system = true;
@@ -234,6 +235,9 @@ void Sys_DoStartProcess( const char *exeName, bool dofork ) {
 		// terminate
 		_exit( 0 );
 	}
+#else
+	_exit( 0 );
+#endif
 }
 
 /*
