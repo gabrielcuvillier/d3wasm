@@ -19,15 +19,15 @@
 
 const char * const cubeMapShaderFP = R"(
 #version 100
-precision mediump float;
+precision highp float;
 
 // In
 varying vec3 var_TexCoord;
-varying lowp vec4 var_Color;
+varying mediump vec4 var_Color;
 
 // Uniforms
 uniform samplerCube u_fragmentCubeMap0;
-uniform lowp vec4 u_glColor;
+uniform mediump vec4 u_glColor;
 
 // Out
 // gl_FragColor

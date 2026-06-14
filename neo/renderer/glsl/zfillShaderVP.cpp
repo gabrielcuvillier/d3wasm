@@ -19,14 +19,14 @@
 
 const char * const zfillShaderVP = R"(
 #version 100
-precision mediump float;
+precision highp float;
 
 // In
-attribute highp vec4 attr_Vertex;
+attribute vec4 attr_Vertex;
 attribute vec4 attr_TexCoord;
         
 // Uniforms
-uniform highp mat4 u_modelViewProjectionMatrix;
+uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
         
 // Out

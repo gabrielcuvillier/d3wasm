@@ -19,15 +19,15 @@
 
 const char * const zfillShaderFP = R"(
 #version 100
-precision mediump float;
+precision highp float;
         
 // In
 varying vec2 var_TexDiffuse;
         
 // Uniforms
 uniform sampler2D u_fragmentMap0;
-uniform lowp float u_alphaTest;
-uniform lowp vec4 u_glColor;
+uniform mediump float u_alphaTest;
+uniform mediump vec4 u_glColor;
         
 // Out
 // gl_FragCoord

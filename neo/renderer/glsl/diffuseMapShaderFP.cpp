@@ -19,15 +19,15 @@
 
 const char * const diffuseMapShaderFP = R"(
 #version 100
-precision mediump float;
+precision highp float;
 
 // In
 varying vec2 var_TexCoord;
-varying lowp vec4 var_Color;
+varying mediump vec4 var_Color;
 
 // Uniforms
 uniform sampler2D u_fragmentMap0;
-uniform lowp vec4 u_glColor;
+uniform mediump vec4 u_glColor;
 
 // Out
 // gl_FragCoord

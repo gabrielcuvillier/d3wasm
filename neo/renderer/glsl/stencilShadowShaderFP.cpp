@@ -19,7 +19,7 @@
 
 const char * const stencilShadowShaderFP = R"(
 #version 100
-precision lowp float;
+precision highp float;
   
 // Out
 // gl_FragColor

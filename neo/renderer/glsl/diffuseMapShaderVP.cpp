@@ -19,23 +19,23 @@
 
 const char * const diffuseMapShaderVP = R"(
 #version 100
-precision mediump float;
+precision highp float;
   
 // In
-attribute highp vec4 attr_Vertex;
-attribute lowp vec4 attr_Color;
+attribute vec4 attr_Vertex;
+attribute mediump vec4 attr_Color;
 attribute vec4 attr_TexCoord;
   
 // Uniforms
-uniform highp mat4 u_modelViewProjectionMatrix;
+uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
-uniform lowp float u_colorAdd;
-uniform lowp float u_colorModulate;
+uniform mediump float u_colorAdd;
+uniform mediump float u_colorModulate;
   
 // Out
 // gl_Position
 varying vec2 var_TexCoord;
-varying lowp vec4 var_Color;
+varying mediump vec4 var_Color;
   
 void main(void)
 {

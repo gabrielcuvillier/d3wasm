@@ -19,13 +19,13 @@
 
 const char * const fogShaderVP = R"(
 #version 100
-precision mediump float;
+precision highp float;
   
 // In
-attribute highp vec4 attr_Vertex;      // input Vertex Coordinates
+attribute vec4 attr_Vertex;      // input Vertex Coordinates
   
 // Uniforms
-uniform highp mat4 u_modelViewProjectionMatrix;
+uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_fogMatrix;        // fogPlanes 0, 1, 3 (CATION: not 2!), 2
   
 // Out
