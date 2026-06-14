@@ -2290,7 +2290,7 @@ idCommonLocal::Async
 =================
 */
 void idCommonLocal::Async(void) {
-  int msec = Sys_Milliseconds();
+  const int msec = Sys_Milliseconds();
   if ( !lastTicMsec ) {
     lastTicMsec = msec - USERCMD_MSEC;
   }
@@ -2304,7 +2304,7 @@ void idCommonLocal::Async(void) {
   int ticMsec = USERCMD_MSEC;
 
   // the number of msec per tic can be varies with the timescale cvar
-  float timescale = com_timescale.GetFloat();
+  const float timescale = com_timescale.GetFloat();
   if ( timescale != 1.0f ) {
     ticMsec /= timescale;
     if ( ticMsec < 1 ) {
