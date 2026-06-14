@@ -70,7 +70,7 @@ NetadrToSockadr
 */
 static void NetadrToSockadr( const netadr_t * a, struct sockaddr_in *s ) {
 	memset(s, 0, sizeof(*s));
-
+#ifndef __EMSCRIPTEN__
 	if ( a->type == NA_BROADCAST ) {
 		s->sin_family = AF_INET;
 
@@ -82,6 +82,7 @@ static void NetadrToSockadr( const netadr_t * a, struct sockaddr_in *s ) {
 		*(int *) &s->sin_addr = *(int *) &a->ip;
 		s->sin_port = htons( (short)a->port );
 	}
+#endif
 }
 
 /*
@@ -90,6 +91,7 @@ SockadrToNetadr
 =============
 */
 static void SockadrToNetadr(struct sockaddr_in *s, netadr_t * a) {
+#ifndef __EMSCRIPTEN__
 	unsigned int ip = *(int *)&s->sin_addr;
 	*(int *)&a->ip = ip;
 	a->port = ntohs( s->sin_port );
@@ -100,6 +102,7 @@ static void SockadrToNetadr(struct sockaddr_in *s, netadr_t * a) {
 	} else {
 		a->type = NA_IP;
 	}
+#endif
 }
 
 /*
@@ -108,6 +111,7 @@ ExtractPort
 =============
 */
 static bool ExtractPort( const char *src, char *buf, int bufsize, int *port ) {
+#ifndef __EMSCRIPTEN__
 	char *p;
 	strncpy( buf, src, bufsize );
 	p = buf; p += Min( bufsize - 1, (int)strlen( src ) ); *p = '\0';
@@ -122,6 +126,9 @@ static bool ExtractPort( const char *src, char *buf, int bufsize, int *port ) {
 		return false;
 	}
 	return true;
+#else
+	return false;
+#endif
 }
 
 /*
@@ -130,6 +137,7 @@ StringToSockaddr
 =============
 */
 static bool StringToSockaddr( const char *s, struct sockaddr_in *sadr, bool doDNSResolve ) {
+#ifndef __EMSCRIPTEN__
 	struct hostent *h;
 	char buf[256];
 	int port;
@@ -164,6 +172,9 @@ static bool StringToSockaddr( const char *s, struct sockaddr_in *sadr, bool doDN
 	}
 
 	return true;
+#else
+	return false;
+#endif
 }
 
 /*
@@ -172,6 +183,7 @@ Sys_StringToAdr
 =============
 */
 bool Sys_StringToNetAdr( const char *s, netadr_t * a, bool doDNSResolve ) {
+#ifndef __EMSCRIPTEN__
 	struct sockaddr_in sadr;
 
 	if ( !StringToSockaddr( s, &sadr, doDNSResolve ) ) {
@@ -180,6 +192,9 @@ bool Sys_StringToNetAdr( const char *s, netadr_t * a, bool doDNSResolve ) {
 
 	SockadrToNetadr( &sadr, a );
 	return true;
+#else
+	return false;
+#endif
 }
 
 /*
@@ -189,7 +204,7 @@ Sys_NetAdrToString
 */
 const char *Sys_NetAdrToString( const netadr_t a ) {
 	static char s[64];
-
+#ifndef __EMSCRIPTEN__
 	if ( a.type == NA_LOOPBACK ) {
 		if ( a.port ) {
 			idStr::snPrintf( s, sizeof(s), "localhost:%i", a.port );
@@ -200,6 +215,9 @@ const char *Sys_NetAdrToString( const netadr_t a ) {
 		idStr::snPrintf( s, sizeof(s), "%i.%i.%i.%i:%i",
 			a.ip[0], a.ip[1], a.ip[2], a.ip[3], a.port );
 	}
+#else
+	s[0] = 0;
+#endif
 	return s;
 }
 
@@ -209,6 +227,7 @@ Sys_IsLANAddress
 ==================
 */
 bool Sys_IsLANAddress( const netadr_t adr ) {
+#ifndef __EMSCRIPTEN__
 	int i;
 	unsigned int ip;
 
@@ -235,7 +254,7 @@ bool Sys_IsLANAddress( const netadr_t adr ) {
 			return true;
 		}
 	}
-
+#endif
 	return false;
 }
 
@@ -247,6 +266,7 @@ Compares without the port
 ===================
 */
 bool Sys_CompareNetAdrBase( const netadr_t a, const netadr_t b ) {
+#ifndef __EMSCRIPTEN__
 	if ( a.type != b.type ) {
 		return false;
 	}
@@ -263,6 +283,7 @@ bool Sys_CompareNetAdrBase( const netadr_t a, const netadr_t b ) {
 	}
 
 	common->Printf( "Sys_CompareNetAdrBase: bad address type\n" );
+#endif
 	return false;
 }
 
@@ -273,12 +294,7 @@ NET_InitNetworking
 */
 void Sys_InitNetworking(void)
 {
-  num_interfaces = 0;
-
-#ifdef __EMSCRIPTEN__
-  // Networking not supported on Emscripten for now
-  return;
-#else
+#ifndef __EMSCRIPTEN__
   unsigned int ip, mask;
   struct ifaddrs *ifap, *ifp;
 
@@ -332,6 +348,7 @@ IPSocket
 ====================
 */
 static int IPSocket( const char *net_interface, int port, netadr_t *bound_to = NULL ) {
+#ifndef __EMSCRIPTEN__
 	int newsocket;
 	struct sockaddr_in address;
 	int i = 1;
@@ -348,17 +365,12 @@ static int IPSocket( const char *net_interface, int port, netadr_t *bound_to = N
 	}
 	// make it non-blocking
 	int on = 1;
-#ifdef __EMSCRIPTEN__
-  common->Printf( "ERROR: IPSocket: ioctl FIONBIO:%s\n",
-				   strerror( errno ) );
-	return 0;
-#else
+
 	if ( ioctl( newsocket, FIONBIO, &on ) == -1 ) {
 		common->Printf( "ERROR: IPSocket: ioctl FIONBIO:%s\n",
 				   strerror( errno ) );
 		return 0;
 	}
-#endif
 	// make it broadcast capable
 	if ( setsockopt( newsocket, SOL_SOCKET, SO_BROADCAST, (char *) &i, sizeof(i) ) == -1 ) {
 		common->Printf( "ERROR: IPSocket: setsockopt SO_BROADCAST:%s\n", strerror( errno ) );
@@ -397,6 +409,9 @@ static int IPSocket( const char *net_interface, int port, netadr_t *bound_to = N
 	}
 
 	return newsocket;
+#else
+	return NULL;
+#endif
 }
 
 /*
@@ -437,6 +452,7 @@ idPort::GetPacket
 ==================
 */
 bool idPort::GetPacket( netadr_t &net_from, void *data, int &size, int maxSize ) {
+#ifndef __EMSCRIPTEN__
 	int ret;
 	struct sockaddr_in from;
 	int fromlen;
@@ -462,6 +478,9 @@ bool idPort::GetPacket( netadr_t &net_from, void *data, int &size, int maxSize )
 	SockadrToNetadr( &from, &net_from );
 	size = ret;
 	return true;
+#else
+	return false;
+#endif
 }
 
 /*
@@ -470,6 +489,7 @@ idPort::GetPacketBlocking
 ==================
 */
 bool idPort::GetPacketBlocking( netadr_t &net_from, void *data, int &size, int maxSize, int timeout ) {
+#ifndef __EMSCRIPTEN__
 	fd_set				set;
 	struct timeval		tv;
 	int					ret;
@@ -514,6 +534,9 @@ bool idPort::GetPacketBlocking( netadr_t &net_from, void *data, int &size, int m
 	SockadrToNetadr( &from, &net_from );
 	size = ret;
 	return true;
+#else
+	return false;
+#endif
 }
 
 /*
@@ -522,6 +545,7 @@ idPort::SendPacket
 ==================
 */
 void idPort::SendPacket( const netadr_t to, const void *data, int size ) {
+#ifndef __EMSCRIPTEN__
 	int ret;
 	struct sockaddr_in addr;
 
@@ -540,6 +564,7 @@ void idPort::SendPacket( const netadr_t to, const void *data, int size ) {
 	if ( ret == -1 ) {
 		common->Printf( "idPort::SendPacket ERROR: to %s: %s\n", Sys_NetAdrToString( to ), strerror( errno ) );
 	}
+#endif
 }
 
 /*
@@ -548,6 +573,7 @@ idPort::InitForPort
 ==================
 */
 bool idPort::InitForPort( int portNumber ) {
+#ifndef __EMSCRIPTEN__
 	netSocket = IPSocket( net_ip.GetString(), portNumber, &bound_to );
 	if ( netSocket <= 0 ) {
 		netSocket = 0;
@@ -555,6 +581,9 @@ bool idPort::InitForPort( int portNumber ) {
 		return false;
 	}
 	return true;
+#else
+	return false;
+#endif
 }
 
 //=============================================================================
@@ -584,6 +613,7 @@ idTCP::Init
 ==================
 */
 bool idTCP::Init( const char *host, short port ) {
+#ifndef __EMSCRIPTEN__
 	struct sockaddr_in sadr;
 	if ( !Sys_StringToNetAdr( host, &address, true ) ) {
 		common->Printf( "Couldn't resolve server name \"%s\"\n", host );
@@ -628,6 +658,9 @@ bool idTCP::Init( const char *host, short port ) {
 
 	common->DPrintf("Opened TCP connection\n");
 	return true;
+#else
+	return false;
+#endif
 }
 
 /*
@@ -636,10 +669,12 @@ idTCP::Close
 ==================
 */
 void idTCP::Close() {
+#ifndef __EMSCRIPTEN__
 	if (fd) {
 		close(fd);
 	}
 	fd = 0;
+#endif
 }
 
 /*
@@ -648,6 +683,7 @@ idTCP::Read
 ==================
 */
 int idTCP::Read(void *data, int size) {
+#ifndef __EMSCRIPTEN__
 	int nbytes;
 
 	if (!fd) {
@@ -679,6 +715,9 @@ int idTCP::Read(void *data, int size) {
 	}
 
 	return nbytes;
+#else
+	return 0;
+#endif
 }
 
 /*
@@ -692,6 +731,7 @@ static void got_SIGPIPE( int signum ) {
 }
 
 int	idTCP::Write(void *data, int size) {
+#ifndef __EMSCRIPTEN__
 	int nbytes;
 
 	if ( !fd ) {
@@ -733,4 +773,7 @@ int	idTCP::Write(void *data, int size) {
 	}
 
 	return nbytes;
+#else
+	return 0;
+#endif
 }
