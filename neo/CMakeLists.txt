@@ -180,8 +180,6 @@ if (EMSCRIPTEN)
     #add_link_options(-sBINARYEN_EXTRA_PASSES=--one-caller-inline-max-function-size=15)
     add_link_options(-sASYNCIFY_ONLY=@${CMAKE_SOURCE_DIR}/sys/wasm/asyncify.txt)
     add_link_options(-sEXIT_RUNTIME=0)   # Don't exit the runtime
-    # D3 uses its own optimized memory allocator, build on top of malloc.
-    # while dlmalloc might be a bit bigger in size than emmalloc, it is more efficient with the optimized memory allocator
     add_link_options(-sMALLOC=dlmalloc)
     add_link_options(-sENVIRONMENT=web)
     add_link_options(-sSTRICT=1)
@@ -248,7 +246,6 @@ if (NOT EMSCRIPTEN)
 endif ()
 
 set(src_renderer_glsl
-        renderer/glsl/glsl_shaders.h
         renderer/glsl/cubeMapShaderFP.cpp
         renderer/glsl/diffuseMapShaderVP.cpp
         renderer/glsl/diffuseCubeShaderVP.cpp
@@ -280,7 +277,7 @@ set(src_renderer
         renderer/Image_program.cpp
         renderer/Interaction.cpp
         renderer/Material.cpp
-        renderer/MegaTexture.cpp
+        #renderer/MegaTexture.cpp
         renderer/Model.cpp
         renderer/ModelDecal.cpp
         renderer/ModelManager.cpp
@@ -379,19 +376,19 @@ set(src_cm
 add_globbed_headers(src_cm "cm")
 
 set(src_aas
-        tools/compilers/aas/AASBuild.cpp
-        tools/compilers/aas/AASBuild_file.cpp
-        tools/compilers/aas/AASBuild_gravity.cpp
-        tools/compilers/aas/AASBuild_ledge.cpp
-        tools/compilers/aas/AASBuild_merge.cpp
-        tools/compilers/aas/AASCluster.cpp
+        #tools/compilers/aas/AASBuild.cpp
+        #tools/compilers/aas/AASBuild_file.cpp
+        #tools/compilers/aas/AASBuild_gravity.cpp
+        #tools/compilers/aas/AASBuild_ledge.cpp
+        #tools/compilers/aas/AASBuild_merge.cpp
+        #tools/compilers/aas/AASCluster.cpp
         tools/compilers/aas/AASFile.cpp
-        tools/compilers/aas/AASFile_optimize.cpp
+        #tools/compilers/aas/AASFile_optimize.cpp
         tools/compilers/aas/AASFile_sample.cpp
-        tools/compilers/aas/AASReach.cpp
+        #tools/compilers/aas/AASReach.cpp
         tools/compilers/aas/AASFileManager.cpp
-        tools/compilers/aas/Brush.cpp
-        tools/compilers/aas/BrushBSP.cpp
+        #tools/compilers/aas/Brush.cpp
+        #tools/compilers/aas/BrushBSP.cpp
 )
 
 add_globbed_headers(src_aas "tools/compilers/aas")
@@ -399,7 +396,7 @@ add_globbed_headers(src_aas "tools/compilers/aas")
 set(src_snd
         sound/snd_cache.cpp
         sound/snd_decoder.cpp
-        sound/snd_efxfile.cpp
+        #sound/snd_efxfile.cpp
         sound/snd_emitter.cpp
         sound/snd_shader.cpp
         sound/snd_system.cpp
@@ -522,7 +519,7 @@ set(src_game
         game/ai/AI_events.cpp
         game/ai/AI_pathing.cpp
         game/ai/AI_Vagary.cpp
-        game/gamesys/DebugGraph.cpp
+        #game/gamesys/DebugGraph.cpp
         game/gamesys/Class.cpp
         game/gamesys/Event.cpp
         game/gamesys/SaveGame.cpp
