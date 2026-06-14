@@ -591,7 +591,7 @@ void idSessionLocal::HandleMainMenuCommands( const char *menuCommand ) {
 			// is "however long map load took" time in the past
 			common->GUIFrame( false, false );
 #ifdef __EMSCRIPTEN__
-      emscripten_sleep(1);
+      //emscripten_sleep(1);
 #endif
       SetGUI( guiIntro, NULL );
 			guiIntro->StateChanged( com_frameTime, true );
@@ -1339,14 +1339,14 @@ const char* idSessionLocal::MessageBox( msgBoxType_t type, const char *message, 
 		msgIgnoreButtons = true;
 		common->GUIFrame( true, network );
 #ifdef __EMSCRIPTEN__
-    emscripten_sleep(1);
+    //emscripten_sleep(1);
 #endif
     msgIgnoreButtons = false;
 		while ( msgRunning ) {
 			common->GUIFrame( true, network );
 #ifdef __EMSCRIPTEN__
       // Yield case: local graphic update inside subloop
-      emscripten_sleep( 1000.0/60.0 );
+      //emscripten_sleep( 1000.0/60.0 );
 #endif
 		}
 		if ( msgRetIndex < 0 ) {
@@ -1419,7 +1419,7 @@ void idSessionLocal::DownloadProgressBox( backgroundDownload_t *bgl, const char 
 			common->GUIFrame( true, false );
 #ifdef __EMSCRIPTEN__
       // Yield case: local graphic update inside subloop
-      emscripten_sleep( 1000.0/60.0 );
+      //emscripten_sleep( 1000.0/60.0 );
 #endif
 			if ( bgl->completed ) {
 				guiActive = guiMsgRestore;

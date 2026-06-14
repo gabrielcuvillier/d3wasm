@@ -802,13 +802,6 @@ void idCommonLocal::Quit(void) {
 
 #ifdef __EMSCRIPTEN__
   // Sync IDBFS so that changes in the memory filesystem are updated to the IndexedDB store
-
-  EM_ASM(
-    console.info('Syncing user home to IDBFS....');
-    FS.syncfs(false, function(err) {
-      console.info("Syncing done.");
-    });
-  );
 #endif
 
   Sys_Quit();
@@ -1110,13 +1103,6 @@ void idCommonLocal::WriteConfiguration(void) {
 #ifdef __EMSCRIPTEN__
   // If there is some configuration file changes, sync IDBFS so that changes
   // in the memory filesystem are updated to the IndexedDB store
-
-  EM_ASM(
-      console.info('Syncing user home to IDBFS....');
-      FS.syncfs(false, function(err) {
-        console.info("Syncing done.");
-      });
-    );
 #endif
 }
 
@@ -2099,7 +2085,7 @@ void idCommonLocal::PrintLoadingMessage(const char* msg) {
 
 #ifdef __EMSCRIPTEN__
   // Yield case: local graphics update outside of the main loop
-  emscripten_sleep(1);
+  //emscripten_sleep(1);
 #endif
 }
 
@@ -2709,11 +2695,17 @@ void idCommonLocal::InitGame(void) {
   // initialize the file system
   fileSystem->Init();
 
+  printf("je suis la\n");
+  emscripten_sleep(1000);
+
   // initialize the declaration manager
   declManager->Init();
 
   // force r_fullscreen 0 if running a tool
   CheckToolMode();
+
+  printf("je suis ici\n");
+  emscripten_sleep(1000);
 
   idFile* file = fileSystem->OpenExplicitFileRead(fileSystem->RelativePathToOSPath(CONFIG_SPEC, "fs_configpath"));
   bool sysDetect = ( file == NULL );
@@ -2733,6 +2725,10 @@ void idCommonLocal::InitGame(void) {
 
   // initialize the renderSystem data structures, but don't start OpenGL yet
   renderSystem->Init();
+
+
+  printf("je suis beau\n");
+  emscripten_sleep(1000);
 
   // initialize string database right off so we can use it for loading messages
   InitLanguageDict();

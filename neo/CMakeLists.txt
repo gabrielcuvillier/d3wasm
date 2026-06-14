@@ -172,18 +172,24 @@ if (EMSCRIPTEN)
     #add_link_options(---pre-js ${CMAKE_SOURCE_DIR}/sys/wasm/pre-chunked.js)
     #add_link_options(---post-js ${CMAKE_SOURCE_DIR}/sys/wasm/post-chunked.js)
     # full data preload
-    add_link_options(--pre-js ${CMAKE_SOURCE_DIR}/sys/wasm/pre-full.js)
+    # add_link_options(--pre-js ${CMAKE_SOURCE_DIR}/sys/wasm/pre-full.js)
     add_link_options(--shell-file ${CMAKE_SOURCE_DIR}/sys/wasm/shell.html)
-    add_link_options(-sINITIAL_MEMORY=402653184) # 384MB. Going below 320MB lead to crashes after a couple of levels played.
+    add_link_options(-sINITIAL_MEMORY=536870912) # 384MB. Going below 320MB lead to crashes after a couple of levels played.
     add_link_options(-sASYNCIFY=1)
+    add_link_options(-sASYNCIFY_DEBUG=0)
+    #add_link_options(-sASYNCIFY_ADVISE=1)
+    add_link_options(-sWASMFS=1)
     add_link_options(-sSTACK_SIZE=327680)  # 320K. Mostly because of large buffer on stack created in R_Specular2DTableImage()
     #add_link_options(-sBINARYEN_EXTRA_PASSES=--one-caller-inline-max-function-size=15)
     add_link_options(-sASYNCIFY_ONLY=@${CMAKE_SOURCE_DIR}/sys/wasm/asyncify.txt)
+    #add_link_options(-sASYNCIFY_STACK_SIZE=8192)
+    #add_link_options(-sASYNCIFY_ADVISE=1)
     add_link_options(-sEXIT_RUNTIME=0)   # Don't exit the runtime
     add_link_options(-sMALLOC=dlmalloc)
     add_link_options(-sENVIRONMENT=web)
     add_link_options(-sSTRICT=1)
-    add_link_options(-sINCOMING_MODULE_JS_API=preRun) # workaround for STRICT=1 disabling pre-js and post-js files loading
+    add_link_options(-sASSERTIONS=1)
+    add_link_options(-sINCOMING_MODULE_JS_API=canvas,monitorRunDependencies,preRun,postRun,print,printErr,setStatus) # workaround for STRICT=1 disabling pre-js and post-js files loading
     add_link_options(-sFORCE_FILESYSTEM=1)
     add_link_options(--use-port=sdl2)
     add_link_options(--use-port=zlib)
@@ -194,9 +200,9 @@ if (EMSCRIPTEN)
     add_link_options(-lEGL)       # EGL
     add_link_options(-lGL)        # WebGL
     add_link_options(-lhtml5)     # HTML 5 API
-    add_link_options(-lfs.js)     # Filesystem core functionality
-    add_link_options(-lmemfs.js)  # in-memory filesystem
-    add_link_options(-lidbfs.js)  # in-memory filesystem + idb persistency (used in pre.js for "web_user" folder)
+    #add_link_options(-lfs.js)     # Filesystem core functionality
+    #add_link_options(-lmemfs.js)  # in-memory filesystem
+    #add_link_options(-lidbfs.js)  # in-memory filesystem + idb persistency (used in pre.js for "web_user" folder)
 endif ()
 
 # fallback for cmake versions without GNUInstallDirs

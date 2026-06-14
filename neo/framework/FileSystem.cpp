@@ -2635,7 +2635,84 @@ Called only at inital startup, not when the filesystem
 is resetting due to a game change
 ================
 */
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten/wasmfs.h>
+#include <emscripten/emscripten.h>
+#endif
 void idFileSystemLocal::Init( void ) {
+
+	backend_t backend = wasmfs_create_opfs_backend();
+	int err = 0;
+
+	err = wasmfs_create_directory("/", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf( "Warning 0: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/usr", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf( "Warning 1: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/usr/local", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 2: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/usr/local/share", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 3: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/usr/local/share/d3wasm", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 4: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/usr/local/share/d3wasm/base", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 5: OPFS mount returned %d (errno=%d)\n", err, errno);
+	common->DPrintf("tourte\n");
+
+	err = wasmfs_create_directory("/home", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 6: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/home/web_user", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 7: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/home/web_user/.config", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 8: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/home/web_user/.local", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 9: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/home/web_user/.local/d3wasm", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 10: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = wasmfs_create_directory("/home/web_user/.local/d3wasm/base", 0777, backend);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 11: OPFS mount returned %d (errno=%d)\n", err, errno);
+
+	FILE* f = NULL;
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak000.pk4", "r")))
+		emscripten_wget("data/base/pak000.pk4", "/usr/local/share/d3wasm/base/pak000.pk4");
+	else fclose(f);
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak001.pk4", "r")))
+		emscripten_wget("data/base/pak001.pk4", "/usr/local/share/d3wasm/base/pak001.pk4");
+	else fclose(f);
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak002.pk4", "r")))
+		emscripten_wget("data/base/pak002.pk4", "/usr/local/share/d3wasm/base/pak002.pk4");
+	else fclose(f);
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak003.pk4", "r")))
+		emscripten_wget("data/base/pak003.pk4", "/usr/local/share/d3wasm/base/pak003.pk4");
+	else fclose(f);
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak004.pk4", "r")))
+		emscripten_wget("data/base/pak004.pk4", "/usr/local/share/d3wasm/base/pak004.pk4");
+	else fclose(f);
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak005.pk4", "r")))
+		emscripten_wget("data/base/pak005.pk4", "/usr/local/share/d3wasm/base/pak005.pk4");
+	else fclose(f);
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak006.pk4", "r")))
+		emscripten_wget("data/base/pak006.pk4", "/usr/local/share/d3wasm/base/pak006.pk4");
+	else fclose(f);
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak007.pk4", "r")))
+		emscripten_wget("data/base/pak007.pk4", "/usr/local/share/d3wasm/base/pak007.pk4");
+	else fclose(f);
+	//if (!(f = fopen("/usr/local/share/d3wasm/base/pak008.pk4", "r")))
+		emscripten_wget("data/base/pak008.pk4", "/usr/local/share/d3wasm/base/pak008.pk4");
+	//else fclose(f);
+
 	// allow command line parms to override our defaults
 	// we have to specially handle this, because normal command
 	// line variable sets don't happen until after the filesystem
@@ -3454,7 +3531,7 @@ void idFileSystemLocal::StartBackgroundDownloadThread() {
 		backgroundThread_exit = false;
 	}
 	else {
-		common->Printf( "background thread already running\n" );
+		common->Printf( "background thread is not running\n" );
 	}
 #else
 	if ( !backgroundThread.threadHandle ) {

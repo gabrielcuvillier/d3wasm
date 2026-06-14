@@ -1,60 +1,172 @@
-Com_ReloadEngine_f(idCmdArgs const&)
-dynCall_v
+(anonymous namespace)::OPFSBackend::createDirectory(unsigned int)
+(anonymous namespace)::OPFSDirectory::getChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)
+(anonymous namespace)::OPFSDirectory::getEntries()
+(anonymous namespace)::OPFSDirectory::insertDataFile(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, unsigned int)
+(anonymous namespace)::OPFSDirectory::insertDirectory(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, unsigned int)
+(anonymous namespace)::OPFSDirectory::insertMove(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, std::__2::shared_ptr<wasmfs::File>)
+(anonymous namespace)::OPFSDirectory::removeChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)
+(anonymous namespace)::OPFSFile::close()
+(anonymous namespace)::OPFSFile::flush()
+(anonymous namespace)::OPFSFile::getSize()
+(anonymous namespace)::OPFSFile::open(unsigned int)
+(anonymous namespace)::OPFSFile::read(unsigned char*, unsigned long, long long)
+(anonymous namespace)::OPFSFile::setSize(long long)
+(anonymous namespace)::OPFSFile::write(unsigned char const*, unsigned long, long long)
+Sys_FileTimeStamp(_IO_FILE*)
+Sys_GetPath(sysPath_t, idStr&)
+Sys_ListFiles(char const*, char const*, idList<idStr>&)
+Sys_Mkdir(char const*)
+__fstat
+__fstatat
+__stdio_close
+__stdio_read
+__stdio_write
+__syscall_chdir
+__syscall_chmod
+__syscall_fchmodat2
+__syscall_fstat64
+__syscall_lstat64
+__syscall_mkdirat
+__syscall_mknodat
+__syscall_msync
+__syscall_munmap
+__syscall_newfstatat
+__syscall_openat
+__syscall_readlinkat
+__syscall_renameat
+__syscall_rmdir
+__syscall_stat64
+__syscall_symlinkat
+__syscall_truncate64
+__syscall_unlinkat
+__syscall_utimensat
+__wasi_fd_close
+__wasi_fd_pwrite
+__wasi_fd_read
+__wasi_fd_write
+__wasm_call_ctors
+_msync_js
+_munmap_js
+_wasmfs_chdir
+_wasmfs_chmod
+_wasmfs_close
+_wasmfs_identify
+_wasmfs_lchmod
+_wasmfs_lstat
+_wasmfs_mkdir
+_wasmfs_mknod
+_wasmfs_mount
+_wasmfs_msync
+_wasmfs_munmap
+_wasmfs_open
+_wasmfs_pwrite
+_wasmfs_read_file
+_wasmfs_readdir_start
+_wasmfs_readlink
+_wasmfs_rename
+_wasmfs_rmdir
+_wasmfs_stat
+_wasmfs_symlink
+_wasmfs_truncate
+_wasmfs_unlink
+_wasmfs_utime
+_wasmfs_write
+_wasmfs_write_file
+call_zopen64
+close
+closedir
+doMkdir(wasmfs::path::ParsedParent, int, wasmfs::Backend*)
+doOpen(wasmfs::path::ParsedParent, int, unsigned int, wasmfs::Backend*, OpenReturnMode)
 emloopcb
-idAsyncClient::HandleDownloads()
-idAsyncClient::RunFrame()
-idCmdSystemLocal::ExecuteCommandBuffer()
-idSessionLocal::UnloadMap()
-idCmdSystemLocal::ExecuteTokenizedString(idCmdArgs const&)
-idCommonLocal::Frame()
-idCommonLocal::GUIFrame(bool, bool)
+emscripten_wget
+fcntl
+fopen
+fopen64_file_func
+fread
+fread_file_func
 idCommonLocal::Init(int, char**)
 idCommonLocal::InitGame()
-idCommonLocal::InitRenderSystem()
-idCommonLocal::PrintLoadingMessage(char const*)
-idEventLoop::ProcessEvent(sysEvent_t)
-idSessionLocal::ProcessEvent(sysEvent_t const*)
-idEventLoop::RunEventLoop(bool)
-idGameLocal::InitFromNewMap(char const*, idRenderWorld*, idSoundWorld*, bool, bool, int)
-idGameLocal::LoadMap(char const*, int)
-idGameLocal::MapPopulate()
-idGameLocal::SpawnMapEntities()
-idImageManager::EndLevelLoad()
-idRenderModelManagerLocal::EndLevelLoad()
-idRenderSystemLocal::EndLevelLoad()
-idSessionLocal::AdvanceRenderDemo(bool)
-idSessionLocal::CompleteWipe()
-idSessionLocal::DispatchCommand(idUserInterface*, char const*, bool)
-idSessionLocal::DownloadProgressBox(backgroundDownload_t*, char const*, int, int)
-idSessionLocal::ExecuteMapChange(bool)
-idSessionLocal::Frame()
-idSessionLocal::GuiFrameEvents()
-idSessionLocal::HandleMainMenuCommands(char const*)
-idSessionLocal::HandleMsgCommands(char const*)
-idSessionLocal::HandleRestartMenuCommands(char const*)
-idSessionLocal::HandleSaveGameMenuCommand(idCmdArgs&, int&)
-idSessionLocal::LoadGame(char const*)
-idSessionLocal::MenuEvent(sysEvent_t const*)
-idSessionLocal::MessageBox(msgBoxType_t, char const*, char const*, bool, char const*, char const*, bool)
-idSessionLocal::MoveToNewMap(char const*)
-idSessionLocal::ProcessEvent(sysEvent_t const*)
-idSessionLocal::SaveGame(char const*, bool)
-idSessionLocal::ShowLoadingGui()
-idSessionLocal::StartMenu(bool)
-idSessionLocal::StartNewGame(char const*, bool)
-idSessionLocal::StartPlayingCmdDemo(char const*)
-idSessionLocal::StartPlayingRenderDemo(idStr)
-idSessionLocal::Stop()
-idSessionLocal::StopBox()
-idSessionLocal::StopPlayingRenderDemo()
-idSessionLocal::TimeCmdDemo(char const*)
-idSessionLocal::TimeRenderDemo(char const*, bool)
-LoadGame_f(idCmdArgs const&)
+idFileSystemLocal::AddGameDirectory(char const*, char const*)
+idFileSystemLocal::AddZipFile(char const*)
+idFileSystemLocal::CopyFile(char const*, char const*)
+idFileSystemLocal::CreateOSPath(char const*)
+idFileSystemLocal::DirTree_f(idCmdArgs const&)
+idFileSystemLocal::Dir_f(idCmdArgs const&)
+idFileSystemLocal::FindDLL(char const*, char*)
+idFileSystemLocal::GetFileList(char const*, idList<idStr> const&, idList<idStr>&, idHashIndex&, bool, char const*)
+idFileSystemLocal::GetFileListTree(char const*, idList<idStr> const&, idList<idStr>&, idHashIndex&, char const*)
+idFileSystemLocal::HasD3XP()
+idFileSystemLocal::Init()
+idFileSystemLocal::ListFiles(char const*, char const*, bool, bool, char const*)
+idFileSystemLocal::ListFilesTree(char const*, char const*, bool, char const*)
+idFileSystemLocal::ListMods()
+idFileSystemLocal::ListOSFiles(char const*, char const*, idList<idStr>&)
+idFileSystemLocal::LoadZipFile(char const*)
+idFileSystemLocal::MakeTemporaryFile()
+idFileSystemLocal::OpenExplicitFileRead(char const*)
+idFileSystemLocal::OpenExplicitFileWrite(char const*)
+idFileSystemLocal::OpenFileAppend(char const*, bool, char const*)
+idFileSystemLocal::OpenFileReadFlags(char const*, int, pack_t**, bool, char const*)
+idFileSystemLocal::OpenFileRead(char const*, bool, char const*)
+idFileSystemLocal::OpenFileWrite(char const*, char const*)
+idFileSystemLocal::OpenOSFile(char const*, char const*, idStr*)
+idFileSystemLocal::OpenOSFileCorrectName(idStr&, char const*)
+idFileSystemLocal::RemoveFile(char const*)
+idFileSystemLocal::Restart()
+idFileSystemLocal::SetupGameDirectories(char const*)
+idFileSystemLocal::Startup()
+idFileSystemLocal::WriteFile(char const*, void const*, int, char const*)
+idFileSystemLocal::ReadFile(char const*, void**, long long*)
 main
-Session_DevMap_f(idCmdArgs const&)
-Session_Map_f(idCmdArgs const&)
-Session_NextMap_f(idCmdArgs const&)
-Session_PromptKey_f(idCmdArgs const&)
-Session_TimeCmdDemo_f(idCmdArgs const&)
-Session_TimeDemo_f(idCmdArgs const&)
-Session_TimeDemoQuit_f(idCmdArgs const&)
+mkdir
+open
+opendir
+readAtOffset(OffsetHandling, unsigned int, __wasi_iovec_t const*, unsigned long, unsigned long*, unsigned long long)
+readdir
+readlink
+realpath
+remove
+scandir
+stat
+tmpfile
+unz64local_GetCurrentFileInfoInternal(void*, unz_file_info64_s*, unz_file_info64_internal_s*, char*, unsigned long, void*, unsigned long, char*, unsigned long)
+unz64local_SearchCentralDir(zlib_filefunc64_32_def_s const*, void*)
+unz64local_SearchCentralDir64(zlib_filefunc64_32_def_s const*, void*)
+unz64local_getByte(zlib_filefunc64_32_def_s const*, void*, int*)
+unz64local_getLong(zlib_filefunc64_32_def_s const*, void*, unsigned long*)
+unz64local_getShort(zlib_filefunc64_32_def_s const*, void*, unsigned long*)
+unzClose
+unzCloseCurrentFile
+unzGetCurrentFileInfo64
+unzGetGlobalInfo64
+unzGoToFirstFile
+unzGoToNextFile
+unzOpen
+unzOpenCurrentFile
+unzOpenCurrentFile3
+unzOpenInternal(void const*, zlib_filefunc64_32_def_s*, int)
+unzReOpen
+unzReadCurrentFile
+unzSetOffset64
+wasmfs::DataFile::Handle::close()
+wasmfs::DataFile::Handle::open(unsigned int)
+wasmfs::DataFile::Handle::preloadFromJS(int)
+wasmfs::DataFile::Handle::read(unsigned char*, unsigned long, long long)
+wasmfs::DataFile::Handle::write(unsigned char const*, unsigned long, long long)
+wasmfs::Directory::Handle::getChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)
+wasmfs::Directory::Handle::getEntries()
+wasmfs::FileTable::FileTable()
+wasmfs::OpenFileState::create(std::__2::shared_ptr<wasmfs::File>, unsigned int, std::__2::shared_ptr<wasmfs::OpenFileState>&)
+wasmfs::WasmFS::preloadFiles()
+wasmfs::path::(anonymous namespace)::doParseFile(std::__2::basic_string_view<char, std::__2::char_traits<char>>, std::__2::shared_ptr<wasmfs::Directory>, wasmfs::path::LinkBehavior, unsigned long&)
+wasmfs::path::(anonymous namespace)::doParseParent(std::__2::basic_string_view<char, std::__2::char_traits<char>>, std::__2::shared_ptr<wasmfs::Directory>, unsigned long&)
+wasmfs::path::(anonymous namespace)::getChild(std::__2::shared_ptr<wasmfs::Directory>, std::__2::basic_string_view<char, std::__2::char_traits<char>>, wasmfs::path::LinkBehavior, unsigned long&)
+wasmfs::path::getFileAt(unsigned int, std::__2::basic_string_view<char, std::__2::char_traits<char>>, int)
+wasmfs::path::getFileFrom(std::__2::shared_ptr<wasmfs::Directory>, std::__2::basic_string_view<char, std::__2::char_traits<char>>)
+wasmfs::path::parseFile(std::__2::basic_string_view<char, std::__2::char_traits<char>>, unsigned int, wasmfs::path::LinkBehavior)
+wasmfs::path::parseParent(std::__2::basic_string_view<char, std::__2::char_traits<char>>, unsigned int)
+wasmfs_create_directory
+wasmfs_create_file
+wasmfs_unmount
+write
+writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)

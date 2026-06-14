@@ -603,12 +603,6 @@ void idGameLocal::SaveGame( idFile *f ) {
 	savegame.Close();
 
 #ifdef __EMSCRIPTEN__
-	EM_ASM(
-			console.info('Syncing user home to IDBFS....');
-			FS.syncfs(false, function(err) {
-				console.info("Syncing done.");
-			});
-		);
 #endif
 }
 
@@ -3133,7 +3127,7 @@ void idGameLocal::SpawnMapEntities( void ) {
 				session->PacifierUpdate();
 #ifdef __EMSCRIPTEN__
 				// Yield case: local graphics update in a long process in main loop
-				emscripten_sleep(1);
+				//emscripten_sleep(1);
 #endif
 			}
 
