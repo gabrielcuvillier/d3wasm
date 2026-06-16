@@ -177,7 +177,7 @@ if (EMSCRIPTEN)
     add_link_options(-sINITIAL_MEMORY=536870912) # 384MB. Going below 320MB lead to crashes after a couple of levels played.
     add_link_options(-sASYNCIFY=1)
     add_link_options(-sASYNCIFY_DEBUG=0)
-    #add_link_options(-sASYNCIFY_ADVISE=1)
+    add_link_options(-sASYNCIFY_ADVISE=0)
     add_link_options(-sWASMFS=1)
     add_link_options(-sSTACK_SIZE=327680)  # 320K. Mostly because of large buffer on stack created in R_Specular2DTableImage()
     #add_link_options(-sBINARYEN_EXTRA_PASSES=--one-caller-inline-max-function-size=15)
