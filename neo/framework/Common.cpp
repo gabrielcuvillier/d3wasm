@@ -94,9 +94,14 @@ idCVar com_preciseTic("com_preciseTic", "1", CVAR_BOOL | CVAR_SYSTEM, "run one g
 idCVar com_asyncInput("com_asyncInput", "0", CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
 idCVar com_asyncSound("com_asyncSound", "0", CVAR_INTEGER | CVAR_SYSTEM,
                       "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
+#ifdef __EMSCRIPTEN__
+idCVar com_forceGenericSIMD("com_forceGenericSIMD", "1", CVAR_ROM | CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
+                            "force generic platform independent SIMD");
+#else
 idCVar com_forceGenericSIMD("com_forceGenericSIMD", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                             "force generic platform independent SIMD");
-idCVar com_developer("developer", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "developer mode");
+#endif
+idCVar com_developer("developer", "1", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "developer mode");
 idCVar com_allowConsole("com_allowConsole", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                         "allow toggling console with the tilde key");
 idCVar com_speeds("com_speeds", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "show engine timings");
@@ -661,10 +666,11 @@ void idCommonLocal::Error(const char* fmt, ...) {
 
   // when we are running automated scripts, make sure we
   // know if anything failed
+#ifndef __EMSCRIPTEN__
   if ( cvarSystem->GetCVarInteger("fs_copyfiles")) {
     code = ERP_FATAL;
   }
-
+#endif
   // if we don't have GL running, make it a fatal error
   if ( !renderSystem->IsOpenGLRunning()) {
     code = ERP_FATAL;
@@ -1311,7 +1317,7 @@ void Com_ExecMachineSpec_f(const idCmdArgs& args) {
   // GAB NOTE Dec 2018: Specific configuration for emscripten
   if ( com_machineSpec.GetInteger() == 4 ) {
     cvarSystem->SetCVarInteger("image_anisotropy", 8, CVAR_ARCHIVE);
-    cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ARCHIVE);
+    cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ROM | CVAR_ARCHIVE);
     cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
     cvarSystem->SetCVarInteger("r_mode", 5, CVAR_ARCHIVE);
 // These CVAR are read only
@@ -2695,17 +2701,11 @@ void idCommonLocal::InitGame(void) {
   // initialize the file system
   fileSystem->Init();
 
-  printf("je suis la\n");
-  emscripten_sleep(1000);
-
   // initialize the declaration manager
   declManager->Init();
 
   // force r_fullscreen 0 if running a tool
   CheckToolMode();
-
-  printf("je suis ici\n");
-  emscripten_sleep(1000);
 
   idFile* file = fileSystem->OpenExplicitFileRead(fileSystem->RelativePathToOSPath(CONFIG_SPEC, "fs_configpath"));
   bool sysDetect = ( file == NULL );
@@ -2725,10 +2725,6 @@ void idCommonLocal::InitGame(void) {
 
   // initialize the renderSystem data structures, but don't start OpenGL yet
   renderSystem->Init();
-
-
-  printf("je suis beau\n");
-  emscripten_sleep(1000);
 
   // initialize string database right off so we can use it for loading messages
   InitLanguageDict();
