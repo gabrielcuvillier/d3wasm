@@ -745,9 +745,12 @@ Automatically enables 2D mapping, cube mapping, or 3D texturing if needed
 void idImage::Bind() {
 	// load the image if necessary (FIXME: not SMP safe!)
 	if ( texnum == TEXTURE_NOT_LOADED ) {
-
+#ifdef __EMSCRIPTEN__
+		return;
+#else
 		// load the image on demand here, which isn't our normal game operating mode
 		ActuallyLoadImage( true );
+#endif
 	}
 
 
@@ -775,8 +778,12 @@ void idImage::BindFragment() {
 
 	// load the image if necessary (FIXME: not SMP safe!)
 	if ( texnum == TEXTURE_NOT_LOADED ) {
+#ifdef __EMSCRIPTEN__
+		return;
+#else
 		// load the image on demand here, which isn't our normal game operating mode
 		ActuallyLoadImage( true );
+#endif
 	}
 
 
