@@ -35,7 +35,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 #define GAME_NAME						"d3wasm"		// appears on window titles and errors
 
-#define ENGINE_VERSION					"d3wasm 0.4"	// printed in console
+#define ENGINE_VERSION					"d3wasm 0.5+wasmfs"	// printed in console
 
 // paths
 #define	BASE_GAMEDIR					"base"
