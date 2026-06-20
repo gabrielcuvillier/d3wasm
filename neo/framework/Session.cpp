@@ -529,7 +529,7 @@ __attribute__((noinline)) void idSessionLocal::CompleteWipe() {
     UpdateScreen(true);
 #ifdef __EMSCRIPTEN__
     // Yield case: local graphic update inside subloop
-    //emscripten_sleep(1000.0/60.0);
+    emscripten_sleep(1000.0/60.0);
 #endif
 #ifdef NOMT
     common->Async();                          // com_ticNumber is used locally, be sure to run the timer to make things move on
@@ -560,7 +560,7 @@ __attribute__((noinline)) void idSessionLocal::ShowLoadingGui() {
     session->UpdateScreen(false);
 #ifdef __EMSCRIPTEN__
     // Yield case: local graphic update inside subloop
-    //emscripten_sleep(1000.0/60.0);
+    emscripten_sleep(1000.0/60.0);
 #endif
   }
 }
@@ -1600,7 +1600,7 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
       pct += 0.05f;
 #ifdef __EMSCRIPTEN__
       // Yield case: local graphic update inside subloop
-      //emscripten_sleep(1000.0/60);
+      emscripten_sleep(1000.0/60);
 #endif
     }
   }
