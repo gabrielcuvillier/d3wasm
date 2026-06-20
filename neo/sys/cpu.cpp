@@ -49,26 +49,26 @@ void Sys_FPU_SetFTZ(bool enable) {
 Sys_GetProcessorId
 ================
 */
-int Sys_GetProcessorId(void) {
-  int flags = CPUID_GENERIC;
+int Sys_GetProcessorId( void ) {
+	int flags = CPUID_GENERIC;
 
-  if ( SDL_HasMMX()) {
-    flags |= CPUID_MMX;
-  }
+	if (SDL_HasMMX())
+		flags |= CPUID_MMX;
 
-  if ( SDL_HasSSE()) {
-    flags |= CPUID_SSE;
-  }
+	if (SDL_Has3DNow())
+		flags |= CPUID_3DNOW;
 
-  if ( SDL_HasSSE2()) {
-    flags |= CPUID_SSE2;
-  }
+	if (SDL_HasSSE())
+		flags |= CPUID_SSE;
 
-  if ( SDL_HasSSE3()) {
-    flags |= CPUID_SSE3;
-  }
+	if (SDL_HasSSE2())
+		flags |= CPUID_SSE2;
 
-  return flags;
+	if (SDL_HasSSE3()) {
+		flags |= CPUID_SSE3;
+	}
+
+	return flags;
 }
 
 /*
