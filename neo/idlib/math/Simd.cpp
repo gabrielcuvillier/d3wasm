@@ -69,6 +69,13 @@ void idSIMD::InitProcessor( const char *module, bool forceGeneric ) {
 
 	cpuid = idLib::sys->GetProcessorId();
 
+#ifdef __EMSCRIPTEN__
+	newProcessor = generic;
+	if ( newProcessor != SIMDProcessor ) {
+		SIMDProcessor = newProcessor;
+		idLib::common->Printf( "%s using %s for SIMD processing\n", module, SIMDProcessor->GetName() );
+	}
+#else
 	if ( forceGeneric ) {
 
 		newProcessor = generic;
@@ -102,6 +109,7 @@ void idSIMD::InitProcessor( const char *module, bool forceGeneric ) {
 		idLib::sys->FPU_SetFTZ( true );
 		idLib::sys->FPU_SetDAZ( true );
 	}
+#endif
 }
 
 /*
