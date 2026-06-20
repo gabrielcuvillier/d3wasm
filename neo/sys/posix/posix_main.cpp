@@ -72,7 +72,11 @@ idCVar in_tty( "in_tty", "0", CVAR_BOOL | CVAR_ROM | CVAR_INIT | CVAR_SYSTEM, "t
 idCVar in_tty( "in_tty", "1", CVAR_BOOL | CVAR_INIT | CVAR_SYSTEM, "terminal tab-completion and history" );
 #endif
 
+#ifdef __EMSCRIPTEN__
+static const bool		tty_enabled = false;
+#else
 static bool				tty_enabled = false;
+#endif
 static struct termios	tty_tc;
 
 // pid - useful when you attach to gdb..
@@ -387,6 +391,7 @@ Posix_InitConsoleInput
 ===============
 */
 void Posix_InitConsoleInput( void ) {
+#ifndef __EMSCRIPTEN__
 	struct termios tc;
 
 	common->StartupVariable( "in_tty", false );
@@ -447,6 +452,9 @@ void Posix_InitConsoleInput( void ) {
 	} else {
 		Sys_Printf( "terminal support disabled\n" );
 	}
+#else
+	Sys_Printf( "terminal support disabled\n" );
+#endif
 }
 
 /*
