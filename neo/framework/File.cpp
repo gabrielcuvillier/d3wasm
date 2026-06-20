@@ -156,6 +156,15 @@ idFile
 
 /*
 =================
+idFile::SafeClose
+=================
+*/
+void idFile::SafeClose( void ) {
+	return;
+}
+
+/*
+=================
 idFile::GetName
 =================
 */
@@ -637,23 +646,6 @@ idFile_Memory::idFile_Memory( void ) {
 idFile_Memory::idFile_Memory
 =================
 */
-idFile_Memory::idFile_Memory( const char *name ) {
-	this->name = name;
-	maxSize = 0;
-	fileSize = 0;
-	allocated = 0;
-	granularity = 16384;
-
-	mode = ( 1 << FS_WRITE );
-	filePtr = NULL;
-	curPtr = NULL;
-}
-
-/*
-=================
-idFile_Memory::idFile_Memory
-=================
-*/
 idFile_Memory::idFile_Memory( const char *name, char *data, int length ) {
 	this->name = name;
 	maxSize = length;
@@ -690,7 +682,20 @@ idFile_Memory::~idFile_Memory
 */
 idFile_Memory::~idFile_Memory( void ) {
 	if ( filePtr && allocated > 0 && maxSize == 0 ) {
+		printf("Unsafe FileMemory Close\n");
+	}
+}
+
+/*
+=================
+idFile_Memory::SafeClose
+=================
+*/
+void idFile_Memory::SafeClose( void ) {
+	if ( filePtr && allocated > 0 && maxSize == 0 ) {
 		Mem_Free( filePtr );
+		filePtr = 0;
+		allocated = 0;
 	}
 }
 
@@ -1033,7 +1038,19 @@ idFile_Permanent::~idFile_Permanent
 */
 idFile_Permanent::~idFile_Permanent( void ) {
 	if ( o ) {
+		printf("Unsafe File Permanent Close\n");
+	}
+}
+
+/*
+=================
+idFile_Permanent::SafeClose
+=================
+*/
+void idFile_Permanent::SafeClose( void ) {
+	if ( o ) {
 		fclose( o );
+		o = 0;
 	}
 }
 
@@ -1248,8 +1265,22 @@ idFile_InZip::~idFile_InZip
 =================
 */
 idFile_InZip::~idFile_InZip( void ) {
-	unzCloseCurrentFile( z );
-	unzClose( z );
+	if (z) {
+		printf("unsafe FileInZip close");
+	}
+}
+
+/*
+=================
+idFile_Permanent::SafeClose
+=================
+*/
+void idFile_InZip::SafeClose( void ) {
+	if (z) {
+		unzCloseCurrentFile( z );
+		unzClose( z );
+		z = 0;
+	}
 }
 
 /*
@@ -1327,8 +1358,11 @@ idFile_InZip::Seek
   returns zero on success and -1 on failure
 =================
 */
+#ifdef __EMSCRIPTEN__
+#define ZIP_SEEK_BUF_SIZE	(1<<17)
+#else
 #define ZIP_SEEK_BUF_SIZE	(1<<15)
-
+#endif
 int idFile_InZip::Seek( long offset, fsOrigin_t origin ) {
 	int res, i;
 	char *buf;

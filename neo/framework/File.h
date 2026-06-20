@@ -55,6 +55,7 @@ class idFileSystemLocal;
 class idFile {
 public:
 	virtual					~idFile( void ) {};
+	virtual void			SafeClose( void );
 							// Get the name of the file.
 	virtual const char *	GetName( void );
 							// Get the full file path.
@@ -127,6 +128,7 @@ public:
 							idFile_Memory( const char *name, char *data, int length );	// file for writing
 							idFile_Memory( const char *name, const char *data, int length );	// file for reading
 	virtual					~idFile_Memory( void );
+	virtual void			SafeClose( void );
 
 	virtual const char *	GetName( void ) { return name.c_str(); }
 	virtual const char *	GetFullPath( void ) { return name.c_str(); }
@@ -194,6 +196,7 @@ class idFile_Permanent : public idFile {
 public:
 							idFile_Permanent( void );
 	virtual					~idFile_Permanent( void );
+	virtual void			SafeClose( void );
 
 	virtual const char *	GetName( void ) { return name.c_str(); }
 	virtual const char *	GetFullPath( void ) { return fullPath.c_str(); }
@@ -225,6 +228,7 @@ class idFile_InZip : public idFile {
 public:
 							idFile_InZip( void );
 	virtual					~idFile_InZip( void );
+	virtual void			SafeClose( void );
 
 	virtual const char *	GetName( void ) { return name.c_str(); }
 	virtual const char *	GetFullPath( void ) { return fullPath.c_str(); }

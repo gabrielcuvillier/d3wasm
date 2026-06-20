@@ -472,7 +472,11 @@ public:
 
 idCVar	idFileSystemLocal::fs_restrict( "fs_restrict", "", CVAR_SYSTEM | CVAR_INIT | CVAR_BOOL, "" );
 idCVar	idFileSystemLocal::fs_debug( "fs_debug", "0", CVAR_SYSTEM | CVAR_INTEGER, "", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
+#ifdef __EMSCRIPTEN__
+idCVar	idFileSystemLocal::fs_copyfiles( "fs_copyfiles", "0", CVAR_ROM | CVAR_SYSTEM | CVAR_INIT | CVAR_INTEGER, "", 0, 4, idCmdSystem::ArgCompletion_Integer<0,3> );
+#else
 idCVar	idFileSystemLocal::fs_copyfiles( "fs_copyfiles", "0", CVAR_SYSTEM | CVAR_INIT | CVAR_INTEGER, "", 0, 4, idCmdSystem::ArgCompletion_Integer<0,3> );
+#endif
 idCVar	idFileSystemLocal::fs_basepath( "fs_basepath", "", CVAR_SYSTEM | CVAR_INIT, "" );
 idCVar	idFileSystemLocal::fs_configpath( "fs_configpath", "", CVAR_SYSTEM | CVAR_INIT, "" );
 idCVar	idFileSystemLocal::fs_savepath( "fs_savepath", "", CVAR_SYSTEM | CVAR_INIT, "" );
@@ -2645,70 +2649,75 @@ void idFileSystemLocal::Init( void ) {
 	backend_t backend = wasmfs_create_opfs_backend();
 	int err = 0;
 
-	err = wasmfs_create_directory("/", 0777, backend);
-	if (err != 0 && errno != EEXIST)
-		printf( "Warning 0: OPFS mount returned %d (errno=%d)\n", err, errno);
+	//err = wasmfs_create_directory("/", 0777, backend);
+	//if (err != 0 && errno != EEXIST)
+	//	printf( "Warning 0: OPFS mount returned %d (errno=%d)\n", err, errno);
 	err = wasmfs_create_directory("/usr", 0777, backend);
 	if (err != 0 && errno != EEXIST)
 		printf( "Warning 1: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/usr/local", 0777, backend);
+	err = mkdir("/usr/local", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 2: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/usr/local/share", 0777, backend);
+	err = mkdir("/usr/local/share", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 3: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/usr/local/share/d3wasm", 0777, backend);
+	err = mkdir("/usr/local/share/d3wasm", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 4: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/usr/local/share/d3wasm/base", 0777, backend);
+	err = mkdir("/usr/local/share/d3wasm/base", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 5: OPFS mount returned %d (errno=%d)\n", err, errno);
-	common->DPrintf("tourte\n");
+	err = mkdir("/usr/local/share/d3wasm/demo", 0777);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 5: OPFS mount returned %d (errno=%d)\n", err, errno);
 
 	err = wasmfs_create_directory("/home", 0777, backend);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 6: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/home/web_user", 0777, backend);
+	err = mkdir("/home/web_user", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 7: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/home/web_user/.config", 0777, backend);
+	err = mkdir("/home/web_user/.config", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 8: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/home/web_user/.local", 0777, backend);
+	err = mkdir("/home/web_user/.local", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 9: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/home/web_user/.local/d3wasm", 0777, backend);
+	err = mkdir("/home/web_user/.local/d3wasm", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 10: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/home/web_user/.local/d3wasm/base", 0777, backend);
+	err = mkdir("/home/web_user/.local/d3wasm/base", 0777);
+	if (err != 0 && errno != EEXIST)
+		printf("Warning 11: OPFS mount returned %d (errno=%d)\n", err, errno);
+	err = mkdir("/home/web_user/.local/d3wasm/demo", 0777);
 	if (err != 0 && errno != EEXIST)
 		printf("Warning 11: OPFS mount returned %d (errno=%d)\n", err, errno);
 
 	FILE* f = NULL;
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak000.pk4", "r")))
 		emscripten_wget("data/base/pak000.pk4", "/usr/local/share/d3wasm/base/pak000.pk4");
-	else fclose(f);
+	fclose(f);
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak001.pk4", "r")))
 		emscripten_wget("data/base/pak001.pk4", "/usr/local/share/d3wasm/base/pak001.pk4");
-	else fclose(f);
+	fclose(f);
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak002.pk4", "r")))
 		emscripten_wget("data/base/pak002.pk4", "/usr/local/share/d3wasm/base/pak002.pk4");
-	else fclose(f);
+	fclose(f);
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak003.pk4", "r")))
 		emscripten_wget("data/base/pak003.pk4", "/usr/local/share/d3wasm/base/pak003.pk4");
-	else fclose(f);
+	fclose(f);
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak004.pk4", "r")))
 		emscripten_wget("data/base/pak004.pk4", "/usr/local/share/d3wasm/base/pak004.pk4");
-	else fclose(f);
+	fclose(f);
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak005.pk4", "r")))
 		emscripten_wget("data/base/pak005.pk4", "/usr/local/share/d3wasm/base/pak005.pk4");
-	else fclose(f);
+	fclose(f);
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak006.pk4", "r")))
 		emscripten_wget("data/base/pak006.pk4", "/usr/local/share/d3wasm/base/pak006.pk4");
-	else fclose(f);
+	fclose(f);
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak007.pk4", "r")))
 		emscripten_wget("data/base/pak007.pk4", "/usr/local/share/d3wasm/base/pak007.pk4");
-	else fclose(f);
+	fclose(f);
 	//if (!(f = fopen("/usr/local/share/d3wasm/base/pak008.pk4", "r")))
 		emscripten_wget("data/base/pak008.pk4", "/usr/local/share/d3wasm/base/pak008.pk4");
 	//else fclose(f);
@@ -2728,7 +2737,7 @@ void idFileSystemLocal::Init( void ) {
 	common->StartupVariable( "fs_restrict", false );
 	common->StartupVariable( "fs_searchAddons", false );
 
-	idStr path;
+	idStr path; 
 	if (fs_basepath.GetString()[0] == '\0' && Sys_GetPath(PATH_BASE, path))
 		fs_basepath.SetString(path);
 
@@ -2750,8 +2759,6 @@ void idFileSystemLocal::Init( void ) {
 
 	if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
 		// DG: the demo gamedata is in demo/ instead of base/. to make it "just work", add a fallback for that
-#ifdef __EMSCRIPTEN__
-#else
 		common->FatalError("Couldn't load default.cfg");
 		if (fs_game.GetString()[0] == '\0' || idStr::Icmp(fs_game.GetString(), BASE_GAMEDIR) == 0) {
 			common->Warning("Couldn't find default.cfg in %s/, trying again with demo/\n", BASE_GAMEDIR);
@@ -2765,7 +2772,6 @@ void idFileSystemLocal::Init( void ) {
 			// Dedicated servers can run with no outside files at all
 			common->FatalError("Couldn't load default.cfg");
 		}
-#endif
 	}
 }
 
@@ -3116,6 +3122,7 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 			}
 
 			// if fs_copyfiles is set
+#ifndef __EMSCRIPTEN__
 			if ( allowCopyFiles && fs_copyfiles.GetInteger() ) {
 
 				idStr copypath;
@@ -3171,7 +3178,7 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 						break;
 				}
 			}
-
+#endif
 			return file;
 		} else if ( search->pack && ( searchFlags & FSFLAG_SEARCH_PAKS ) ) {
 
@@ -3315,8 +3322,6 @@ idFile *idFileSystemLocal::OpenExplicitFileRead( const char *OSPath ) {
 		common->Printf( "idFileSystem::OpenExplicitFileRead: %s\n", OSPath );
 	}
 
-	common->DPrintf( "idFileSystem::OpenExplicitFileRead - reading from: %s\n", OSPath );
-
 	f = new idFile_Permanent();
 	f->o = OpenOSFile( OSPath, "rb" );
 	if ( !f->o ) {
@@ -3435,6 +3440,7 @@ void idFileSystemLocal::CloseFile( idFile *f ) {
 	if ( !searchPaths ) {
 		common->FatalError( "Filesystem call made without initialization\n" );
 	}
+	f->SafeClose();
 	delete f;
 }
 
@@ -3483,23 +3489,15 @@ Reads part of a file from a background thread.
 ===================
 */
 int BackgroundDownloadThread( void *pexit ) {
+#ifndef NOMT
 	bool *exit = (bool *)pexit;
-
-#ifdef NOMT
-	if (!(*exit)) {
-#else
 	while (!(*exit)) {
-#endif
     Sys_EnterCriticalSection();
 		backgroundDownload_t	*bgl = fileSystemLocal.backgroundDownloads;
 		if ( !bgl ) {
       Sys_LeaveCriticalSection();
-#ifdef NOMT
-      return 0;
-#else
       Sys_WaitForEvent();
 			continue;
-#endif
 		}
 		// remove this from the list
 		fileSystemLocal.backgroundDownloads = bgl->next;
@@ -3517,6 +3515,7 @@ int BackgroundDownloadThread( void *pexit ) {
 			bgl->completed = true;
 		}
 	}
+#endif
 	return 0;
 }
 
@@ -3548,16 +3547,15 @@ idFileSystemLocal::BackgroundDownload
 =================
 */
 void idFileSystemLocal::BackgroundDownload( backgroundDownload_t *bgl ) {
+#ifndef NOMT
 	if ( bgl->opcode == DLTYPE_FILE ) {
 		if ( dynamic_cast<idFile_Permanent *>(bgl->f) ) {
 			// add the bgl to the background download list
 			Sys_EnterCriticalSection();
 			bgl->next = backgroundDownloads;
 			backgroundDownloads = bgl;
-#ifdef __NOMT__
-#else
+
       Sys_TriggerEvent();
-#endif
 			Sys_LeaveCriticalSection();
 		} else {
 			// read zipped file directly
@@ -3569,12 +3567,10 @@ void idFileSystemLocal::BackgroundDownload( backgroundDownload_t *bgl ) {
 		Sys_EnterCriticalSection();
 		bgl->next = backgroundDownloads;
 		backgroundDownloads = bgl;
-#ifdef __NOMT__
-#else
     Sys_TriggerEvent();
-#endif
 		Sys_LeaveCriticalSection();
 	}
+#endif
 }
 
 /*
@@ -3822,10 +3818,10 @@ idFileSystemLocal::FindFile
 	}
 	// an addon that's not on search list yet? that will require a restart
 	if ( pak->addon && !pak->addon_search ) {
-		delete f;
+		CloseFile(f);
 		return FIND_ADDON;
 	}
-	delete f;
+	CloseFile(f);
 	return FIND_YES;
 }
 
