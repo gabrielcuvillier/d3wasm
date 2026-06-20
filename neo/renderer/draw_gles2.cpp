@@ -181,12 +181,14 @@ static bool R_LinkGLSLShader(shaderProgram_t* shaderProgram, const char* name) {
 
   qglGetProgramiv(shaderProgram->program, GL_LINK_STATUS, &linked);
 
+#ifndef __EMSCRIPTEN__
   if ( com_developer.GetBool()) {
     qglGetShaderInfoLog(shaderProgram->vertexShader, sizeof(buf), &len, buf);
     common->Printf("VS:\n%.*s\n", len, buf);
     qglGetShaderInfoLog(shaderProgram->fragmentShader, sizeof(buf), &len, buf);
     common->Printf("FS:\n%.*s\n", len, buf);
   }
+#endif
 
   if ( !linked ) {
     common->Error("R_LinkGLSLShader: program failed to link: %s\n", name);
