@@ -53,7 +53,9 @@ idWaveFile::idWaveFile( void ) {
 // Desc: Destructs the class
 //-----------------------------------------------------------------------------
 idWaveFile::~idWaveFile( void ) {
-	Close();
+	if ( ogg != NULL || mhmmio != NULL) {
+		printf("Unsafe idWaveFile destruction");
+	}
 
 	if ( mbIsReadingFromMemory && mpbData ) {
 		Mem_Free( mpbData );
