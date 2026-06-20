@@ -340,11 +340,7 @@ int main(int argc, char **argv) {
 #ifdef __EMSCRIPTEN__
 	// On Emscripten, let's transfer the control of the main loop to the Browser.
 	// The emloopcb() callback function will be called by the Browser at each RequestAnimationFrame()
-	emscripten_set_main_loop( emloopcb, 0 , false );
-
-	// Code here will be executed right after the main loop callback have been set, including returning from main().
-	// That's normal and the program will in fact NOT exit (EXIT_RUNTIME=0 in CMakeFile), but the main loop as handled by
-	// the Browser will start instead
+	emscripten_set_main_loop( emloopcb, 0 , true );
 #else
   // On Linux, we have the control of the main loop.
 	while (1) {
