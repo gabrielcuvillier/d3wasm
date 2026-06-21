@@ -53,13 +53,15 @@ int idImage::BitsForInternalFormat( int internalFormat ) const {
 	case 2:
 	case 3:
 	case 4:
+	case GL_RGBA:
 		return 32;
 	case GL_RGBA4:
-		return 16;
+    case GL_RGB565:
 	case GL_RGB5_A1:
 		return 16;
 	default:
-		common->Error( "R_BitsForInternalFormat: BAD FORMAT:%i", internalFormat );
+		common->Warning( "R_BitsForInternalFormat: BAD FORMAT:%i", internalFormat );
+		return 32;
 	}
 	return 0;
 }
