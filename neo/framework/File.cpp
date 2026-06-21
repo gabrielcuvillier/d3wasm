@@ -1359,7 +1359,8 @@ idFile_InZip::Seek
 =================
 */
 #ifdef __EMSCRIPTEN__
-#define ZIP_SEEK_BUF_SIZE	(1<<17)
+// Greatly increase seek buffer size on emscripten (to 64K), to reduce a bit the load on file IO
+#define ZIP_SEEK_BUF_SIZE	(1<<16)
 #else
 #define ZIP_SEEK_BUF_SIZE	(1<<15)
 #endif
