@@ -1,57 +1,22 @@
-
-(anonymous namespace)::OPFSBackend::createDirectory(unsigned int)
-(anonymous namespace)::OPFSDirectory::getChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)
-(anonymous namespace)::OPFSDirectory::getEntries()
-(anonymous namespace)::OPFSDirectory::insertDataFile(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, unsigned int)
-(anonymous namespace)::OPFSDirectory::insertDirectory(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, unsigned int)
-(anonymous namespace)::OPFSDirectory::insertMove(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&, std::__2::shared_ptr<wasmfs::File>)
-(anonymous namespace)::OPFSDirectory::removeChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)
-(anonymous namespace)::OPFSFile::close()
-(anonymous namespace)::OPFSFile::flush()
-(anonymous namespace)::OPFSFile::getSize()
-(anonymous namespace)::OPFSFile::open(unsigned int)
-(anonymous namespace)::OPFSFile::read(unsigned char*, unsigned long, long long)
-(anonymous namespace)::OPFSFile::setSize(long long)
-(anonymous namespace)::OPFSFile::write(unsigned char const*, unsigned long, long long)
-*::ParseInternalVar(char const*, idParser*)
-Com_LocalizeGuis_f(idCmdArgs const&)
-Com_LocalizeMaps_f(idCmdArgs const&)
-Com_ReloadLanguage_f(idCmdArgs const&)
-FS_ReadOGG(void*, unsigned long, unsigned long, void*)
-FS_SeekOGG(void*, long long, int)
-GetFileList(char const*, char const*, idList<idStr>&)
-LoadBMP(char const*, unsigned char**, int*, int*, long long*)
-LoadJPG(char const*, unsigned char**, int*, int*, long long*)
-LoadPCX32(char const*, unsigned char**, int*, int*, long long*)
-LoadTGA(char const*, unsigned char**, int*, int*, long long*)
-LocalizeMap(char const*, idHashTable<idList<idStr>>&, idList<idStr>&, bool)
-PrintMemInfo_f(idCmdArgs const&)
-R_InitMaterials()
-R_LoadCubeImages(char const*, cubeFiles_t, unsigned char**, int*, long long*)
-R_LoadImage(char const*, unsigned char**, int*, int*, long long*, bool)
-R_LoadImageProgram(char const*, unsigned char**, int*, int*, long long*, textureDepth_t*)
-R_ParseImageProgram_r(idLexer&, unsigned char**, int*, int*, long long*, textureDepth_t*)
-R_ParsePastImageProgram(idLexer&)
-R_ReloadImages_f(idCmdArgs const&)
-R_ReportImageDuplication_f(idCmdArgs const&)
-Sess_WritePrecache_f(idCmdArgs const&)
-Session_DevMap_f(idCmdArgs const&)
-Session_ExitCmdDemo_f(idCmdArgs const&)
-Session_Map_f(idCmdArgs const&)
-Session_NextMap_f(idCmdArgs const&)
-Sys_FileTimeStamp(_IO_FILE*)
-Sys_GetPath(sysPath_t, idStr&)
-Sys_ListFiles(char const*, char const*, idList<idStr>&)
-Sys_Mkdir(char const*)
+*OPFS*
+*wasmfs*
 __fstat
 __fstatat
+__fwritex
 __stdio_close
 __stdio_read
+__stdio_seek
 __stdio_write
 __syscall_chdir
 __syscall_chmod
+__syscall_fchmod
 __syscall_fchmodat2
+__syscall_fcntl64
 __syscall_fstat64
+__syscall_ftruncate64
+__syscall_getcwd
+__syscall_getdents64
+__syscall_ioctl
 __syscall_lstat64
 __syscall_mkdirat
 __syscall_mknodat
@@ -68,55 +33,56 @@ __syscall_truncate64
 __syscall_unlinkat
 __syscall_utimensat
 __wasi_fd_close
+__wasi_fd_pread
 __wasi_fd_pwrite
 __wasi_fd_read
+__wasi_fd_seek
 __wasi_fd_write
 _fetch_headers
 _get_next_page
 _get_prev_page_serial
+_mmap_js
 _msync_js
 _munmap_js
 _ov_open1
 _ov_open2
-_wasmfs_chdir
-_wasmfs_chmod
-_wasmfs_close
-_wasmfs_identify
-_wasmfs_lchmod
-_wasmfs_lstat
-_wasmfs_mkdir
-_wasmfs_mknod
-_wasmfs_mount
-_wasmfs_msync
-_wasmfs_munmap
-_wasmfs_open
-_wasmfs_pwrite
-_wasmfs_read_file
-_wasmfs_readdir_start
-_wasmfs_readlink
-_wasmfs_rename
-_wasmfs_rmdir
-_wasmfs_stat
-_wasmfs_symlink
-_wasmfs_truncate
-_wasmfs_unlink
-_wasmfs_utime
-_wasmfs_write
-_wasmfs_write_file
+AddRenderGui(char const*, idUserInterface**, idDict const*)
+ASE_Load(char const*)
 call_zopen64
 close
 closedir
-doMkdir(wasmfs::path::ParsedParent, int, wasmfs::Backend*)
-doOpen(wasmfs::path::ParsedParent, int, unsigned int, wasmfs::Backend*, OpenReturnMode)
+Cmd_ClearLights_f(idCmdArgs const&)
+Cmd_GameError_f(idCmdArgs const&)
+Cmd_ReloadAnims_f(idCmdArgs const&)
+Cmd_ReloadScript_f(idCmdArgs const&)
+Com_Crash_f(idCmdArgs const&)
+Com_Error_f(idCmdArgs const&)
+Com_LocalizeGuis_f(idCmdArgs const&)
+Com_LocalizeMaps_f(idCmdArgs const&)
+Com_Quit_f(idCmdArgs const&)
+Com_ReloadEngine_f(idCmdArgs const&)
+Com_ReloadLanguage_f(idCmdArgs const&)
+Com_WriteConfig_f(idCmdArgs const&)
+Con_Dump_f(idCmdArgs const&)
+dynCall_v
 emloopcb
 emscripten_wget
+fclose
 fclose_file_func
+fflush
 fopen
 fopen64_file_func
 fread
 fread_file_func
+FS_ReadOGG(void*, unsigned long, unsigned long, void*)
+FS_SeekOGG(void*, long long, int)
+fseek
+fwrite
 fwrite_file_func
+gameError*
+getbytes(idFile*, int)
 getF4(idFile*)
+GetFileList(char const*, char const*, idList<idStr>&)
 getI2(idFile*)
 getI4(idFile*)
 getS0(idFile*)
@@ -124,21 +90,51 @@ getU1(idFile*)
 getU2(idFile*)
 getU4(idFile*)
 getVX(idFile*)
-getbytes(idFile*, int)
+id*::ParseInternalVar(char const*, idParser*)
+id*::ReadFromSaveGame(idFile*)
+id*::Save(idSaveGame*) const
+id*::WriteToSaveGame(idFile*)
+idAASFileLocal::Load(idStr const&, unsigned int)
+idAASFileManagerLocal::LoadAAS(char const*, unsigned int)
+idAASLocal::Init(idStr const&, unsigned int)
+idActor::SetupHead()
+idActor::Spawn()
+idAFAttachment::SetBody(idEntity*, char const*, jointHandle_t)
+idAnim::AddFrameCommand(idDeclModelDef const*, int, idLexer&, idDict const*)
+idAnimatedEntity::SetModel(char const*)
+idAnimator::SetModel(char const*)
+idAnimManager::GetAnim(char const*)
+idAnimManager::ReloadAnims()
 idAsyncClient::HandleDownloads()
 idAsyncClient::RunFrame()
+idCameraAnim::LoadAnim()
+idCameraAnim::Spawn()
 idCinematicLocal::InitFromFile(char const*, bool)
+idClass::CallSpawn()
+idClass::CallSpawnFunc(idTypeInfo*)
 idClipModel::CheckModel(char const*)
+idClipModel::idClipModel(char const*)
 idClipModel::LoadModel(char const*)
 idClipModel::Restore(idRestoreGame*)
-idClipModel::idClipModel(char const*)
-idCmdSystemLocal::ArgCompletion_FolderExtension*
+idClipModel::SaveTraceModels(idSaveGame*)
+idCmdSystem::ArgCompletion*(idCmdArgs const&, void (*)(char const*))
+idCmdSystemLocal::ArgCompletion*
+idCmdSystemLocal::BufferCommandText(cmdExecution_t, char const*)
 idCmdSystemLocal::Exec_f(idCmdArgs const&)
 idCmdSystemLocal::ExecuteCommandBuffer()
+idCmdSystemLocal::ExecuteCommandText(char const*)
 idCmdSystemLocal::ExecuteTokenizedString(idCmdArgs const&)
+idCollisionModelManagerLocal::BuildModels(idMapFile const*)
+idCollisionModelManagerLocal::LoadCollisionModelFile(char const*, unsigned int)
+idCollisionModelManagerLocal::LoadMap(idMapFile const*)
+idCollisionModelManagerLocal::LoadModel(char const*, bool)
+idCollisionModelManagerLocal::TrmFromModel(char const*, idTraceModel&)
 idCollisionModelManagerLocal::WriteCollisionModelForMapEntity(idMapEntity const*, char const*, bool)
 idCollisionModelManagerLocal::WriteCollisionModelsToFile(char const*, int, int, unsigned int)
+idCommonLocal::Error*
+idCommonLocal::FatalError*
 idCommonLocal::Frame()
+idCommonLocal::GUIFrame(bool, bool)
 idCommonLocal::Init(int, char**)
 idCommonLocal::InitGame()
 idCommonLocal::InitLanguageDict()
@@ -148,9 +144,11 @@ idCommonLocal::PrintLoadingMessage(char const*)
 idCommonLocal::Quit()
 idCommonLocal::Shutdown()
 idCommonLocal::WriteConfigToFile(char const*)
+idCommonLocal::WriteConfiguration()
 idCommonLocal::WriteFlaggedCVarsToFile(char const*, int, char const*)
 idCompiler::CheckToken(char const*)
 idCompiler::CompileFile(char const*, char const*, bool)
+idCompiler::Error*
 idCompiler::ExpectToken(char const*)
 idCompiler::NextToken()
 idCompiler::ParseDefs()
@@ -158,14 +156,24 @@ idCompiler::ParseEventDef(idTypeDef*, char const*)
 idCompiler::ParseFunctionDef(idTypeDef*, char const*)
 idCompiler::ParseNamespace(idVarDef*)
 idConsoleLocal::Dump(char const*)
+idConsoleLocal::KeyDownEvent(int)
 idConsoleLocal::LoadGraphics()
 idConsoleLocal::LoadHistory()
+idConsoleLocal::ProcessEvent(sysEvent_t const*, bool)
 idConsoleLocal::SaveHistory()
+idCVarSystemLocal::WriteFlaggedVariables(int, char const*, idFile*) const
+idDeclEntityDef::Parse(char const*, int)
 idDeclFile::LoadAndParse()
 idDeclFile::Reload(bool)
+idDeclFX::Parse(char const*, int)
+idDeclFX::ParseSingleFXAction(idLexer&, idFXSingleAction&)
 idDeclLocal::EnsureNotPurged()
+idDeclLocal::MakeDefault()
 idDeclLocal::ParseLocal()
+idDeclLocal::Purge()
+idDeclLocal::Reload()
 idDeclLocal::ReplaceSourceFileText()
+idDeclManagerLocal::BeginLevelLoad()
 idDeclManagerLocal::CreateNewDecl(declType_t, char const*, char const*)
 idDeclManagerLocal::DeclByIndex(declType_t, int, bool)
 idDeclManagerLocal::FindMaterial(char const*, bool)
@@ -173,25 +181,46 @@ idDeclManagerLocal::FindSound(char const*, bool)
 idDeclManagerLocal::FindType(declType_t, char const*, bool)
 idDeclManagerLocal::Init()
 idDeclManagerLocal::RegisterDeclFolder(char const*, char const*, declType_t)
+idDeclManagerLocal::Reload(bool)
+idDeclManagerLocal::ReloadDecls_f(idCmdArgs const&)
+idDeclModelDef::Parse(char const*, int)
+idDeclModelDef::ParseAnim(idLexer&, int)
 idDemoFile::Close()
 idDemoFile::OpenForReading(char const*)
 idDeviceContext::FindFont(char const*)
 idDeviceContext::Init()
 idDeviceContext::SetupFonts()
+idEditField::AutoComplete()
 idEditWindow::InitScroller(bool)
 idEditWindow::PostParse()
+idEntity::InitDefaultPhysics(idVec3 const&, idMat3 const&)
+idEntity::Spawn()
 idEventLoop::Init()
+idEventLoop::ProcessEvent(sysEvent_t)
+idEventLoop::RunEventLoop(bool)
 idEventLoop::Shutdown()
-idFile::ReadInt(int&)
-idFile::ReadString(idStr&)
+idFile::Printf*
+idFile::Read*
+idFile::Rewind()
+idFile::VPrintf*
+idFile::Write*
+idFile_InZip::Read(void*, int)
+idFile_InZip::SafeClose()
+idFile_InZip::Seek(long, fsOrigin_t)
+idFile_Permanent::Flush()
+idFile_Permanent::Read(void*, int)
+idFile_Permanent::SafeClose()
+idFile_Permanent::Seek(long, fsOrigin_t)
+idFile_Permanent::Timestamp()
+idFile_Permanent::Write(void const*, int)
 idFileSystemLocal::AddGameDirectory(char const*, char const*)
 idFileSystemLocal::AddZipFile(char const*)
 idFileSystemLocal::CloseFile(idFile*)
 idFileSystemLocal::CopyFile(char const*, char const*)
 idFileSystemLocal::CreateOSPath(char const*)
-idFileSystemLocal::DirTree_f(idCmdArgs const&)
 idFileSystemLocal::Dir_f(idCmdArgs const&)
 idFileSystemLocal::DirectFileLength(_IO_FILE*)
+idFileSystemLocal::DirTree_f(idCmdArgs const&)
 idFileSystemLocal::FindDLL(char const*, char*)
 idFileSystemLocal::FindFile(char const*, bool)
 idFileSystemLocal::FindMapScreenshot(char const*, char*, int)
@@ -220,25 +249,27 @@ idFileSystemLocal::ReadFileFromZip(pack_t*, fileInPack_s*, char const*)
 idFileSystemLocal::RemoveFile(char const*)
 idFileSystemLocal::Restart()
 idFileSystemLocal::SetupGameDirectories(char const*)
+idFileSystemLocal::Shutdown(bool)
 idFileSystemLocal::Startup()
-idFileSystemLocal::TouchFileList_f(idCmdArgs const&)
 idFileSystemLocal::TouchFile_f(idCmdArgs const&)
+idFileSystemLocal::TouchFileList_f(idCmdArgs const&)
 idFileSystemLocal::WriteFile(char const*, void const*, int, char const*)
-idFile_InZip::Read(void*, int)
-idFile_InZip::Seek(long, fsOrigin_t)
-idFile_InZip::~idFile_InZip()
-idFile_Permanent::Flush()
-idFile_Permanent::Read(void*, int)
-idFile_Permanent::Timestamp()
-idFile_Permanent::Write(void const*, int)
-idFile_Permanent::~idFile_Permanent()
 idGameEdit::ParseSpawnArgsToRenderEntity(idDict const*, renderEntity_s*)
 idGameLocal::CacheDictionaryMedia(idDict const*)
+idGameLocal::Error* const
 idGameLocal::FindEntityDef(char const*, bool) const
 idGameLocal::FindEntityDefDict(char const*, bool) const
+idGameLocal::GetLevelMap()
 idGameLocal::Init()
+idGameLocal::InitFromNewMap(char const*, idRenderWorld*, idSoundWorld*, bool, bool, int)
+idGameLocal::LoadMap(char const*, int)
+idGameLocal::MapPopulate()
 idGameLocal::NextMap()
 idGameLocal::NextMap_f(idCmdArgs const&)
+idGameLocal::SaveGame(idFile*)
+idGameLocal::SpawnEntityDef(idDict const&, idEntity**, bool)
+idGameLocal::SpawnMapEntities()
+idGameLocal::SpawnPlayer(int)
 idGuiScript::FixupParms(idWindow*)
 idGuiScriptList::FixupParms(idWindow*)
 idImage::ActuallyLoadImage(bool)
@@ -247,10 +278,14 @@ idImageManager::EndLevelLoad()
 idImageManager::ImageFromFile(char const*, textureFilter_t, bool, textureRepeat_t, textureDepth_t, cubeFiles_t)
 idImageManager::PrintMemInfo(MemInfo_t*)
 idImageManager::ReloadAllImages()
+idKeyInput::WriteBindings(idFile*)
 idLangDict::Load(char const*, bool)
 idLangDict::Save(char const*)
-idLexer::LoadFile(char const*, bool)
+idLexer::Error*
 idLexer::idLexer(char const*, int, bool)
+idLexer::LoadFile(char const*, bool)
+idLib::Error*
+idMapFile::Parse(char const*, bool, bool)
 idMapFile::Write(char const*, char const*, bool)
 idMarkerWindow::Activate(bool, idStr&)
 idMaterial::AddImplicitStages(textureRepeat_t)
@@ -258,57 +293,99 @@ idMaterial::Parse(char const*, int)
 idMaterial::ParseFragmentMap(idLexer&, newShaderStage_t*)
 idMaterial::ParseMaterial(idLexer&)
 idMaterial::ParseStage(idLexer&, textureRepeat_t)
+idMaterial::ReloadImages(bool) const
+idMD5Anim::LoadAnim(char const*)
+idMD5Anim::Reload()
+idMD5Mesh::ParseMesh(idLexer&, int, idJointMat const*)
 idMultiplayerGame::Precache()
+idMultiplayerGame::Reset()
 idMultiplayerGame::SetMapShot()
 idParser::Directive_include()
+idParser::Error*
 idParser::LoadFile(char const*, bool)
 idParser::ReadDirective()
 idParser::ReadToken(idToken*)
+idPlayer::SetupWeaponEntity()
+idPlayer::Spawn()
 idProgram::CompileFile(char const*)
 idProgram::CompileText(char const*, char const*, bool)
 idProgram::Disassemble() const
 idProgram::Restore(idRestoreGame*)
 idProgram::Startup(char const*)
 idRegisterList::AddReg(char const*, int, idParser*, idWindow*, idWinVar*)
-idRenderModelLiquid::InitFromFile(char const*)
-idRenderModelMD3::InitFromFile(char const*)
-idRenderModelMD5::InitFromFile(char const*)
-idRenderModelMD5::LoadModel()
+idRenderModelManagerLocal::EndLevelLoad()
 idRenderModelManagerLocal::FindModel(char const*)
 idRenderModelManagerLocal::GetModel(char const*, bool)
 idRenderModelManagerLocal::PrintMemInfo(MemInfo_t*)
+idRenderModelManagerLocal::PrintModel_f(idCmdArgs const&)
+idRenderModelManagerLocal::ReloadModels(bool)
+idRenderModelManagerLocal::ReloadModels_f(idCmdArgs const&)
+idRenderModelManagerLocal::TouchModel_f(idCmdArgs const&)
+idRenderModelMD5::InitFromFile(char const*)
+idRenderModelMD5::LoadModel()
 idRenderModelPrt::InitFromFile(char const*)
 idRenderModelStatic::ConvertLWOToModelSurfaces(st_lwObject const*)
 idRenderModelStatic::InitFromFile(char const*)
+idRenderModelStatic::LoadASE(char const*)
 idRenderModelStatic::LoadLWO(char const*)
 idRenderModelStatic::LoadModel()
 idRenderModelStatic::PartialInitFromFile(char const*)
+idRenderModelStatic::PurgeModel()
+idRenderModelStatic::ReadFromDemoFile(idDemoFile*)
+idRenderSystemLocal::EndLevelLoad()
 idRenderSystemLocal::Init()
 idRenderSystemLocal::InitOpenGL()
 idRenderSystemLocal::RegisterFont(char const*, fontInfoEx_t&)
 idRenderWindow::Draw(int, float, float)
 idRenderWindow::PreRender()
+idRenderWorldLocal::InitFromMap(char const*)
+idRenderWorldLocal::TouchWorldModels()
+idRestoreGame::Error*
+idRestoreGame::ReadClipModel(idClipModel*&)
 idSampleDecoderLocal::DecodeOGG(idSoundSample*, int, int, float*)
+idSaveGame::CallSave_r(idTypeInfo const*, idClass const*)
+idSaveGame::Close()
+idSaveGame::Write*
+idSaveGame::WriteTraceModel(idTraceModel const&)
 idServerScan::GUIUpdateSelected()
+idSessionLocal::AdvanceRenderDemo(bool)
+idSessionLocal::ClearCDKey(bool*)
+idSessionLocal::CompleteWipe()
+idSessionLocal::DispatchCommand(idUserInterface*, char const*, bool)
+idSessionLocal::DownloadProgressBox(backgroundDownload_t*, char const*, int, int)
 idSessionLocal::Draw()
 idSessionLocal::ExecuteMapChange(bool)
 idSessionLocal::Frame()
 idSessionLocal::GetSaveGameList(idList<idStr>&, idList<fileTIME_T>&)
 idSessionLocal::GuiFrameEvents()
+idSessionLocal::HandleMainMenuCommands(char const*)
+idSessionLocal::HandleMsgCommands(char const*)
+idSessionLocal::HandleRestartMenuCommands(char const*)
 idSessionLocal::HandleSaveGameMenuCommand(idCmdArgs&, int&)
 idSessionLocal::Init()
 idSessionLocal::LoadGame(char const*)
+idSessionLocal::LoadLoadingGui(char const*)
+idSessionLocal::MenuEvent(sysEvent_t const*)
+idSessionLocal::MessageBox(msgBoxType_t, char const*, char const*, bool, char const*, char const*, bool)
+idSessionLocal::MoveToNewMap(char const*)
+idSessionLocal::ProcessEvent(sysEvent_t const*)
 idSessionLocal::ReadCDKey()
-idSessionLocal::RunGameTic()
 idSessionLocal::SaveGame(char const*, bool)
 idSessionLocal::SetGUI(idUserInterface*, char const* (*)(char const*))
 idSessionLocal::SetMainMenuGuiVars()
 idSessionLocal::SetModsMenuGuiVars()
 idSessionLocal::SetSaveGameGuiVars()
+idSessionLocal::ShowLoadingGui()
 idSessionLocal::StartMenu(bool)
+idSessionLocal::StartNewGame(char const*, bool)
 idSessionLocal::StartPlayingCmdDemo(char const*)
+idSessionLocal::StartPlayingRenderDemo(idStr)
 idSessionLocal::StartWipe(char const*, bool)
+idSessionLocal::Stop()
+idSessionLocal::StopBox()
+idSessionLocal::StopPlayingRenderDemo()
 idSessionLocal::TimeCmdDemo(char const*)
+idSessionLocal::TimeRenderDemo(char const*, bool)
 idSessionLocal::UnloadMap()
 idSessionLocal::UpdateMPLevelShot()
 idSessionLocal::UpdateScreen(bool)
@@ -316,14 +393,25 @@ idSessionLocal::WriteCDKey()
 idSessionLocal::WriteCmdDemo(char const*, bool)
 idSliderWindow::InitWithDefaults(char const*, idRectangle const&, idVec4 const&, idVec4 const&, char const*, char const*, bool, bool)
 idSoundCache::FindSound(idStr const&, bool)
+idSoundCache::ReloadSounds(bool)
+idSoundEmitterLocal::StartSound(idSoundShader const*, int, float, int, bool)
 idSoundSample::GetNewTimeStamp() const
 idSoundSample::Load()
+idSoundSample::Reload(bool)
 idSoundShader::Parse(char const*, int)
 idSoundShader::ParseShader(idLexer&)
 idSoundSystemLocal::Init()
+idSoundWorldLocal::PlayShaderDirectly(char const*, int)
+idSoundWorldLocal::ProcessDemoCommand(idDemoFile*)
+idSoundWorldLocal::ReadFromSaveGameSoundChannel(idFile*, idSoundChannel*)
+idSoundWorldLocal::ReadFromSaveGameSoundShaderParams(idFile*, soundShaderParms_t*)
+idSoundWorldLocal::WriteToSaveGameSoundChannel(idFile*, idSoundChannel*)
+idSoundWorldLocal::WriteToSaveGameSoundShaderParams(idFile*, soundShaderParms_t*)
 idSysLocal::OpenURL(char const*, bool)
+idThread::Error*
 idTypeInfoTools::WriteGameState(char const*)
 idUserInterfaceLocal::Activate(bool, int)
+idUserInterfaceLocal::HandleEvent(sysEvent_t const*, int, bool*)
 idUserInterfaceLocal::InitFromFile(char const*, bool, bool)
 idUserInterfaceLocal::Redraw(int)
 idUserInterfaceManagerLocal::CheckGui(char const*) const
@@ -331,61 +419,106 @@ idUserInterfaceManagerLocal::FindGui(char const*, bool, bool, bool)
 idUserInterfaceManagerLocal::Init()
 idUserInterfaceManagerLocal::Reload(bool)
 idUserInterfaceManagerLocal::Touch(char const*)
+idWaveFile::Close()
+idWaveFile::CloseOGG()
 idWaveFile::Open(char const*, waveformatex_s*)
 idWaveFile::OpenOGG(char const*, waveformatex_s*)
 idWaveFile::Read(unsigned char*, int, int*)
+idWaveFile::ReadMMIO()
 idWaveFile::ResetFile()
+idWeapon::CacheWeapon(char const*)
 idWinBackground::Update()
 idWindow::Activate(bool, idStr&)
 idWindow::FixupParms()
+idWindow::HandleEvent(sysEvent_t const*, bool*)
 idWindow::Parse(idParser*, bool)
 idWindow::ParseExpression(idParser*, idWinVar*, long)
 idWindow::ParseExpressionPriority(idParser*, int, idWinVar*, long)
 idWindow::ParseRegEntry(char const*, idParser*)
 idWindow::Redraw(float, float)
+idWindow::RunTimeEvents(int)
 idWindow::SetupBackground()
 idWindow::SetupFromState()
 idWindow::UpdateWinVars()
+idWorldspawn::Spawn()
+LoadBMP(char const*, unsigned char**, int*, int*, long long*)
+LoadGame_f(idCmdArgs const&)
+LoadJPG(char const*, unsigned char**, int*, int*, long long*)
+LoadTGA(char const*, unsigned char**, int*, int*, long long*)
+LocalizeMap(char const*, idHashTable<idList<idStr>>&, idList<idStr>&, bool)
 lwGetClip(idFile*, int)
 lwGetGradient(idFile*, int, st_lwTexture*)
 lwGetImageMap(idFile*, int, st_lwTexture*)
 lwGetObject(char const*, unsigned int*, int*)
 lwGetObject5(char const*, unsigned int*, int*)
 lwGetPoints(idFile*, int, st_lwPointList*)
-lwGetPolygonTags(idFile*, int, st_lwTagList*, st_lwPolygonList*)
 lwGetPolygons(idFile*, int, st_lwPolygonList*, int)
 lwGetPolygons5(idFile*, int, st_lwPolygonList*, int)
+lwGetPolygonTags(idFile*, int, st_lwTagList*, st_lwPolygonList*)
 lwGetProcedural(idFile*, int, st_lwTexture*)
 lwGetShader(idFile*, int)
 lwGetSurface(idFile*, int)
 lwGetSurface5(idFile*, int, st_lwObject*)
-lwGetTHeader(idFile*, int, st_lwTexture*)
-lwGetTMap(idFile*, int, st_lwTMap*)
 lwGetTags(idFile*, int, st_lwTagList*)
 lwGetTexture(idFile*, int, unsigned int)
+lwGetTHeader(idFile*, int, st_lwTexture*)
+lwGetTMap(idFile*, int, st_lwTMap*)
 lwGetVMap(idFile*, int, int, int, int)
 main
 mkdir
 open
 opendir
-ov_openFile(idFile*, OggVorbis_File*)
 ov_open_callbacks
+ov_openFile(idFile*, OggVorbis_File*)
 ov_raw_seek
-readAtOffset(OffsetHandling, unsigned int, __wasi_iovec_t const*, unsigned long, unsigned long*, unsigned long long)
+PrintMemInfo_f(idCmdArgs const&)
+R_Benchmark_f(idCmdArgs const&)
+R_CombineCubeImages_f(idCmdArgs const&)
+R_InitMaterials()
+R_LoadCubeImages(char const*, cubeFiles_t, unsigned char**, int*, long long*)
+R_LoadImage(char const*, unsigned char**, int*, int*, long long*, bool)
+R_LoadImageProgram(char const*, unsigned char**, int*, int*, long long*, textureDepth_t*)
+R_ParseImageProgram_r(idLexer&, unsigned char**, int*, int*, long long*, textureDepth_t*)
+R_ParsePastImageProgram(idLexer&)
+R_ReloadGLSLPrograms_f(idCmdArgs const&)
+R_ReloadGuis_f(idCmdArgs const&)
+R_ReloadImages_f(idCmdArgs const&)
+R_ReloadSurface_f(idCmdArgs const&)
+R_RenderingFPS(renderView_s*)
+R_ReportImageDuplication_f(idCmdArgs const&)
+R_ScreenShot_f(idCmdArgs const&)
+R_ScreenshotFilename(int&, char const*, idStr&)
+R_VidRestart_f(idCmdArgs const&)
+readAtOffset*
 readdir
 readlink
 realpath
 remove
 scandir
+Sess_WritePrecache_f(idCmdArgs const&)
+Session_DevMap_f(idCmdArgs const&)
+Session_Disconnect_f(idCmdArgs const&)
+Session_ExitCmdDemo_f(idCmdArgs const&)
+Session_Map_f(idCmdArgs const&)
+Session_NextMap_f(idCmdArgs const&)
+Session_PromptKey_f(idCmdArgs const&)
+Session_TimeCmdDemo_f(idCmdArgs const&)
+Session_TimeDemo_f(idCmdArgs const&)
+Session_TimeDemoQuit_f(idCmdArgs const&)
+SoundReloadSounds_f(idCmdArgs const&)
 stat
+Sys_FileTimeStamp(_IO_FILE*)
+Sys_GetPath(sysPath_t, idStr&)
+Sys_ListFiles(char const*, char const*, idList<idStr>&)
+Sys_Mkdir(char const*)
 tmpfile
 unz64local_CheckCurrentFileCoherencyHeader(unz64_s*, unsigned int*, unsigned long long*, unsigned int*)
-unz64local_GetCurrentFileInfoInternal(void*, unz_file_info64_s*, unz_file_info64_internal_s*, char*, unsigned long, void*, unsigned long, char*, unsigned long)
-unz64local_SearchCentralDir(zlib_filefunc64_32_def_s const*, void*)
-unz64local_SearchCentralDir64(zlib_filefunc64_32_def_s const*, void*)
 unz64local_getByte(zlib_filefunc64_32_def_s const*, void*, int*)
+unz64local_GetCurrentFileInfoInternal(void*, unz_file_info64_s*, unz_file_info64_internal_s*, char*, unsigned long, void*, unsigned long, char*, unsigned long)
 unz64local_getLong(zlib_filefunc64_32_def_s const*, void*, unsigned long*)
 unz64local_getShort(zlib_filefunc64_32_def_s const*, void*, unsigned long*)
+unz64local_SearchCentralDir(zlib_filefunc64_32_def_s const*, void*)
+unz64local_SearchCentralDir64(zlib_filefunc64_32_def_s const*, void*)
 unzClose
 unzCloseCurrentFile
 unzGetCurrentFileInfo64
@@ -396,28 +529,8 @@ unzOpen
 unzOpenCurrentFile
 unzOpenCurrentFile3
 unzOpenInternal(void const*, zlib_filefunc64_32_def_s*, int)
-unzReOpen
 unzReadCurrentFile
+unzReOpen
 unzSetOffset64
-wasmfs::DataFile::Handle::close()
-wasmfs::DataFile::Handle::open(unsigned int)
-wasmfs::DataFile::Handle::preloadFromJS(int)
-wasmfs::DataFile::Handle::read(unsigned char*, unsigned long, long long)
-wasmfs::DataFile::Handle::write(unsigned char const*, unsigned long, long long)
-wasmfs::Directory::Handle::getChild(std::__2::basic_string<char, std::__2::char_traits<char>, std::__2::allocator<char>> const&)
-wasmfs::Directory::Handle::getEntries()
-wasmfs::FileTable::FileTable()
-wasmfs::OpenFileState::create(std::__2::shared_ptr<wasmfs::File>, unsigned int, std::__2::shared_ptr<wasmfs::OpenFileState>&)
-wasmfs::WasmFS::preloadFiles()
-wasmfs::path::(anonymous namespace)::doParseFile(std::__2::basic_string_view<char, std::__2::char_traits<char>>, std::__2::shared_ptr<wasmfs::Directory>, wasmfs::path::LinkBehavior, unsigned long&)
-wasmfs::path::(anonymous namespace)::doParseParent(std::__2::basic_string_view<char, std::__2::char_traits<char>>, std::__2::shared_ptr<wasmfs::Directory>, unsigned long&)
-wasmfs::path::(anonymous namespace)::getChild(std::__2::shared_ptr<wasmfs::Directory>, std::__2::basic_string_view<char, std::__2::char_traits<char>>, wasmfs::path::LinkBehavior, unsigned long&)
-wasmfs::path::getFileAt(unsigned int, std::__2::basic_string_view<char, std::__2::char_traits<char>>, int)
-wasmfs::path::getFileFrom(std::__2::shared_ptr<wasmfs::Directory>, std::__2::basic_string_view<char, std::__2::char_traits<char>>)
-wasmfs::path::parseFile(std::__2::basic_string_view<char, std::__2::char_traits<char>>, unsigned int, wasmfs::path::LinkBehavior)
-wasmfs::path::parseParent(std::__2::basic_string_view<char, std::__2::char_traits<char>>, unsigned int)
-wasmfs_create_directory
-wasmfs_create_file
-wasmfs_unmount
 write
-writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)
+writeAtOffset*
