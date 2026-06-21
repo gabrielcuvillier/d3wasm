@@ -2407,7 +2407,11 @@ void idSessionLocal::UpdateScreen(bool outOfSequence) {
 
 bool idSessionLocal::emsessionframe_pre() {
 
+#ifndef __EMSCRIPTEN__
 	if ( com_asyncSound.GetInteger() == 0 ) {
+#else
+  {
+#endif
 		soundSystem->AsyncUpdate( Sys_Milliseconds() );
 	}
 
@@ -2483,7 +2487,11 @@ void idSessionLocal::emsessionframe_last() {
   //------------ single player game tics --------------
 
   if ( !mapSpawned || guiActive ) {
+#ifndef __EMSCRIPTEN__
     if ( !com_asyncInput.GetBool()) {
+#else
+    {
+#endif
       // early exit, won't do RunGameTic .. but still need to update mouse position for GUIs
       usercmdGen->GetDirectUsercmd();
     }
@@ -2649,10 +2657,14 @@ bool idSessionLocal::RunGameTic() {
   // if we didn't get one from the file, get it locally
   if ( !cmdDemoFile ) {
     // get a locally created command
+#ifndef __EMSCRIPTEN__
     if ( com_asyncInput.GetBool()) {
       cmd = usercmdGen->TicCmd(lastGameTic);
     }
     else {
+#else
+    {
+#endif
       cmd = usercmdGen->GetDirectUsercmd();
     }
     lastGameTic++;
