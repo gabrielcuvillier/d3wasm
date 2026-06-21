@@ -67,7 +67,7 @@ idEditField				history_backup;				// the base edit line
 
 #ifdef __EMSCRIPTEN__
 // There is no "Terminal" on Emscripten
-idCVar in_tty( "in_tty", "0", CVAR_BOOL | CVAR_ROM | CVAR_INIT | CVAR_SYSTEM, "terminal tab-completion and history" );
+idCVar in_tty( "in_tty", "0", CVAR_BOOL | CVAR_ROM | CVAR_SYSTEM, "terminal tab-completion and history" );
 #else
 idCVar in_tty( "in_tty", "1", CVAR_BOOL | CVAR_INIT | CVAR_SYSTEM, "terminal tab-completion and history" );
 #endif
@@ -93,12 +93,19 @@ Posix_Exit
 ================
 */
 void Posix_Exit(int ret) {
+#ifdef __EMSCRIPTEN__
+	// Cancel the main loop callback
+	emscripten_cancel_main_loop();
+#endif
+
+#ifndef __EMSCRIPTEN__
 	if ( tty_enabled ) {
 		Sys_Printf( "shutdown terminal support\n" );
 		if ( tcsetattr( 0, TCSADRAIN, &tty_tc ) == -1 ) {
 			Sys_Printf( "tcsetattr failed: %s\n", strerror( errno ) );
 		}
 	}
+#endif
 
 	// process spawning. it's best when it happens after everything has shut down
 	if ( exit_spawn[0] ) {
@@ -158,11 +165,6 @@ Sys_Quit
 ================
 */
 void Sys_Quit(void) {
-#ifdef __EMSCRIPTEN__
-  // Cancel the main loop callback
-  emscripten_cancel_main_loop();
-#endif
-
 	Posix_Exit( EXIT_SUCCESS );
 }
 
@@ -482,6 +484,7 @@ void tty_Right() {
 // clear the display of the line currently edited
 // bring cursor back to beginning of line
 void tty_Hide() {
+#ifndef __EMSCRIPTEN__
 	int len, buf_len;
 	if ( !tty_enabled ) {
 		return;
@@ -502,10 +505,12 @@ void tty_Hide() {
 		buf_len--;
 	}
 	input_hide++;
+#endif
 }
 
 // show the current line
 void tty_Show() {
+#ifndef __EMSCRIPTEN__
 	//	int i;
 	if ( !tty_enabled ) {
 		return;
@@ -528,6 +533,7 @@ void tty_Show() {
 			len--;
 		}
 	}
+#endif
 }
 
 void tty_FlushIn() {
@@ -546,6 +552,7 @@ Return NULL if a complete line is not ready.
 ================
 */
 char *Sys_ConsoleInput( void ) {
+#ifndef __EMSCRIPTEN__
 	if ( tty_enabled ) {
 		int	key;
 		bool	hidden = false;
@@ -757,10 +764,6 @@ char *Sys_ConsoleInput( void ) {
 		}
 		return NULL;
 	} else {
-#ifdef __EMSCRIPTEN__
-    // We really need to disable anything related to Terminal on Emscripten
-	  // Otherwise, the browser will ask for input at each game frame!
-#else
 		// no terminal support - read only complete lines
 		int				len;
 		fd_set			fdset;
@@ -791,8 +794,8 @@ char *Sys_ConsoleInput( void ) {
 
 		input_ret[ len-1 ] = '\0';		// rip off the \n and terminate
 		return input_ret;
-#endif
 	}
+#endif
 	return NULL;
 }
 
