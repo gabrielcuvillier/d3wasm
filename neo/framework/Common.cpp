@@ -91,13 +91,16 @@ idCVar com_purgeAll("com_purgeAll", "0", CVAR_BOOL | CVAR_ARCHIVE | CVAR_SYSTEM,
 idCVar com_memoryMarker("com_memoryMarker", "-1", CVAR_INTEGER | CVAR_SYSTEM | CVAR_INIT,
                         "used as a marker for memory stats");
 idCVar com_preciseTic("com_preciseTic", "1", CVAR_BOOL | CVAR_SYSTEM, "run one game tick every async thread update");
-idCVar com_asyncInput("com_asyncInput", "0", CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
-idCVar com_asyncSound("com_asyncSound", "0", CVAR_INTEGER | CVAR_SYSTEM,
-                      "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
 #ifdef __EMSCRIPTEN__
+idCVar com_asyncInput("com_asyncInput", "0", CVAR_ROM | CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
+idCVar com_asyncSound("com_asyncSound", "0", CVAR_ROM | CVAR_INTEGER | CVAR_SYSTEM,
+                      "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
 idCVar com_forceGenericSIMD("com_forceGenericSIMD", "1", CVAR_ROM | CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                             "force generic platform independent SIMD");
 #else
+idCVar com_asyncInput("com_asyncInput", "0", CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
+idCVar com_asyncSound("com_asyncSound", "0", CVAR_INTEGER | CVAR_SYSTEM,
+                      "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
 idCVar com_forceGenericSIMD("com_forceGenericSIMD", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                             "force generic platform independent SIMD");
 #endif
@@ -721,16 +724,19 @@ void idCommonLocal::Error(const char* fmt, ...) {
 
   if ( code == ERP_DISCONNECT ) {
     com_errorEntered = 0;
+    return;
     //throw idException(errorMessage);
     // The gui editor doesnt want thing to com_error so it handles exceptions instead
   }
   else if ( com_editors & ( EDITOR_GUI | EDITOR_DEBUGGER )) {
     com_errorEntered = 0;
+    return;
     //throw idException(errorMessage);
   }
   else if ( code == ERP_DROP ) {
     Printf("********************\nERROR: %s\n********************\n", errorMessage);
     com_errorEntered = 0;
+    return;
     //throw idException(errorMessage);
   }
   else {
@@ -1317,7 +1323,7 @@ void Com_ExecMachineSpec_f(const idCmdArgs& args) {
   // GAB NOTE Dec 2018: Specific configuration for emscripten
   if ( com_machineSpec.GetInteger() == 4 ) {
     cvarSystem->SetCVarInteger("image_anisotropy", 8, CVAR_ARCHIVE);
-    cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ROM | CVAR_ARCHIVE);
+    cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ROM);
     cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
     cvarSystem->SetCVarInteger("r_mode", 5, CVAR_ARCHIVE);
 // These CVAR are read only
@@ -2254,6 +2260,7 @@ void idCommonLocal::SingleAsyncTic(void) {
   stat->milliseconds = Sys_Milliseconds();
   stat->deltaMsec = stat->milliseconds - com_asyncStats[( com_ticNumber - 1 ) & ( MAX_ASYNC_STATS - 1 )].milliseconds;
 
+#ifndef __EMSCRIPTEN__
   if ( usercmdGen && com_asyncInput.GetBool()) {
     usercmdGen->UsercmdInterrupt();
   }
@@ -2266,6 +2273,7 @@ void idCommonLocal::SingleAsyncTic(void) {
       soundSystem->AsyncUpdateWrite(stat->milliseconds);
       break;
   }
+#endif
 
   // we update com_ticNumber after all the background tasks
   // have completed their work for this tic
