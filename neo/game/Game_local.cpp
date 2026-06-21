@@ -601,9 +601,6 @@ void idGameLocal::SaveGame( idFile *f ) {
 	idEvent::Save( &savegame );
 
 	savegame.Close();
-
-#ifdef __EMSCRIPTEN__
-#endif
 }
 
 /*
