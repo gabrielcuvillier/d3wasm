@@ -182,10 +182,10 @@ if (EMSCRIPTEN)
     add_link_options(-sSTACK_SIZE=327680)  # 320K. Mostly because of large buffer on stack created in R_Specular2DTableImage()
     #add_link_options(-sBINARYEN_EXTRA_PASSES=--one-caller-inline-max-function-size=15)
     add_link_options(-sASYNCIFY_ONLY=@${CMAKE_SOURCE_DIR}/sys/wasm/asyncify.txt)
-    #add_link_options(-sASYNCIFY_STACK_SIZE=8192)
+    add_link_options(-sASYNCIFY_STACK_SIZE=16384)
     #add_link_options(-sASYNCIFY_ADVISE=1)
-    add_link_options(-sEXIT_RUNTIME=0)   # Don't exit the runtime
-    add_link_options(-sMALLOC=dlmalloc)
+    add_link_options(-sEXIT_RUNTIME=1)   # Don't exit the runtime
+    add_link_options(-sMALLOC=emmalloc)
     add_link_options(-sENVIRONMENT=web)
     add_link_options(-sSTRICT=1)
     add_link_options(-sASSERTIONS=1)
@@ -200,9 +200,6 @@ if (EMSCRIPTEN)
     add_link_options(-lEGL)       # EGL
     add_link_options(-lGL)        # WebGL
     add_link_options(-lhtml5)     # HTML 5 API
-    #add_link_options(-lfs.js)     # Filesystem core functionality
-    #add_link_options(-lmemfs.js)  # in-memory filesystem
-    #add_link_options(-lidbfs.js)  # in-memory filesystem + idb persistency (used in pre.js for "web_user" folder)
 endif ()
 
 # fallback for cmake versions without GNUInstallDirs
