@@ -298,21 +298,27 @@ idRenderModel *idRenderModelManagerLocal::GetModel( const char *modelName, bool 
 	if ( ( extension.Icmp( "ase" ) == 0 ) || ( extension.Icmp( "lwo" ) == 0 ) || ( extension.Icmp( "flt" ) == 0 ) ) {
 		model = new idRenderModelStatic;
 		model->InitFromFile( modelName );
+#ifndef __EMSCRIPTEN__
 	} else if ( extension.Icmp( "ma" ) == 0 ) {
 		model = new idRenderModelStatic;
 		model->InitFromFile( modelName );
+#endif
 	} else if ( extension.Icmp( MD5_MESH_EXT ) == 0 ) {
 		model = new idRenderModelMD5;
 		model->InitFromFile( modelName );
+#ifndef __EMSCRIPTEN__
 	} else if ( extension.Icmp( "md3" ) == 0 ) {
 		model = new idRenderModelMD3;
 		model->InitFromFile( modelName );
+#endif
 	} else if ( extension.Icmp( "prt" ) == 0  ) {
 		model = new idRenderModelPrt;
 		model->InitFromFile( modelName );
+#ifndef __EMSCRIPTEN__
 	} else if ( extension.Icmp( "liquid" ) == 0  ) {
 		model = new idRenderModelLiquid;
 		model->InitFromFile( modelName );
+#endif
 	} else {
 
 		if ( extension.Length() ) {

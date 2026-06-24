@@ -293,12 +293,14 @@ void idRenderModelStatic::InitFromFile( const char *fileName ) {
 	} else if ( extension.Icmp( "lwo" ) == 0 ) {
 		loaded		= LoadLWO( name );
 		reloadable	= true;
+#ifndef __EMSCRIPTEN__
 	} else if ( extension.Icmp( "flt" ) == 0 ) {
 		loaded		= LoadFLT( name );
 		reloadable	= true;
 	} else if ( extension.Icmp( "ma" ) == 0 ) {
 		loaded		= LoadMA( name );
 		reloadable	= true;
+#endif
 	} else {
 		common->Warning( "idRenderModelStatic::InitFromFile: unknown type for model: \'%s\'", name.c_str() );
 		loaded		= false;
