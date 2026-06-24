@@ -715,7 +715,7 @@ void idObjective::Event_CamShot( ) {
 			// draw a view to a texture
 			renderSystem->CropRenderSize( 256, 256, true );
 			gameRenderWorld->RenderScene( &fullView );
-			renderSystem->CaptureRenderToFile( shotName );
+			renderSystem->CaptureRenderToFile( shotName, false, true );
 			renderSystem->UnCrop();
 		}
 	}

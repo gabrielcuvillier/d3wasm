@@ -48,13 +48,13 @@ void R_LoadImage( const char *name, byte **pic, int *width, int *height, bool ma
 R_WriteTGA
 ================
 */
-void R_WriteTGA( const char *filename, const byte *data, int width, int height, bool flipVertical ) {
-	byte	*buffer;
+void R_WriteTGA( const char *filename, const byte *data, int width, int height, bool flipVertical, bool async ) {
+	char	*buffer;
 	int		i;
 	int		bufferSize = width*height*4 + 18;
 	int     imgStart = 18;
 
-	buffer = (byte *)Mem_Alloc( bufferSize );
+	buffer = (char *)Mem_Alloc( bufferSize );
 	memset( buffer, 0, 18 );
 	buffer[2] = 2;		// uncompressed type
 	buffer[12] = width&255;
@@ -74,9 +74,17 @@ void R_WriteTGA( const char *filename, const byte *data, int width, int height, 
 		buffer[i+3] = data[i-imgStart+3];		// alpha
 	}
 
-	fileSystem->WriteFile( filename, buffer, bufferSize );
-
-	Mem_Free (buffer);
+	if (!async) {
+		fileSystem->WriteFile( filename, buffer, bufferSize );
+		Mem_Free (buffer);
+	} else {
+		if (tr.async_screenshot) {
+			delete tr.async_screenshot;
+			tr.async_screenshot = NULL;
+		}
+		tr.async_screenshot = new idFile_Memory(filename, buffer, bufferSize);
+		cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("async_screenshot\n"));
+	}
 }
 
 

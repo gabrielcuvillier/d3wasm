@@ -850,7 +850,7 @@ CaptureRenderToFile
 
 ==============
 */
-void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlpha ) {
+void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlpha, bool async ) {
 	if ( !glConfig.isInitialized ) {
 		return;
 	}
@@ -879,7 +879,7 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 		data2[ i * 4 + 3 ] = 0xff;
 	}
 
-	R_WriteTGA( fileName, data2, rc->width, rc->height, true );
+	R_WriteTGA( fileName, data2, rc->width, rc->height, true, async ); 
 
 	R_StaticFree( data );
 	R_StaticFree( data2 );

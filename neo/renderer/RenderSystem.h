@@ -202,6 +202,7 @@ public:
 	// generate image files that happen during gameplay, as for savegame
 	// markers.  Use WriteRender() instead.
 	virtual void			TakeScreenshot( int width, int height, const char *fileName, int samples, struct renderView_s *ref ) = 0;
+	virtual void			TakeAsyncScreenshot( ) = 0;
 
 	// the render output can be cropped down to a subset of the real screen, as
 	// for save-game reviews and split-screen multiplayer.  Users of the renderer
@@ -216,7 +217,7 @@ public:
 	virtual void			CaptureRenderToImage( const char *imageName ) = 0;
 	// fixAlpha will set all the alpha channel values to 0xff, which allows screen captures
 	// to use the default tga loading code without having dimmed down areas in many places
-	virtual void			CaptureRenderToFile( const char *fileName, bool fixAlpha = false ) = 0;
+	virtual void			CaptureRenderToFile( const char *fileName, bool fixAlpha = false, bool async = false ) = 0;
 	virtual void			UnCrop() = 0;
 
 	// the image has to be already loaded ( most straightforward way would be through a FindMaterial )
