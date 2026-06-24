@@ -111,6 +111,7 @@ void idImage::UploadCompressedNormalMap( int width, int height, const byte *rgba
 		}
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( mipLevel == 0 ) {
 		// Optionally write out the paletized normal map to a .tga
 		if ( globalImages->image_writeNormalTGAPalletized.GetBool() ) {
@@ -123,6 +124,7 @@ void idImage::UploadCompressedNormalMap( int width, int height, const byte *rgba
 			}
 		}
 	}
+#endif
 }
 
 
@@ -401,6 +403,7 @@ void idImage::GenerateImage( const byte *pic, int width, int height,
 		R_SetBorderTexels( (byte *)scaledBuffer, width, height, rgba );
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( generatorFunction == NULL && ( (depth == TD_BUMP && globalImages->image_writeNormalTGA.GetBool()) || (depth != TD_BUMP && globalImages->image_writeTGA.GetBool()) ) ) {
 		// Optionally write out the texture to a .tga
 		char filename[MAX_IMAGE_NAME];
@@ -430,6 +433,7 @@ void idImage::GenerateImage( const byte *pic, int width, int height,
 			*/
 		}
 	}
+#endif
 
 	// swap the red and alpha for rxgb support
 	// do this even on tga normal maps so we only have to use
