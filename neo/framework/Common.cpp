@@ -2034,8 +2034,11 @@ void idCommonLocal::InitCommands(void) {
   cmdSystem->AddCommand("writeConfig", Com_WriteConfig_f, CMD_FL_SYSTEM, "writes a config file");
   cmdSystem->AddCommand("reloadEngine", Com_ReloadEngine_f, CMD_FL_SYSTEM,
                         "reloads the engine down to including the file system");
+
+#ifndef __EMSCRIPTEN__
   cmdSystem->AddCommand("setMachineSpec", Com_SetMachineSpec_f, CMD_FL_SYSTEM,
                         "detects system capabilities and sets com_machineSpec to appropriate value");
+
   cmdSystem->AddCommand("execMachineSpec", Com_ExecMachineSpec_f, CMD_FL_SYSTEM,
                         "execs the appropriate config files and sets cvars based on com_machineSpec");
 
@@ -2045,6 +2048,7 @@ void idCommonLocal::InitCommands(void) {
   cmdSystem->AddCommand("memoryDump", Mem_Dump_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "creates a memory dump");
   cmdSystem->AddCommand("memoryDumpCompressed", Mem_DumpCompressed_f, CMD_FL_SYSTEM | CMD_FL_CHEAT,
                         "creates a compressed memory dump");
+#endif
   cmdSystem->AddCommand("showStringMemory", idStr::ShowMemoryUsage_f, CMD_FL_SYSTEM, "shows memory used by strings");
   cmdSystem->AddCommand("showDictMemory", idDict::ShowMemoryUsage_f, CMD_FL_SYSTEM,
                         "shows memory used by dictionaries");
@@ -2056,11 +2060,11 @@ void idCommonLocal::InitCommands(void) {
   // SIMD code not supported on emscripten for now
 #else
   cmdSystem->AddCommand("testSIMD", idSIMD::Test_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "test SIMD code");
-#endif
 
   // localization
   cmdSystem->AddCommand("localizeGuis", Com_LocalizeGuis_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "localize guis");
   cmdSystem->AddCommand("localizeMaps", Com_LocalizeMaps_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "localize maps");
+#endif
   cmdSystem->AddCommand("reloadLanguage", Com_ReloadLanguage_f, CMD_FL_SYSTEM, "reload language dict");
 }
 
@@ -2097,7 +2101,7 @@ void idCommonLocal::PrintLoadingMessage(const char* msg) {
 
 #ifdef __EMSCRIPTEN__
   // Yield case: local graphics update outside of the main loop
-  //emscripten_sleep(1);
+  emscripten_sleep(1);
 #endif
 }
 
@@ -2737,7 +2741,7 @@ void idCommonLocal::InitGame(void) {
   // initialize string database right off so we can use it for loading messages
   InitLanguageDict();
 
-  //PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04344"));
+  PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04344"));
 
   // load the font, etc
   console->LoadGraphics();
@@ -2745,7 +2749,7 @@ void idCommonLocal::InitGame(void) {
   // init journalling, etc
   eventLoop->Init();
 
-  //PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04345"));
+  PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04345"));
 
   // exec the startup scripts
   cmdSystem->BufferCommandText(CMD_EXEC_APPEND, "exec editor.cfg\n");
@@ -2774,12 +2778,12 @@ void idCommonLocal::InitGame(void) {
   // init the user command input code
   usercmdGen->Init();
 
-  //PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04346"));
+  PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04346"));
 
   // start the sound system, but don't do any hardware operations yet
   soundSystem->Init();
 
-  //PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04347"));
+  PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04347"));
 
   // init async network
   idAsyncNetwork::Init();
