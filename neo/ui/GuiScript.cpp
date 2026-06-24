@@ -398,6 +398,14 @@ bool idGuiScript::Parse(idParser *src) {
 	if ( handler && (parms.Num() < commandList[i].mMinParms || parms.Num() > commandList[i].mMaxParms ) ) {
 		src->Error("incorrect number of parameters for script %s", commandList[i].name );
 	}
+
+	// Preload LocalSounds
+	if (handler == Script_LocalSound) {
+		idWinStr *parm = dynamic_cast<idWinStr*>((parms)[0].var);
+		if (parm) {
+			declManager->FindSound( parm->c_str());
+		}
+	}
 	//
 
 	return true;
