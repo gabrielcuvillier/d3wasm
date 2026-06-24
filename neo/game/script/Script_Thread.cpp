@@ -1778,7 +1778,9 @@ idThread::Event_CacheSoundShader
 ================
 */
 void idThread::Event_CacheSoundShader( const char *soundName ) {
-	declManager->FindSound( soundName );
+	cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("touch sound %s\n", soundName));
+	// Old code (not async):
+	//declManager->FindSound( soundName );
 }
 
 /*

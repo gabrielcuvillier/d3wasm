@@ -2473,6 +2473,7 @@ void idEntity::InitDefaultPhysics( const idVec3 &origin, const idMat3 &axis ) {
 		if ( !clipModel ) {
 			temp = spawnArgs.GetString( "model" );
 			if ( ( temp != NULL ) && ( *temp != 0 ) ) {
+				common->DPrintf("About to use visual as collision %s\n", temp);
 				if ( idClipModel::CheckModel( temp ) ) {
 					clipModel = new idClipModel( temp );
 				}
@@ -4053,7 +4054,9 @@ idEntity::Event_CacheSoundShader
 ================
 */
 void idEntity::Event_CacheSoundShader( const char *soundName ) {
-	declManager->FindSound( soundName );
+	cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("touch sound %s\n", soundName));
+	// Old code (not async):
+	//declManager->FindSound( soundName );
 }
 
 /*
