@@ -357,7 +357,7 @@ private:
 	bool				demoversion; // DG: true if running the Demo version of Doom3, for FT_IsDemo (see Common.h)
 
 	bool emsessionframe_pre();
-	void emsessionframe_last();
+	bool emsessionframe_last();
 };
 
 extern idSessionLocal	sessLocal;
