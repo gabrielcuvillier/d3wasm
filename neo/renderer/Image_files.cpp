@@ -991,12 +991,16 @@ void R_LoadImage( const char *cname, byte **pic, int *width, int *height, ID_TIM
 			name.DefaultFileExtension( ".jpg" );
 			LoadJPG( name.c_str(), pic, width, height, timestamp );
 		}
+#ifndef __EMSCRIPTEN__
 	} else if ( ext == "pcx" ) {
 		LoadPCX32( name.c_str(), pic, width, height, timestamp );
+#endif
 	} else if ( ext == "bmp" ) {
 		LoadBMP( name.c_str(), pic, width, height, timestamp );
 	} else if ( ext == "jpg" ) {
 		LoadJPG( name.c_str(), pic, width, height, timestamp );
+	} else {
+		common->Warning( "unknown image type '%s'", name.c_str() );
 	}
 
 	if ( ( width && *width < 1 ) || ( height && *height < 1 ) ) {
