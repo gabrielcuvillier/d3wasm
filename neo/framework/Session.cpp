@@ -2482,7 +2482,7 @@ bool idSessionLocal::emsessionframe_pre() {
   return true;
 }
 
-void idSessionLocal::emsessionframe_last() {
+bool idSessionLocal::emsessionframe_last() {
 
   //------------ single player game tics --------------
 
@@ -2498,18 +2498,18 @@ void idSessionLocal::emsessionframe_last() {
   }
 
   if ( !mapSpawned ) {
-    return;
+    return false;
   }
 
   if ( guiActive ) {
     lastGameTic = latchedTicNumber;
-    return;
+    return false;
   }
 
   // in message box / GUIFrame, idSessionLocal::Frame is used for GUI interactivity
   // but we early exit to avoid running game frames
   if ( idAsyncNetwork::IsActive()) {
-    return;
+    return false;
   }
 
   // check for user info changes
@@ -2566,19 +2566,7 @@ void idSessionLocal::emsessionframe_last() {
     common->Printf("%i ", latchedTicNumber - lastGameTic);
   }
 
-  int gameTicsToRun = latchedTicNumber - lastGameTic;
-  int i;
-  for ( i = 0; i < gameTicsToRun; i++ ) {
-    bool b = RunGameTic();
-    if ( !mapSpawned || !b ) {
-      // exited game play
-      break;
-    }
-    if ( syncNextGameFrame ) {
-      // long game frame, so break out and continue executing as if there was no hitch
-      break;
-    }
-  }
+  return true;
 }
 
 /*
@@ -2625,7 +2613,21 @@ void idSessionLocal::Frame() {
     return;
   }
 
-  emsessionframe_last();
+  if (emsessionframe_last()) {
+    int gameTicsToRun = latchedTicNumber - lastGameTic;
+    int i;
+    for ( i = 0; i < gameTicsToRun; i++ ) {
+      bool b = RunGameTic();
+      if ( !mapSpawned || !b ) {
+        // exited game play
+        break;
+      }
+      if ( syncNextGameFrame ) {
+        // long game frame, so break out and continue executing as if there was no hitch
+        break;
+      }
+    }
+  }
 }
 
 /*
