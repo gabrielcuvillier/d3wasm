@@ -1775,8 +1775,9 @@ void idImageManager::Init() {
 
 	cmdSystem->AddCommand( "reloadImages", R_ReloadImages_f, CMD_FL_RENDERER, "reloads images" );
 	cmdSystem->AddCommand( "listImages", R_ListImages_f, CMD_FL_RENDERER, "lists images" );
+#ifndef __EMSCRIPTEN__
 	cmdSystem->AddCommand( "combineCubeImages", R_CombineCubeImages_f, CMD_FL_RENDERER, "combines six images for roq compression" );
-
+#endif
 	// should forceLoadImages be here?
 }
 
