@@ -291,11 +291,13 @@ void GLimp_SetGamma(unsigned short red[256], unsigned short green[256], unsigned
 GLimp_ExtensionPointer
 ===================
 */
+#ifndef __EMSCRIPTEN__
 GLExtension_t GLimp_ExtensionPointer(const char *name) {
   assert(SDL_WasInit(SDL_INIT_VIDEO));
 
   return (GLExtension_t) SDL_GL_GetProcAddress(name);
 }
+#endif
 
 void GLimp_GrabInput(int flags) {
   bool grab = flags & GRAB_ENABLE;

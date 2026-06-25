@@ -448,11 +448,15 @@ void R_InitOpenGL( void ) {
 		r_multiSamples.SetInteger( 0 );
 	}
 
+#ifndef __EMSCRIPTEN__
 // load qgl function pointers
 #define QGLPROC(name, rettype, args) \
 	q##name = (rettype(GL_APIENTRYP)args)GLimp_ExtensionPointer(#name); \
 	if (!q##name) \
 		common->FatalError("Unable to initialize OpenGL (%s)", #name);
+#else
+#define QGLPROC(name, rettype, args)	q##name = name;
+#endif
 
 #include "renderer/qgl_proc.h"
 
