@@ -287,10 +287,10 @@ set(src_renderer
         renderer/ModelOverlay.cpp
         renderer/Model_beam.cpp
         renderer/Model_ase.cpp
-        renderer/Model_liquid.cpp
+        #renderer/Model_liquid.cpp
         renderer/Model_lwo.cpp
-        renderer/Model_ma.cpp
-        renderer/Model_md3.cpp
+        #renderer/Model_ma.cpp
+        #renderer/Model_md3.cpp
         renderer/Model_md5.cpp
         renderer/Model_prt.cpp
         renderer/Model_sprite.cpp
