@@ -681,7 +681,9 @@ idFile_Memory::~idFile_Memory
 =================
 */
 idFile_Memory::~idFile_Memory( void ) {
-	SafeClose();
+	if ( filePtr && allocated > 0 && maxSize == 0 ) {
+		printf("Unsafe File Memory Close\n");
+	}
 }
 
 /*
