@@ -879,10 +879,20 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 		data2[ i * 4 + 3 ] = 0xff;
 	}
 
-	R_WriteTGA( fileName, data2, rc->width, rc->height, true, async ); 
-
 	R_StaticFree( data );
-	R_StaticFree( data2 );
+
+	if (!async) {
+		R_WriteTGA( fileName, data2, rc->width, rc->height, true );
+		R_StaticFree( data2 );
+	} else {
+		asyncScreenshot_t sc;
+		sc.filename = fileName;
+		sc.buffer = data2;
+		sc.width = rc->width;
+		sc.height = rc->height;
+		sc.flipVertical = true;
+		async_screenshot.Append(sc);
+	}
 }
 
 

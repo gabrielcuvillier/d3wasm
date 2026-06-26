@@ -717,6 +717,7 @@ void idObjective::Event_CamShot( ) {
 			gameRenderWorld->RenderScene( &fullView );
 			renderSystem->CaptureRenderToFile( shotName, false, true );
 			renderSystem->UnCrop();
+			cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("async_screenshot\n"));
 		}
 	}
 }

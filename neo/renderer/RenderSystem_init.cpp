@@ -1061,11 +1061,18 @@ TakeAsyncScreenshot
 ==================
 */
 void idRenderSystemLocal::TakeAsyncScreenshot( ) {
-	if (async_screenshot) {
-		fileSystem->WriteFile( async_screenshot->GetName(), async_screenshot->GetDataPtr(), async_screenshot->Length() );
-		delete async_screenshot;
-		async_screenshot = NULL;
+	for (int i = 0; i < async_screenshot.Num(); i++) {
+		R_WriteTGA(async_screenshot[i].filename.c_str(),
+			async_screenshot[i].buffer,
+			async_screenshot[i].width,
+			async_screenshot[i].height,
+			async_screenshot[i].flipVertical);
+
+		declManager->FindMaterial( async_screenshot[i].filename.c_str() );
+
+		R_StaticFree(async_screenshot[i].buffer);
 	}
+	async_screenshot.Clear();
 }
 
 
@@ -1649,10 +1656,10 @@ void idRenderSystemLocal::Clear( void ) {
 	guiModel = NULL;
 	demoGuiModel = NULL;
 	takingScreenshot = false;
-	if (async_screenshot) {
-		delete async_screenshot;
-		async_screenshot = NULL;
+	for (int i = 0; i < async_screenshot.Num(); i++) {
+		delete async_screenshot[i].buffer;
 	}
+	async_screenshot.Clear();
 }
 
 /*
@@ -1698,7 +1705,10 @@ void idRenderSystemLocal::Init( void ) {
 	identitySpace.modelMatrix[1*4+1] = 1.0f;
 	identitySpace.modelMatrix[2*4+2] = 1.0f;
 
-	async_screenshot = NULL;
+	for (int i = 0; i < async_screenshot.Num(); i++) {
+		delete async_screenshot[i].buffer;
+	}
+	async_screenshot.Clear();
 }
 
 /*
