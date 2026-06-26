@@ -3124,7 +3124,7 @@ void idGameLocal::SpawnMapEntities( void ) {
 				session->PacifierUpdate();
 #ifdef __EMSCRIPTEN__
 				// Yield case: local graphics update in a long process in main loop
-				//emscripten_sleep(1);
+				emscripten_sleep(0);
 #endif
 			}
 

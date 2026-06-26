@@ -2101,7 +2101,7 @@ void idCommonLocal::PrintLoadingMessage(const char* msg) {
 
 #ifdef __EMSCRIPTEN__
   // Yield case: local graphics update outside of the main loop
-  emscripten_sleep(1);
+  emscripten_sleep(0);
 #endif
 }
 
