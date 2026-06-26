@@ -652,6 +652,14 @@ typedef struct {
 } renderCrop_t;
 static const int	MAX_RENDER_CROPS = 8;
 
+typedef struct asyncScreenshot_s {
+	idStr filename;
+	unsigned char* buffer;
+	int width;
+	int height;
+	bool flipVertical;
+} asyncScreenshot_t;
+
 /*
 ** Most renderer globals are defined here.
 ** backend functions should never modify any of these fields,
@@ -761,7 +769,7 @@ public:
 	class idGuiModel *		guiModel;
 	class idGuiModel *		demoGuiModel;
 
-	idFile_Memory*			async_screenshot;
+	idList<asyncScreenshot_t> async_screenshot;
 };
 
 extern backEndState_t		backEnd;
