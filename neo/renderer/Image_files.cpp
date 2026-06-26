@@ -977,19 +977,19 @@ void R_LoadImage( const char *cname, byte **pic, int *width, int *height, ID_TIM
 
 	if ( ext == "tga" ) {
 		LoadTGA( name.c_str(), pic, width, height, timestamp );            // try tga first
+#ifndef __EMSCRIPTEN__
 		if ( ( pic && *pic == 0 ) || ( timestamp && *timestamp == -1 ) ) {
 			name.StripFileExtension();
 			name.DefaultFileExtension( ".jpg" );
 			LoadJPG( name.c_str(), pic, width, height, timestamp );
 		}
-#ifndef __EMSCRIPTEN__
 	} else if ( ext == "pcx" ) {
 		LoadPCX32( name.c_str(), pic, width, height, timestamp );
-#endif
 	} else if ( ext == "bmp" ) {
 		LoadBMP( name.c_str(), pic, width, height, timestamp );
 	} else if ( ext == "jpg" ) {
 		LoadJPG( name.c_str(), pic, width, height, timestamp );
+#endif
 	} else {
 		common->Warning( "unknown image type '%s'", name.c_str() );
 	}
