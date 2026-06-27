@@ -1709,6 +1709,9 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 	idEntity	*ent;
 	idDict		args;
 
+	// Hack: Look for the personnal PDA before to preload it
+	declManager->FindType(DECL_PDA, "personal");
+
 	// they can connect
 	Printf( "SpawnPlayer: %i\n", clientNum );
 
