@@ -2889,9 +2889,11 @@ bool idFileSystemLocal::FileAllowedFromDir( const char *path ) {
 
 	if ( !strcmp( path + l - 4, ".cfg" )		// for config files
 		|| !strcmp( path + l - 4, ".dat" )		// for journal files
+#ifndef __EMSCRIPTEN__
 		|| !strcmp( path + l - 4, ".dll" )		// dynamic modules are handled a different way for pure
 		|| !strcmp( path + l - 3, ".so" )
 		|| ( l > 6 && !strcmp( path + l - 6, ".dylib" ) )
+#endif
 		|| ( l > 10 && !strcmp( path + l - 10, ".scriptcfg" ) )	// configuration script, such as map cycle
 #if ID_PURE_ALLOWDDS
 		 || !strcmp( path + l - 4, ".dds" )
