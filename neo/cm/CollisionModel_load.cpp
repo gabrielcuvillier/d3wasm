@@ -3293,7 +3293,9 @@ void idCollisionModelManagerLocal::BuildModels( const idMapFile *mapFile ) {
 	timer.Start();
 
 	if ( !LoadCollisionModelFile( mapFile->GetName(), mapFile->GetGeometryCRC() ) ) {
-
+#ifdef __EMSCRIPTEN__
+		common->Error("Skipping building Collision models\n");
+#else
 		if ( !mapFile->GetNumEntities() ) {
 			return;
 		}
@@ -3321,6 +3323,7 @@ void idCollisionModelManagerLocal::BuildModels( const idMapFile *mapFile ) {
 
 		// write the collision models to a file
 		WriteCollisionModelsToFile( mapFile->GetName(), 0, numModels, mapFile->GetGeometryCRC() );
+#endif
 	}
 
 	timer.Stop();
