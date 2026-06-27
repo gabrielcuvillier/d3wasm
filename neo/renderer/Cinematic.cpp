@@ -308,7 +308,7 @@ bool idCinematicLocal::InitFromFile( const char *qpath, bool amilooping ) {
 	iFile = fileSystem->OpenFileRead( fileName );
 
 #ifdef __EMSCRIPTEN__
-		printf("Preloading ROQ in memory: %s\n", fileName.c_str());
+		common->DPrintf("Preloading RoQ: %s\n", fileName.c_str());
 		int l = iFile->Length();
 		byte* fileImage = (byte *)Mem_Alloc( l );
 		iFile->Read( fileImage, l );
@@ -1563,6 +1563,7 @@ void idCinematicLocal::RoQShutdown( void ) {
 	status = FMV_IDLE;
 
 	if ( iFile ) {
+		common->DPrintf("Unloading RoQ: %s\n", fileName.c_str());
 		fileSystem->CloseFile( iFile );
 		iFile = NULL;
 	}
