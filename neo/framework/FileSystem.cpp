@@ -470,7 +470,7 @@ public:
 #endif
 };
 
-idCVar	idFileSystemLocal::fs_restrict( "fs_restrict", "", CVAR_SYSTEM | CVAR_INIT | CVAR_BOOL, "" );
+idCVar	idFileSystemLocal::fs_restrict( "fs_restrict", "1", CVAR_SYSTEM | CVAR_INIT | CVAR_BOOL, "" );
 idCVar	idFileSystemLocal::fs_debug( "fs_debug", "0", CVAR_SYSTEM | CVAR_INTEGER, "", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
 #ifdef __EMSCRIPTEN__
 idCVar	idFileSystemLocal::fs_copyfiles( "fs_copyfiles", "0", CVAR_ROM | CVAR_SYSTEM | CVAR_INIT | CVAR_INTEGER, "", 0, 4, idCmdSystem::ArgCompletion_Integer<0,3> );
@@ -2718,9 +2718,9 @@ void idFileSystemLocal::Init( void ) {
 	if (!(f = fopen("/usr/local/share/d3wasm/base/pak007.pk4", "r")))
 		emscripten_wget("data/base/pak007.pk4", "/usr/local/share/d3wasm/base/pak007.pk4");
 	fclose(f);
-	//if (!(f = fopen("/usr/local/share/d3wasm/base/pak008.pk4", "r")))
+	if (!(f = fopen("/usr/local/share/d3wasm/base/pak008.pk4", "r")))
 		emscripten_wget("data/base/pak008.pk4", "/usr/local/share/d3wasm/base/pak008.pk4");
-	//else fclose(f);
+	fclose(f);
 
 	// allow command line parms to override our defaults
 	// we have to specially handle this, because normal command
