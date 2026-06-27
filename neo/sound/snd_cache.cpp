@@ -156,6 +156,7 @@ loading the actual data.
 ====================
 */
 void idSoundCache::BeginLevelLoad() {
+	common->DPrintf( "----- idSoundCache::BeginLevelLoad -----\n" );
 	insideLevelLoad = true;
 
 	for ( int i = 0 ; i < listCache.Num() ; i++ ) {
@@ -183,7 +184,7 @@ Free all samples marked as unused
 */
 void idSoundCache::EndLevelLoad() {
 	int	useCount, purgeCount;
-	common->Printf( "----- idSoundCache::EndLevelLoad -----\n" );
+	common->DPrintf( "----- idSoundCache::EndLevelLoad -----\n" );
 
 	insideLevelLoad = false;
 
