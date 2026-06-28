@@ -175,7 +175,7 @@ if (EMSCRIPTEN)
     # add_link_options(--pre-js ${CMAKE_SOURCE_DIR}/sys/wasm/pre-full.js)
     add_link_options(--pre-js ${CMAKE_SOURCE_DIR}/sys/wasm/pre-wasmfs.js)
     add_link_options(--shell-file ${CMAKE_SOURCE_DIR}/sys/wasm/shell.html)
-    add_link_options(-sINITIAL_MEMORY=536870912) # 512MB. Going below lead to crashes after a couple of levels played.
+    add_link_options(-sINITIAL_MEMORY=402653184) # 384MB. Going below might lead to crashes after a couple of levels played.
     add_link_options(-sASYNCIFY=1)
     add_link_options(-sASYNCIFY_DEBUG=0)
     add_link_options(-sASYNCIFY_ADVISE=0)
@@ -184,7 +184,7 @@ if (EMSCRIPTEN)
     add_link_options(-sASYNCIFY_ONLY=@${CMAKE_SOURCE_DIR}/sys/wasm/asyncify.txt)
     add_link_options(-sASYNCIFY_STACK_SIZE=16384)
     add_link_options(-sEXIT_RUNTIME=1)   # Don't exit the runtime
-    add_link_options(-sMALLOC=emmalloc)
+    add_link_options(-sMALLOC=dlmalloc)
     add_link_options(-sENVIRONMENT=web)
     add_link_options(-sSTRICT=1)
     add_link_options(-sASSERTIONS=1)
