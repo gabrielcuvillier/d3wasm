@@ -562,10 +562,12 @@ void idSoundWorldLocal::MixLoop( int current44kHz, int numSpeakers, float *final
 		}
 	}
 
+#ifndef __EMSCRIPTEN__
 	// TODO port to OpenAL
 	if ( false && enviroSuitActive ) {
 		soundSystemLocal.DoEnviroSuit( finalMixBuffer, MIXBUFFER_SAMPLES, numSpeakers );
 	}
+#endif
 }
 
 //==============================================================================
