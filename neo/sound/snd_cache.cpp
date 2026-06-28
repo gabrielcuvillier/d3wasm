@@ -222,12 +222,15 @@ idSoundCache::PrintMemInfo
 void idSoundCache::PrintMemInfo( MemInfo_t *mi ) {
 	int i, j, num = 0, total = 0;
 	int *sortIndex;
+
+#ifndef __EMSCRIPTEN__
 	idFile *f;
 
 	f = fileSystem->OpenFileWrite( mi->filebase + "_sounds.txt" );
 	if ( !f ) {
 		return;
 	}
+#endif
 
 	// count
 	for ( i = 0; i < listCache.Num(); i++, num++ ) {
@@ -263,13 +266,17 @@ void idSoundCache::PrintMemInfo( MemInfo_t *mi ) {
 		}
 
 		total += sample->objectMemSize;
+#ifndef __EMSCRIPTEN__
 		f->Printf( "%s %s\n", idStr::FormatNumber( sample->objectMemSize ).c_str(), sample->name.c_str() );
+#endif
 	}
 
 	mi->soundAssetsTotal = total;
 
+#ifndef __EMSCRIPTEN__
 	f->Printf( "\nTotal sound bytes allocated: %s\n", idStr::FormatNumber( total ).c_str() );
 	fileSystem->CloseFile( f );
+#endif
 	delete[] sortIndex;
 }
 

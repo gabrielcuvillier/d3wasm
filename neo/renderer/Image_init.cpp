@@ -1976,12 +1976,15 @@ idImageManager::PrintMemInfo
 void idImageManager::PrintMemInfo( MemInfo_t *mi ) {
 	int i, j, total = 0;
 	int *sortIndex;
+
+#ifndef __EMSCRIPTEN__
 	idFile *f;
 
 	f = fileSystem->OpenFileWrite( mi->filebase + "_images.txt" );
 	if ( !f ) {
 		return;
 	}
+#endif
 
 	// sort first
 	sortIndex = new int[images.Num()];
@@ -2008,12 +2011,16 @@ void idImageManager::PrintMemInfo( MemInfo_t *mi ) {
 		size = im->StorageSize();
 		total += size;
 
+#ifndef __EMSCRIPTEN__
 		f->Printf( "%s %3i %s\n", idStr::FormatNumber( size ).c_str(), im->refCount, im->imgName.c_str() );
+#endif
 	}
 
 	delete [] sortIndex;
 	mi->imageAssetsTotal = total;
 
+#ifndef __EMSCRIPTEN__
 	f->Printf( "\nTotal image bytes allocated: %s\n", idStr::FormatNumber( total ).c_str() );
 	fileSystem->CloseFile( f );
+#endif
 }

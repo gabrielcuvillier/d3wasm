@@ -1167,6 +1167,10 @@ idCmdSystemLocal::PrintMemInfo_f
 This prints out memory debugging data
 ============
 */
+#ifdef __EMSCRIPTEN__
+#include "emscripten/heap.h"
+#include "malloc.h"
+#endif
 static void PrintMemInfo_f(const idCmdArgs& args) {
   MemInfo_t mi;
 
@@ -1176,17 +1180,18 @@ static void PrintMemInfo_f(const idCmdArgs& args) {
   renderSystem->PrintMemInfo(&mi);            // textures and models
   soundSystem->PrintMemInfo(&mi);            // sounds
 
-  common->Printf(" Used image memory: %s bytes\n", idStr::FormatNumber(mi.imageAssetsTotal).c_str());
+  common->Printf(" Used image memory: %.2f MB\n",mi.imageAssetsTotal * 1.0 / (1024.0*1024.0));
   mi.assetTotals += mi.imageAssetsTotal;
 
-  common->Printf(" Used model memory: %s bytes\n", idStr::FormatNumber(mi.modelAssetsTotal).c_str());
+  common->Printf(" Used model memory: %.2f MB\n", mi.modelAssetsTotal * 1.0 / (1024.0*1024.0));
   mi.assetTotals += mi.modelAssetsTotal;
 
-  common->Printf(" Used sound memory: %s bytes\n", idStr::FormatNumber(mi.soundAssetsTotal).c_str());
+  common->Printf(" Used sound memory: %.2f MB\n", mi.soundAssetsTotal * 1.0 / (1024.0*1024.0));
   mi.assetTotals += mi.soundAssetsTotal;
 
-  common->Printf(" Used asset memory: %s bytes\n", idStr::FormatNumber(mi.assetTotals).c_str());
+  common->Printf(" Used asset memory: %.2f MB\n", mi.assetTotals * 1.0 / (1024.0*1024.0));
 
+#ifndef __EMSCRIPTEN__
   // write overview file
   idFile* f;
 
@@ -1201,6 +1206,32 @@ static void PrintMemInfo_f(const idCmdArgs& args) {
             mi.filebase.c_str());
 
   fileSystem->CloseFile(f);
+#endif
+
+#ifdef __EMSCRIPTEN__
+  common->Printf("\nEmscripten Heap Info:\n");
+
+  {
+    const size_t wasmHeapSize = emscripten_get_heap_size();
+    const uintptr_t programBreak = reinterpret_cast<uintptr_t>(sbrk(0));
+
+    struct mallinfo mi = mallinfo();
+
+    const size_t freeInsideMalloc = static_cast<size_t>(mi.fordblks);
+    const size_t notYetGivenToMalloc =
+        wasmHeapSize > programBreak ? wasmHeapSize - programBreak : 0;
+
+    const size_t estimatedAvailable =
+        freeInsideMalloc + notYetGivenToMalloc;
+
+    common->Printf("WASM heap size        : %.2f MB\n", wasmHeapSize / 1024.0 / 1024.0);
+    common->Printf("Program break / sbrk  : %.2f MB\n", programBreak / 1024.0 / 1024.0);
+    common->Printf("malloc used           : %.2f MB\n", mi.uordblks / 1024.0 / 1024.0);
+    common->Printf("malloc free blocks    : %.2f MB\n", freeInsideMalloc / 1024.0 / 1024.0);
+    common->Printf("not yet given malloc  : %.2f MB\n", notYetGivenToMalloc / 1024.0 / 1024.0);
+    common->Printf("estimated available   : %.2f MB\n", estimatedAvailable / 1024.0 / 1024.0);
+  }
+#endif
 }
 
 /*
@@ -2042,13 +2073,13 @@ void idCommonLocal::InitCommands(void) {
   cmdSystem->AddCommand("execMachineSpec", Com_ExecMachineSpec_f, CMD_FL_SYSTEM,
                         "execs the appropriate config files and sets cvars based on com_machineSpec");
 
-  cmdSystem->AddCommand("printMemInfo", PrintMemInfo_f, CMD_FL_SYSTEM, "prints memory debugging data");
-
   // idLib commands
   cmdSystem->AddCommand("memoryDump", Mem_Dump_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "creates a memory dump");
   cmdSystem->AddCommand("memoryDumpCompressed", Mem_DumpCompressed_f, CMD_FL_SYSTEM | CMD_FL_CHEAT,
                         "creates a compressed memory dump");
 #endif
+  cmdSystem->AddCommand("printMemInfo", PrintMemInfo_f, CMD_FL_SYSTEM, "prints memory debugging data");
+
   cmdSystem->AddCommand("showStringMemory", idStr::ShowMemoryUsage_f, CMD_FL_SYSTEM, "shows memory used by strings");
   cmdSystem->AddCommand("showDictMemory", idDict::ShowMemoryUsage_f, CMD_FL_SYSTEM,
                         "shows memory used by dictionaries");

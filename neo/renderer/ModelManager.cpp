@@ -590,12 +590,15 @@ idRenderModelManagerLocal::PrintMemInfo
 void idRenderModelManagerLocal::PrintMemInfo( MemInfo_t *mi ) {
 	int i, j, totalMem = 0;
 	int *sortIndex;
+
+#ifndef __EMSCRIPTEN__
 	idFile *f;
 
 	f = fileSystem->OpenFileWrite( mi->filebase + "_models.txt" );
 	if ( !f ) {
 		return;
 	}
+#endif
 
 	// sort first
 	sortIndex = new int[ localModelManager.models.Num()];
@@ -625,12 +628,16 @@ void idRenderModelManagerLocal::PrintMemInfo( MemInfo_t *mi ) {
 
 		mem = model->Memory();
 		totalMem += mem;
+#ifndef __EMSCRIPTEN__
 		f->Printf( "%s %s\n", idStr::FormatNumber( mem ).c_str(), model->Name() );
+#endif
 	}
 
 	delete [] sortIndex;
 	mi->modelAssetsTotal = totalMem;
 
+#ifndef __EMSCRIPTEN__
 	f->Printf( "\nTotal model bytes allocated: %s\n", idStr::FormatNumber( totalMem ).c_str() );
 	fileSystem->CloseFile( f );
+#endif
 }
