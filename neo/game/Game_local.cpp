@@ -1563,6 +1563,14 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "snd", kv );
 	}
 
+	kv = dict->MatchPrefix( "clipmodel", NULL );
+	while( kv ) {
+		if ( kv->GetValue().Length() ) {
+			declManager->MediaPrint( "Precaching clipmodel %s\n", kv->GetValue().c_str() );
+			collisionModelManager->LoadModel( kv->GetValue(), true );
+		}
+		kv = dict->MatchPrefix( "clipmodel", kv );
+	}
 
 	kv = dict->MatchPrefix( "gui", NULL );
 	while( kv ) {
