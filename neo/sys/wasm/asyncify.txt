@@ -7,58 +7,44 @@ __stdio_close
 __stdio_read
 __stdio_seek
 __stdio_write
-__syscall_chdir
-__syscall_chmod
-__syscall_fchmod
-__syscall_fchmodat2
 __syscall_fcntl64
 __syscall_fstat64
-__syscall_ftruncate64
 __syscall_getcwd
 __syscall_getdents64
 __syscall_ioctl
 __syscall_lstat64
 __syscall_mkdirat
-__syscall_mknodat
-__syscall_msync
-__syscall_munmap
 __syscall_newfstatat
 __syscall_openat
 __syscall_readlinkat
-__syscall_renameat
 __syscall_rmdir
 __syscall_stat64
-__syscall_symlinkat
-__syscall_truncate64
 __syscall_unlinkat
-__syscall_utimensat
 __wasi_fd_close
-__wasi_fd_pread
-__wasi_fd_pwrite
 __wasi_fd_read
 __wasi_fd_seek
 __wasi_fd_write
 _fetch_headers
 _get_next_page
 _get_prev_page_serial
-_mmap_js
-_msync_js
-_munmap_js
 _ov_open1
 _ov_open2
 AddRenderGui(char const*, idUserInterface**, idDict const*)
 ASE_Load(char const*)
+BOBrick::ReadFromSaveGame(idFile*)
+BOEntity::ReadFromSaveGame(idFile*)
+BSEntity::ReadFromSaveGame(idFile*)
 call_zopen64
 close
 closedir
-Cmd_ClearLights_f(idCmdArgs const&)
 Cmd_GameError_f(idCmdArgs const&)
+Cmd_Give_f(idCmdArgs const&)
 Cmd_ReloadAnims_f(idCmdArgs const&)
 Cmd_ReloadScript_f(idCmdArgs const&)
+Cmd_Script_f(idCmdArgs const&)
+Cmd_Spawn_f(idCmdArgs const&)
 Com_Crash_f(idCmdArgs const&)
 Com_Error_f(idCmdArgs const&)
-Com_LocalizeGuis_f(idCmdArgs const&)
-Com_LocalizeMaps_f(idCmdArgs const&)
 Com_Quit_f(idCmdArgs const&)
 Com_ReloadEngine_f(idCmdArgs const&)
 Com_ReloadLanguage_f(idCmdArgs const&)
@@ -66,10 +52,10 @@ Com_WriteConfig_f(idCmdArgs const&)
 Con_Dump_f(idCmdArgs const&)
 dynCall_v
 emloopcb
-emscripten_wget
 fclose
 fclose_file_func
 fflush
+FindUnusedFileName(char const*)
 fopen
 fopen64_file_func
 fread
@@ -82,7 +68,6 @@ fwrite_file_func
 gameError*
 getbytes(idFile*, int)
 getF4(idFile*)
-GetFileList(char const*, char const*, idList<idStr>&)
 getI2(idFile*)
 getI4(idFile*)
 getS0(idFile*)
@@ -90,25 +75,34 @@ getU1(idFile*)
 getU2(idFile*)
 getU4(idFile*)
 getVX(idFile*)
-id*::ParseInternalVar(char const*, idParser*)
-id*::ReadFromSaveGame(idFile*)
+id*::Parse(char const*, int)
 id*::Save(idSaveGame*) const
+id*::Spawn()
 id*::WriteToSaveGame(idFile*)
 idAASFileLocal::Load(idStr const&, unsigned int)
 idAASFileManagerLocal::LoadAAS(char const*, unsigned int)
 idAASLocal::Init(idStr const&, unsigned int)
 idActor::SetupHead()
-idActor::Spawn()
 idAFAttachment::SetBody(idEntity*, char const*, jointHandle_t)
+idAFEntity_WithAttachedHead::SetupHead()
 idAnim::AddFrameCommand(idDeclModelDef const*, int, idLexer&, idDict const*)
 idAnimatedEntity::SetModel(char const*)
 idAnimator::SetModel(char const*)
 idAnimManager::GetAnim(char const*)
 idAnimManager::ReloadAnims()
+idAsyncClient::CheckTimeout()
 idAsyncClient::HandleDownloads()
+idAsyncClient::ProcessAuthKeyMessage(netadr_t, idBitMsg const&)
+idAsyncClient::ProcessDisconnectMessage(netadr_t, idBitMsg const&)
+idAsyncClient::ProcessDownloadInfoMessage(netadr_t, idBitMsg const&)
+idAsyncClient::ProcessMessage(netadr_t, idBitMsg&)
+idAsyncClient::ProcessPrintMessage(netadr_t, idBitMsg const&)
+idAsyncClient::ProcessReliableServerMessages()
+idAsyncClient::ProcessUnreliableServerMessage(idBitMsg const&)
 idAsyncClient::RunFrame()
+idAsyncClient::ValidatePureServerChecksums(netadr_t, idBitMsg const&)
 idCameraAnim::LoadAnim()
-idCameraAnim::Spawn()
+idChoiceWindow::ParseInternalVar(char const*, idParser*)
 idCinematicLocal::InitFromFile(char const*, bool)
 idClass::CallSpawn()
 idClass::CallSpawnFunc(idTypeInfo*)
@@ -117,8 +111,14 @@ idClipModel::idClipModel(char const*)
 idClipModel::LoadModel(char const*)
 idClipModel::Restore(idRestoreGame*)
 idClipModel::SaveTraceModels(idSaveGame*)
-idCmdSystem::ArgCompletion*(idCmdArgs const&, void (*)(char const*))
-idCmdSystemLocal::ArgCompletion*
+idCmdSystem::ArgCompletion_ConfigName(idCmdArgs const&, void (*)(char const*))
+idCmdSystem::ArgCompletion_DemoName(idCmdArgs const&, void (*)(char const*))
+idCmdSystem::ArgCompletion_FileName(idCmdArgs const&, void (*)(char const*))
+idCmdSystem::ArgCompletion_MapName(idCmdArgs const&, void (*)(char const*))
+idCmdSystem::ArgCompletion_ModelName(idCmdArgs const&, void (*)(char const*))
+idCmdSystem::ArgCompletion_SaveGame(idCmdArgs const&, void (*)(char const*))
+idCmdSystemLocal::ArgCompletion(char const*, void (*)(char const*))
+idCmdSystemLocal::ArgCompletion_FolderExtension*
 idCmdSystemLocal::BufferCommandText(cmdExecution_t, char const*)
 idCmdSystemLocal::Exec_f(idCmdArgs const&)
 idCmdSystemLocal::ExecuteCommandBuffer()
@@ -129,8 +129,6 @@ idCollisionModelManagerLocal::LoadCollisionModelFile(char const*, unsigned int)
 idCollisionModelManagerLocal::LoadMap(idMapFile const*)
 idCollisionModelManagerLocal::LoadModel(char const*, bool)
 idCollisionModelManagerLocal::TrmFromModel(char const*, idTraceModel&)
-idCollisionModelManagerLocal::WriteCollisionModelForMapEntity(idMapEntity const*, char const*, bool)
-idCollisionModelManagerLocal::WriteCollisionModelsToFile(char const*, int, int, unsigned int)
 idCommonLocal::Error*
 idCommonLocal::FatalError*
 idCommonLocal::Frame()
@@ -155,6 +153,16 @@ idCompiler::ParseDefs()
 idCompiler::ParseEventDef(idTypeDef*, char const*)
 idCompiler::ParseFunctionDef(idTypeDef*, char const*)
 idCompiler::ParseNamespace(idVarDef*)
+idCompressor*::Compress*
+idCompressor*::Decompress*
+idCompressor*::FinishCompress()
+idCompressor*::Flush()
+idCompressor*::ForceFlush()
+idCompressor*::InitCompress*
+idCompressor*::InitDecompress*
+idCompressor*::Read*
+idCompressor*::Seek*
+idCompressor*::Write*
 idConsoleLocal::Dump(char const*)
 idConsoleLocal::KeyDownEvent(int)
 idConsoleLocal::LoadGraphics()
@@ -162,10 +170,8 @@ idConsoleLocal::LoadHistory()
 idConsoleLocal::ProcessEvent(sysEvent_t const*, bool)
 idConsoleLocal::SaveHistory()
 idCVarSystemLocal::WriteFlaggedVariables(int, char const*, idFile*) const
-idDeclEntityDef::Parse(char const*, int)
 idDeclFile::LoadAndParse()
 idDeclFile::Reload(bool)
-idDeclFX::Parse(char const*, int)
 idDeclFX::ParseSingleFXAction(idLexer&, idFXSingleAction&)
 idDeclLocal::EnsureNotPurged()
 idDeclLocal::MakeDefault()
@@ -177,33 +183,40 @@ idDeclManagerLocal::BeginLevelLoad()
 idDeclManagerLocal::CreateNewDecl(declType_t, char const*, char const*)
 idDeclManagerLocal::DeclByIndex(declType_t, int, bool)
 idDeclManagerLocal::FindMaterial(char const*, bool)
+idDeclManagerLocal::FindSkin(char const*, bool)
 idDeclManagerLocal::FindSound(char const*, bool)
 idDeclManagerLocal::FindType(declType_t, char const*, bool)
 idDeclManagerLocal::Init()
 idDeclManagerLocal::RegisterDeclFolder(char const*, char const*, declType_t)
 idDeclManagerLocal::Reload(bool)
 idDeclManagerLocal::ReloadDecls_f(idCmdArgs const&)
-idDeclModelDef::Parse(char const*, int)
+idDeclManagerLocal::TouchDecl_f(idCmdArgs const&)
+idDeclManagerLocal::WritePrecacheCommands(idFile*)
 idDeclModelDef::ParseAnim(idLexer&, int)
 idDemoFile::Close()
 idDemoFile::OpenForReading(char const*)
+idDemoFile::OpenForWriting(char const*)
+idDemoFile::Read*
+idDemoFile::Write*
 idDeviceContext::FindFont(char const*)
 idDeviceContext::Init()
 idDeviceContext::SetupFonts()
 idEditField::AutoComplete()
 idEditWindow::InitScroller(bool)
+idEditWindow::ParseInternalVar(char const*, idParser*)
 idEditWindow::PostParse()
 idEntity::InitDefaultPhysics(idVec3 const&, idMat3 const&)
-idEntity::Spawn()
 idEventLoop::Init()
 idEventLoop::ProcessEvent(sysEvent_t)
 idEventLoop::RunEventLoop(bool)
 idEventLoop::Shutdown()
+idFieldWindow::ParseInternalVar(char const*, idParser*)
 idFile::Printf*
 idFile::Read*
 idFile::Rewind()
 idFile::VPrintf*
 idFile::Write*
+idFile::WriteInt(int)
 idFile_InZip::Read(void*, int)
 idFile_InZip::SafeClose()
 idFile_InZip::Seek(long, fsOrigin_t)
@@ -254,6 +267,12 @@ idFileSystemLocal::Startup()
 idFileSystemLocal::TouchFile_f(idCmdArgs const&)
 idFileSystemLocal::TouchFileList_f(idCmdArgs const&)
 idFileSystemLocal::WriteFile(char const*, void const*, int, char const*)
+idGameBearShootWindow::CommonInit()
+idGameBearShootWindow::idGameBearShootWindow(idDeviceContext*, idUserInterfaceLocal*)
+idGameBearShootWindow::ParseInternalVar(char const*, idParser*)
+idGameBearShootWindow::ReadFromSaveGame(idFile*)
+idGameBustOutWindow::ParseInternalVar(char const*, idParser*)
+idGameBustOutWindow::ReadFromSaveGame(idFile*)
 idGameEdit::ParseSpawnArgsToRenderEntity(idDict const*, renderEntity_s*)
 idGameLocal::CacheDictionaryMedia(idDict const*)
 idGameLocal::Error* const
@@ -262,6 +281,7 @@ idGameLocal::FindEntityDefDict(char const*, bool) const
 idGameLocal::GetLevelMap()
 idGameLocal::Init()
 idGameLocal::InitFromNewMap(char const*, idRenderWorld*, idSoundWorld*, bool, bool, int)
+idGameLocal::InitFromSaveGame(char const*, idRenderWorld*, idSoundWorld*, idFile*)
 idGameLocal::LoadMap(char const*, int)
 idGameLocal::MapPopulate()
 idGameLocal::NextMap()
@@ -270,26 +290,30 @@ idGameLocal::SaveGame(idFile*)
 idGameLocal::SpawnEntityDef(idDict const&, idEntity**, bool)
 idGameLocal::SpawnMapEntities()
 idGameLocal::SpawnPlayer(int)
+idGameSSDWindow::ParseInternalVar(char const*, idParser*)
+idGameSSDWindow::ReadFromSaveGame(idFile*)
 idGuiScript::FixupParms(idWindow*)
+idGuiScript::Parse(idParser*)
+idGuiScript::ReadFromSaveGame(idFile*)
 idGuiScriptList::FixupParms(idWindow*)
+idGuiScriptList::ReadFromSaveGame(idFile*)
 idImage::ActuallyLoadImage(bool)
 idImage::Reload(bool)
 idImageManager::EndLevelLoad()
 idImageManager::ImageFromFile(char const*, textureFilter_t, bool, textureRepeat_t, textureDepth_t, cubeFiles_t)
-idImageManager::PrintMemInfo(MemInfo_t*)
 idImageManager::ReloadAllImages()
 idKeyInput::WriteBindings(idFile*)
 idLangDict::Load(char const*, bool)
-idLangDict::Save(char const*)
 idLexer::Error*
 idLexer::idLexer(char const*, int, bool)
 idLexer::LoadFile(char const*, bool)
 idLib::Error*
+idListWindow::ParseInternalVar(char const*, idParser*)
 idMapFile::Parse(char const*, bool, bool)
 idMapFile::Write(char const*, char const*, bool)
 idMarkerWindow::Activate(bool, idStr&)
+idMarkerWindow::ParseInternalVar(char const*, idParser*)
 idMaterial::AddImplicitStages(textureRepeat_t)
-idMaterial::Parse(char const*, int)
 idMaterial::ParseFragmentMap(idLexer&, newShaderStage_t*)
 idMaterial::ParseMaterial(idLexer&)
 idMaterial::ParseStage(idLexer&, textureRepeat_t)
@@ -312,15 +336,18 @@ idProgram::CompileText(char const*, char const*, bool)
 idProgram::Disassemble() const
 idProgram::Restore(idRestoreGame*)
 idProgram::Startup(char const*)
+idRegister::ReadFromSaveGame(idFile*)
 idRegisterList::AddReg(char const*, int, idParser*, idWindow*, idWinVar*)
+idRegisterList::ReadFromSaveGame(idFile*)
+idRenderModelManagerLocal::CheckModel(char const*)
 idRenderModelManagerLocal::EndLevelLoad()
 idRenderModelManagerLocal::FindModel(char const*)
 idRenderModelManagerLocal::GetModel(char const*, bool)
-idRenderModelManagerLocal::PrintMemInfo(MemInfo_t*)
 idRenderModelManagerLocal::PrintModel_f(idCmdArgs const&)
 idRenderModelManagerLocal::ReloadModels(bool)
 idRenderModelManagerLocal::ReloadModels_f(idCmdArgs const&)
 idRenderModelManagerLocal::TouchModel_f(idCmdArgs const&)
+idRenderModelManagerLocal::WritePrecacheCommands(idFile*)
 idRenderModelMD5::InitFromFile(char const*)
 idRenderModelMD5::LoadModel()
 idRenderModelPrt::InitFromFile(char const*)
@@ -336,9 +363,13 @@ idRenderSystemLocal::EndLevelLoad()
 idRenderSystemLocal::Init()
 idRenderSystemLocal::InitOpenGL()
 idRenderSystemLocal::RegisterFont(char const*, fontInfoEx_t&)
+idRenderSystemLocal::TakeAsyncScreenshot()
+idRenderSystemLocal::TakeScreenshot(int, int, char const*, int, renderView_s*)
 idRenderWindow::Draw(int, float, float)
+idRenderWindow::ParseInternalVar(char const*, idParser*)
 idRenderWindow::PreRender()
 idRenderWorldLocal::InitFromMap(char const*)
+idRenderWorldLocal::ProcessDemoCommand(idDemoFile*, renderView_s*, int*)
 idRenderWorldLocal::TouchWorldModels()
 idRestoreGame::Error*
 idRestoreGame::ReadClipModel(idClipModel*&)
@@ -346,11 +377,14 @@ idSampleDecoderLocal::DecodeOGG(idSoundSample*, int, int, float*)
 idSaveGame::CallSave_r(idTypeInfo const*, idClass const*)
 idSaveGame::Close()
 idSaveGame::Write*
+idSaveGame::WriteInt(int)
 idSaveGame::WriteTraceModel(idTraceModel const&)
 idServerScan::GUIUpdateSelected()
 idSessionLocal::AdvanceRenderDemo(bool)
 idSessionLocal::ClearCDKey(bool*)
 idSessionLocal::CompleteWipe()
+idSessionLocal::CompressDemoFile(char const*, char const*)
+idSessionLocal::DemoShot(char const*)
 idSessionLocal::DispatchCommand(idUserInterface*, char const*, bool)
 idSessionLocal::DownloadProgressBox(backgroundDownload_t*, char const*, int, int)
 idSessionLocal::Draw()
@@ -365,11 +399,13 @@ idSessionLocal::HandleSaveGameMenuCommand(idCmdArgs&, int&)
 idSessionLocal::Init()
 idSessionLocal::LoadGame(char const*)
 idSessionLocal::LoadLoadingGui(char const*)
+idSessionLocal::MaybeWaitOnCDKey()
 idSessionLocal::MenuEvent(sysEvent_t const*)
 idSessionLocal::MessageBox(msgBoxType_t, char const*, char const*, bool, char const*, char const*, bool)
 idSessionLocal::MoveToNewMap(char const*)
 idSessionLocal::ProcessEvent(sysEvent_t const*)
 idSessionLocal::ReadCDKey()
+idSessionLocal::RunGameTic()
 idSessionLocal::SaveGame(char const*, bool)
 idSessionLocal::SetGUI(idUserInterface*, char const* (*)(char const*))
 idSessionLocal::SetMainMenuGuiVars()
@@ -380,10 +416,12 @@ idSessionLocal::StartMenu(bool)
 idSessionLocal::StartNewGame(char const*, bool)
 idSessionLocal::StartPlayingCmdDemo(char const*)
 idSessionLocal::StartPlayingRenderDemo(idStr)
+idSessionLocal::StartRecordingRenderDemo(char const*)
 idSessionLocal::StartWipe(char const*, bool)
 idSessionLocal::Stop()
 idSessionLocal::StopBox()
 idSessionLocal::StopPlayingRenderDemo()
+idSessionLocal::StopRecordingRenderDemo()
 idSessionLocal::TimeCmdDemo(char const*)
 idSessionLocal::TimeRenderDemo(char const*, bool)
 idSessionLocal::UnloadMap()
@@ -391,18 +429,20 @@ idSessionLocal::UpdateMPLevelShot()
 idSessionLocal::UpdateScreen(bool)
 idSessionLocal::WriteCDKey()
 idSessionLocal::WriteCmdDemo(char const*, bool)
+idSimpleWindow::ReadFromSaveGame(idFile*)
 idSliderWindow::InitWithDefaults(char const*, idRectangle const&, idVec4 const&, idVec4 const&, char const*, char const*, bool, bool)
+idSliderWindow::ParseInternalVar(char const*, idParser*)
 idSoundCache::FindSound(idStr const&, bool)
 idSoundCache::ReloadSounds(bool)
 idSoundEmitterLocal::StartSound(idSoundShader const*, int, float, int, bool)
 idSoundSample::GetNewTimeStamp() const
 idSoundSample::Load()
 idSoundSample::Reload(bool)
-idSoundShader::Parse(char const*, int)
 idSoundShader::ParseShader(idLexer&)
 idSoundSystemLocal::Init()
 idSoundWorldLocal::PlayShaderDirectly(char const*, int)
 idSoundWorldLocal::ProcessDemoCommand(idDemoFile*)
+idSoundWorldLocal::ReadFromSaveGame(idFile*)
 idSoundWorldLocal::ReadFromSaveGameSoundChannel(idFile*, idSoundChannel*)
 idSoundWorldLocal::ReadFromSaveGameSoundShaderParams(idFile*, soundShaderParms_t*)
 idSoundWorldLocal::WriteToSaveGameSoundChannel(idFile*, idSoundChannel*)
@@ -419,6 +459,7 @@ idUserInterfaceManagerLocal::FindGui(char const*, bool, bool, bool)
 idUserInterfaceManagerLocal::Init()
 idUserInterfaceManagerLocal::Reload(bool)
 idUserInterfaceManagerLocal::Touch(char const*)
+idUserInterfaceManagerLocal::WritePrecacheCommands(idFile*)
 idWaveFile::Close()
 idWaveFile::CloseOGG()
 idWaveFile::Open(char const*, waveformatex_s*)
@@ -434,19 +475,20 @@ idWindow::HandleEvent(sysEvent_t const*, bool*)
 idWindow::Parse(idParser*, bool)
 idWindow::ParseExpression(idParser*, idWinVar*, long)
 idWindow::ParseExpressionPriority(idParser*, int, idWinVar*, long)
+idWindow::ParseInternalVar(char const*, idParser*)
 idWindow::ParseRegEntry(char const*, idParser*)
+idWindow::ParseScript(idParser*, idGuiScriptList&, int*, bool)
+idWindow::ParseScriptEntry(char const*, idParser*)
+idWindow::ReadFromSaveGame(idFile*)
 idWindow::Redraw(float, float)
 idWindow::RunTimeEvents(int)
 idWindow::SetupBackground()
 idWindow::SetupFromState()
 idWindow::UpdateWinVars()
-idWorldspawn::Spawn()
-LoadBMP(char const*, unsigned char**, int*, int*, long long*)
 LoadGame_f(idCmdArgs const&)
-LoadJPG(char const*, unsigned char**, int*, int*, long long*)
 LoadTGA(char const*, unsigned char**, int*, int*, long long*)
-LocalizeMap(char const*, idHashTable<idList<idStr>>&, idList<idStr>&, bool)
 lwGetClip(idFile*, int)
+lwGetEnvelope(idFile*, int)
 lwGetGradient(idFile*, int, st_lwTexture*)
 lwGetImageMap(idFile*, int, st_lwTexture*)
 lwGetObject(char const*, unsigned int*, int*)
@@ -471,9 +513,8 @@ opendir
 ov_open_callbacks
 ov_openFile(idFile*, OggVorbis_File*)
 ov_raw_seek
-PrintMemInfo_f(idCmdArgs const&)
+R_AsyncScreenShot_f(idCmdArgs const&)
 R_Benchmark_f(idCmdArgs const&)
-R_CombineCubeImages_f(idCmdArgs const&)
 R_InitMaterials()
 R_LoadCubeImages(char const*, cubeFiles_t, unsigned char**, int*, long long*)
 R_LoadImage(char const*, unsigned char**, int*, int*, long long*, bool)
@@ -485,27 +526,43 @@ R_ReloadGuis_f(idCmdArgs const&)
 R_ReloadImages_f(idCmdArgs const&)
 R_ReloadSurface_f(idCmdArgs const&)
 R_RenderingFPS(renderView_s*)
-R_ReportImageDuplication_f(idCmdArgs const&)
 R_ScreenShot_f(idCmdArgs const&)
 R_ScreenshotFilename(int&, char const*, idStr&)
+R_TouchGui_f(idCmdArgs const&)
 R_VidRestart_f(idCmdArgs const&)
+R_WriteTGA*
 readAtOffset*
 readdir
 readlink
 realpath
 remove
-scandir
 Sess_WritePrecache_f(idCmdArgs const&)
+Session_CompressDemo_f(idCmdArgs const&)
+Session_DemoShot_f(idCmdArgs const&)
 Session_DevMap_f(idCmdArgs const&)
 Session_Disconnect_f(idCmdArgs const&)
 Session_ExitCmdDemo_f(idCmdArgs const&)
 Session_Map_f(idCmdArgs const&)
 Session_NextMap_f(idCmdArgs const&)
+Session_PlayCmdDemo_f(idCmdArgs const&)
+Session_PlayDemo_f(idCmdArgs const&)
 Session_PromptKey_f(idCmdArgs const&)
+Session_RecordDemo_f(idCmdArgs const&)
+Session_StopRecordingDemo_f(idCmdArgs const&)
 Session_TimeCmdDemo_f(idCmdArgs const&)
 Session_TimeDemo_f(idCmdArgs const&)
 Session_TimeDemoQuit_f(idCmdArgs const&)
+Session_WriteCmdDemo_f(idCmdArgs const&)
 SoundReloadSounds_f(idCmdArgs const&)
+SSDAsteroid::ReadFromSaveGame(idFile*)
+SSDAstronaut::ReadFromSaveGame(idFile*)
+SSDCrossHair::ReadFromSaveGame(idFile*)
+SSDEntity::ReadFromSaveGame(idFile*)
+SSDExplosion::ReadFromSaveGame(idFile*)
+SSDMover::ReadFromSaveGame(idFile*)
+SSDPoints::ReadFromSaveGame(idFile*)
+SSDPowerup::ReadFromSaveGame(idFile*)
+SSDProjectile::ReadFromSaveGame(idFile*)
 stat
 Sys_FileTimeStamp(_IO_FILE*)
 Sys_GetPath(sysPath_t, idStr&)
@@ -532,5 +589,5 @@ unzOpenInternal(void const*, zlib_filefunc64_32_def_s*, int)
 unzReadCurrentFile
 unzReOpen
 unzSetOffset64
-write
 writeAtOffset*
+WriteGameState_f(idCmdArgs const&)
