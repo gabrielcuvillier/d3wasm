@@ -1552,13 +1552,13 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 
 	kv = dict->FindKey( "s_shader" );
 	if ( kv && kv->GetValue().Length() ) {
-		declManager->FindType( DECL_SOUND, kv->GetValue() );
+		declManager->FindSound( kv->GetValue() );
 	}
 
 	kv = dict->MatchPrefix( "snd", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
-			declManager->FindType( DECL_SOUND, kv->GetValue() );
+			declManager->FindSound( kv->GetValue() );
 		}
 		kv = dict->MatchPrefix( "snd", kv );
 	}
