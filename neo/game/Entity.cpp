@@ -2473,7 +2473,6 @@ void idEntity::InitDefaultPhysics( const idVec3 &origin, const idMat3 &axis ) {
 		if ( !clipModel ) {
 			temp = spawnArgs.GetString( "model" );
 			if ( ( temp != NULL ) && ( *temp != 0 ) ) {
-				common->DPrintf("About to use visual as collision %s\n", temp);
 				if ( idClipModel::CheckModel( temp ) ) {
 					clipModel = new idClipModel( temp );
 				}
