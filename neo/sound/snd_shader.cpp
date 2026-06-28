@@ -424,6 +424,28 @@ void idSoundShader::List() const {
 
 /*
 ===============
+idSoundShader::TouchCache
+===============
+*/
+void idSoundShader::TouchCache() const {
+	idStrList	shaders;
+
+	for( int k = 0; k < numLeadins ; k++ ) {
+		idSoundSample *objectp = leadins[k];
+		if (objectp) {
+			soundSystemLocal.soundCache->FindSound( objectp->name.c_str(), false );
+		}
+	}
+	for( int k = 0; k < numEntries; k++ ) {
+		idSoundSample *objectp = entries[k];
+		if (objectp) {
+			soundSystemLocal.soundCache->FindSound( objectp->name.c_str(), false );
+		}
+	}
+}
+
+/*
+===============
 idSoundShader::GetAltSound
 ===============
 */
