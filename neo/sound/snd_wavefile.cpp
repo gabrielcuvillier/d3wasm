@@ -54,7 +54,7 @@ idWaveFile::idWaveFile( void ) {
 //-----------------------------------------------------------------------------
 idWaveFile::~idWaveFile( void ) {
 	if ( ogg != NULL || mhmmio != NULL) {
-		printf("Unsafe idWaveFile destruction");
+		common->DWarning("Unsafe idWaveFile destruction");
 	}
 
 	if ( mbIsReadingFromMemory && mpbData ) {
