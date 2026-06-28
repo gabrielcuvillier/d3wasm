@@ -1143,6 +1143,13 @@ const idDecl *idDeclManagerLocal::FindType( declType_t type, const char *name, b
 	// if it hasn't been parsed yet, parse it now
 	if ( decl->declState == DS_UNPARSED ) {
 		decl->ParseLocal();
+	} else {
+		if (type == DECL_SOUND && insideLevelLoad) {
+			const idSoundShader* sh = static_cast<const idSoundShader*>(decl->self);
+			if (sh) {
+				sh->TouchCache();
+			}
+		}
 	}
 
 	// mark it as referenced
