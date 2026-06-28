@@ -509,6 +509,7 @@ bool idDeclVideo::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
+			declManager->FindMaterial( preview );
 			continue;
 		}
 
@@ -636,6 +637,7 @@ bool idDeclAudio::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
+			declManager->FindMaterial( preview );
 			continue;
 		}
 
