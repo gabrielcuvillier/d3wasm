@@ -49,6 +49,26 @@ If you have questions concerning this license or the applicable additional terms
 static char path_argv[MAX_OSPATH];
 
 bool Sys_GetPath(sysPath_t type, idStr &path) {
+#ifdef __EMSCRIPTEN__
+	char buf[MAX_OSPATH];
+	path.Clear();
+
+	switch(type) {
+		case PATH_EXE:
+		case PATH_BASE:
+			idStr::snPrintf(buf, sizeof(buf), "%s/%s", getenv("OPFS_ROOT"), GAME_NAME);
+			path = buf;
+			return true;
+		case PATH_CONFIG:
+			idStr::snPrintf(buf, sizeof(buf), "%s%s/.config/%s", getenv("OPFS_ROOT"), getenv("HOME"), GAME_NAME);
+			path = buf;
+			return true;
+		case PATH_SAVE:
+			idStr::snPrintf(buf, sizeof(buf), "%s%s/.local/%s", getenv("OPFS_ROOT"), getenv("HOME"), GAME_NAME);
+			path = buf;
+			return true;
+	}
+#else
 	const char *s;
 	char buf[MAX_OSPATH];
 	char buf2[MAX_OSPATH];
@@ -136,6 +156,7 @@ bool Sys_GetPath(sysPath_t type, idStr &path) {
 		return false;
 	}
 
+#endif
 	return false;
 }
 
