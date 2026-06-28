@@ -42,6 +42,11 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "framework/FileSystem.h"
 
+#ifdef __EMSCRIPTEN__
+#include "emscripten.h"
+#include "emscripten/wasmfs.h"
+#endif
+
 /*
 =============================================================================
 
@@ -2640,87 +2645,47 @@ is resetting due to a game change
 ================
 */
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten/wasmfs.h>
-#include <emscripten/emscripten.h>
-#endif
+/*
+================
+idFileSystemLocal::Restart
+================
+*/
+void idFileSystemLocal::Restart( void ) {
+	// free anything we currently have loaded
+	Shutdown( true );
+
+	Startup( );
+
+	// spawn a thread to handle background file reads
+	StartBackgroundDownloadThread();
+
+	// if we can't find default.cfg, assume that the paths are
+	// busted and error out now, rather than getting an unreadable
+	// graphics screen when the font fails to load
+	if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
+		common->FatalError( "Couldn't load default.cfg" );
+	}
+}
+
+/*
+================
+idFileSystemLocal::Shutdown
+
+Frees all resources and closes all files
+================
+*/
 void idFileSystemLocal::Init( void ) {
+
+#ifdef __EMSCRIPTEN__
 
 	backend_t backend = wasmfs_create_opfs_backend();
 	int err = 0;
 
-	//err = wasmfs_create_directory("/", 0777, backend);
-	//if (err != 0 && errno != EEXIST)
-	//	printf( "Warning 0: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = wasmfs_create_directory("/usr", 0777, backend);
+	err = wasmfs_create_directory(getenv("OPFS_ROOT"), 0777, backend);
 	if (err != 0 && errno != EEXIST)
-		printf( "Warning 1: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/usr/local", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 2: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/usr/local/share", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 3: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/usr/local/share/d3wasm", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 4: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/usr/local/share/d3wasm/base", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 5: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/usr/local/share/d3wasm/demo", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 5: OPFS mount returned %d (errno=%d)\n", err, errno);
+		common->Warning( "OPFS mount returned %d (errno=%d)\n", err, errno);
 
-	err = wasmfs_create_directory("/home", 0777, backend);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 6: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/home/web_user", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 7: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/home/web_user/.config", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 8: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/home/web_user/.local", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 9: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/home/web_user/.local/d3wasm", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 10: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/home/web_user/.local/d3wasm/base", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 11: OPFS mount returned %d (errno=%d)\n", err, errno);
-	err = mkdir("/home/web_user/.local/d3wasm/demo", 0777);
-	if (err != 0 && errno != EEXIST)
-		printf("Warning 11: OPFS mount returned %d (errno=%d)\n", err, errno);
-
-	FILE* f = NULL;
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak000.pk4", "r")))
-		emscripten_wget("data/base/pak000.pk4", "/usr/local/share/d3wasm/base/pak000.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak001.pk4", "r")))
-		emscripten_wget("data/base/pak001.pk4", "/usr/local/share/d3wasm/base/pak001.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak002.pk4", "r")))
-		emscripten_wget("data/base/pak002.pk4", "/usr/local/share/d3wasm/base/pak002.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak003.pk4", "r")))
-		emscripten_wget("data/base/pak003.pk4", "/usr/local/share/d3wasm/base/pak003.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak004.pk4", "r")))
-		emscripten_wget("data/base/pak004.pk4", "/usr/local/share/d3wasm/base/pak004.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak005.pk4", "r")))
-		emscripten_wget("data/base/pak005.pk4", "/usr/local/share/d3wasm/base/pak005.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak006.pk4", "r")))
-		emscripten_wget("data/base/pak006.pk4", "/usr/local/share/d3wasm/base/pak006.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak007.pk4", "r")))
-		emscripten_wget("data/base/pak007.pk4", "/usr/local/share/d3wasm/base/pak007.pk4");
-	fclose(f);
-	if (!(f = fopen("/usr/local/share/d3wasm/base/pak008.pk4", "r")))
-		emscripten_wget("data/base/pak008.pk4", "/usr/local/share/d3wasm/base/pak008.pk4");
-	fclose(f);
+#endif
 
 	// allow command line parms to override our defaults
 	// we have to specially handle this, because normal command
@@ -2775,35 +2740,6 @@ void idFileSystemLocal::Init( void ) {
 	}
 }
 
-/*
-================
-idFileSystemLocal::Restart
-================
-*/
-void idFileSystemLocal::Restart( void ) {
-	// free anything we currently have loaded
-	Shutdown( true );
-
-	Startup( );
-
-	// spawn a thread to handle background file reads
-	StartBackgroundDownloadThread();
-
-	// if we can't find default.cfg, assume that the paths are
-	// busted and error out now, rather than getting an unreadable
-	// graphics screen when the font fails to load
-	if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
-		common->FatalError( "Couldn't load default.cfg" );
-	}
-}
-
-/*
-================
-idFileSystemLocal::Shutdown
-
-Frees all resources and closes all files
-================
-*/
 void idFileSystemLocal::Shutdown( bool reloading ) {
 	searchpath_t *sp, *next, *loop;
 
@@ -2857,6 +2793,12 @@ void idFileSystemLocal::Shutdown( bool reloading ) {
 	cmdSystem->RemoveCommand( "touchFile" );
 
 	mapDict.Clear();
+
+#ifdef __EMSCRIPTEN__
+	if (!reloading) {
+		wasmfs_unmount(getenv("OPFS_ROOT"));
+	}
+#endif
 }
 
 /*
