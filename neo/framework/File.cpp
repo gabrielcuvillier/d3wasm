@@ -682,7 +682,9 @@ idFile_Memory::~idFile_Memory
 */
 idFile_Memory::~idFile_Memory( void ) {
 	if ( filePtr && allocated > 0 && maxSize == 0 ) {
-		printf("Unsafe File Memory Close\n");
+		Mem_Free( filePtr );
+		filePtr = 0;
+		allocated = 0;
 	}
 }
 
@@ -692,11 +694,7 @@ idFile_Memory::SafeClose
 =================
 */
 void idFile_Memory::SafeClose( void ) {
-	if ( filePtr && allocated > 0 && maxSize == 0 ) {
-		Mem_Free( filePtr );
-		filePtr = 0;
-		allocated = 0;
-	}
+	// Done in destructor
 }
 
 /*
@@ -1038,7 +1036,7 @@ idFile_Permanent::~idFile_Permanent
 */
 idFile_Permanent::~idFile_Permanent( void ) {
 	if ( o ) {
-		printf("Unsafe File Permanent Close\n");
+		common->DWarning("AAA Unsafe File Permanent Close\n");
 	}
 }
 
@@ -1266,7 +1264,7 @@ idFile_InZip::~idFile_InZip
 */
 idFile_InZip::~idFile_InZip( void ) {
 	if (z) {
-		printf("unsafe FileInZip close");
+		common->DWarning("AAA Unsafe File InZip Close\n");
 	}
 }
 
