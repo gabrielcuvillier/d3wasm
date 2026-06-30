@@ -1550,6 +1550,21 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "model", kv );
 	}
 
+	kv = dict->MatchPrefix( "lightning_model" );
+	while( kv ) {
+		if ( kv->GetValue().Length() ) {
+			declManager->MediaPrint( "Precaching model %s\n", kv->GetValue().c_str() );
+			// precache model/animations
+			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( kv->GetValue() );
+
+				collisionModelManager->LoadModel( kv->GetValue(), true );
+			}
+		}
+		kv = dict->MatchPrefix( "lightning_model", kv );
+	}
+
 	kv = dict->FindKey( "s_shader" );
 	if ( kv && kv->GetValue().Length() ) {
 		declManager->FindSound( kv->GetValue() );
