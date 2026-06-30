@@ -99,8 +99,8 @@ async function preloadOPFS(depname) {
         );
     }
 
-    console.log(`[${depname}] Setting up demo files...`);
-    await ensureFile(depname, "data/demo/demo00.pk4", demoDir, "demo00.pk4");
+    //console.log(`[${depname}] Setting up demo files...`);
+    //await ensureFile(depname, "data/demo/demo00.pk4", demoDir, "demo00.pk4");
 
     console.log(`[${depname}] Preloading complete. Wasm program can now be executed.`);
 }
