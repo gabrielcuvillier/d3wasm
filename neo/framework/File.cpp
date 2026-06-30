@@ -1036,7 +1036,8 @@ idFile_Permanent::~idFile_Permanent
 */
 idFile_Permanent::~idFile_Permanent( void ) {
 	if ( o ) {
-		common->DWarning("AAA Unsafe File Permanent Close\n");
+		common->DWarning("Unsafe idFile_Permanent destruction\n");
+		SafeClose();
 	}
 }
 
@@ -1264,7 +1265,8 @@ idFile_InZip::~idFile_InZip
 */
 idFile_InZip::~idFile_InZip( void ) {
 	if (z) {
-		common->DWarning("AAA Unsafe File InZip Close\n");
+		common->DWarning("Unsafe idFile_InZip Close\n");
+		SafeClose();
 	}
 }
 
