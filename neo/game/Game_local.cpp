@@ -1676,6 +1676,14 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "def", kv );
 	}
 
+	kv = dict->MatchPrefix( "email", NULL );
+	while( kv ) {
+		if ( kv->GetValue().Length() ) {
+			declManager->FindType( DECL_EMAIL, kv->GetValue().c_str(), false );
+		}
+		kv = dict->MatchPrefix( "email", kv );
+	}
+
 	kv = dict->MatchPrefix( "pda_name", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
