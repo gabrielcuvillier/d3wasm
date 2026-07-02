@@ -2308,6 +2308,7 @@ bool idWindow::Parse( idParser *src, bool rebuild) {
 			dwt.win = win;
 			drawWindows.Append(dwt);
 		}
+#ifndef __EMSCRIPTEN__
 		else if ( token == "gameSSDDef" ) {
 			idGameSSDWindow *win = new idGameSSDWindow(dc, gui);
 			SaveExpressionParseState();
@@ -2341,6 +2342,7 @@ bool idWindow::Parse( idParser *src, bool rebuild) {
 			dwt.win = win;
 			drawWindows.Append(dwt);
 		}
+#endif
 //
 //  added new onEvent
 		else if ( token == "onNamedEvent" ) {
