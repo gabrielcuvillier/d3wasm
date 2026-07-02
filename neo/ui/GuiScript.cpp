@@ -403,7 +403,7 @@ bool idGuiScript::Parse(idParser *src) {
 	if (handler == Script_LocalSound) {
 		idWinStr *parm = dynamic_cast<idWinStr*>((parms)[0].var);
 		if (parm) {
-			declManager->FindSound( parm->c_str());
+			declManager->FindSound( parm->c_str() );
 		}
 	}
 	//
