@@ -894,6 +894,7 @@ void idSoundWorldLocal::ForegroundUpdate( int current44kHzTime ) {
 	//
 	// the sound meter
 	//
+#ifndef __EMSCRIPTEN__
 	if ( idSoundSystemLocal::s_showLevelMeter.GetInteger() ) {
 		const idMaterial *gui = declManager->FindMaterial( "guis/assets/soundmeter/audiobg", false );
 		if ( gui ) {
@@ -903,6 +904,7 @@ void idSoundWorldLocal::ForegroundUpdate( int current44kHzTime ) {
 			}
 		}
 	}
+#endif
 }
 
 /*
