@@ -2206,3 +2206,137 @@ void idProgram::ReturnEntity( idEntity *ent ) {
 		*returnDef->value.entityNumberPtr = 0;
 	}
 }
+
+const char* idProgram::GetRawStringArgBeforeCall( int ip, int numArgs ) {
+	if ( ip <= 0 || numArgs <= 0 ) {
+		return NULL;
+	}
+
+	const int firstArgIp = ip - numArgs;
+
+	if ( firstArgIp < 0 ) {
+		return NULL;
+	}
+
+	const statement_t &push = GetStatement( firstArgIp  );
+
+	if ( push.op != OP_PUSH_S ) {
+		return NULL;
+	}
+
+	idVarDef *arg = push.a;
+	if ( !arg ) {
+		return NULL;
+	}
+
+	if ( arg->Type() != ev_string ) {
+		return NULL;
+	}
+
+	// This means it was compiled as a constant/immediate string, not a variable.
+	if ( arg->initialized != idVarDef::initializedConstant ) {
+		return NULL;
+	}
+
+	return arg->value.stringPtr;
+}
+
+/*
+================
+idProgram::ScanTypeDefForCalls
+================
+*/
+void idProgram::ScanTypeDefForCalls(idTypeDef const* type,
+                                    bool (*filter)(const char *),
+                                    int (*numarg)(const char*),
+                                    void (*action)(const char *funcname, const char *eventname, const char* optype,
+										const char *string1, const char *string2, const char *filename, int linenum)) {
+	// scan script object functions here
+	for (int i = 0; i < type->NumFunctions(); i++) {
+		ScanFunctionForCalls(type->GetFunction(i), filter, numarg, action);
+	}
+}
+
+/*
+================
+idProgram::ScanTypeDefForCalls
+================
+*/
+void idProgram::ScanNamespaceForCalls(idVarDef const* ns,
+									bool (*filter)(const char *),
+									int (*numarg)(const char*),
+									void (*action)(const char *funcname, const char *eventname, const char* optype,
+										const char *string1, const char *string2, const char *filename, int linenum)) {
+
+	// scan script object functions here
+	for (int i = 0; i < functions.Num(); i++) {
+		if (functions[i].def->scope && !idStr::Icmp(functions[i].def->scope->Name(), ns->Name())) {
+			ScanFunctionForCalls(&functions[i], filter, numarg, action);
+		}
+	}
+}
+
+/*
+================
+idProgram::ScanTypeDefForCalls
+================
+*/
+void idProgram::ScanFileForCalls(const char* file,
+									bool (*filter)(const char *),
+									int (*numarg)(const char*),
+									void (*action)(const char *funcname, const char *eventname, const char* optype,
+										const char *string1, const char *string2, const char *filename, int linenum)) {
+
+	// scan script object functions here
+	for (int i = 0; i < functions.Num(); i++) {
+		const int ip = functions[i].firstStatement;
+		const char* funcfile = GetFilenameForStatement(ip);
+		if (funcfile && !idStr::Icmp(funcfile, file)) {
+			ScanFunctionForCalls(&functions[i], filter, numarg, action);
+		}
+	}
+}
+
+/*
+================
+idProgram::ScanFunctionForCalls
+================
+*/
+void  idProgram::ScanFunctionForCalls(function_t const *func,
+			                          bool (*filter)(const char *),
+			                          int (*numarg)(const char *),
+			                          void (*action)(const char *funcname, const char *eventname, const char* optype,
+			                          	const char *string1, const char *string2, const char *filename, int linenum)) {
+	const int start = func->firstStatement;
+	const int end = start + func->numStatements;
+
+	for (int ip = start; ip < end; ip++) {
+		const statement_t &st = GetStatement(ip);
+
+		if (st.op != OP_SYSCALL && st.op != OP_EVENTCALL && st.op != OP_OBJECTCALL) {
+			continue;
+		}
+
+		const function_t *called = st.a ? st.a->value.functionPtr : NULL;
+		if (!called || !called->eventdef) {
+			continue;
+		}
+
+		if (filter(called->eventdef->GetName())) {
+			const char *callName = called->eventdef->GetName();
+			const int numargument = numarg(callName);
+			const char *string1 = GetRawStringArgBeforeCall(ip, numargument);
+			const char *string2 = GetRawStringArgBeforeCall(ip, numargument-1);;
+
+			if (string1) {
+				action(func->Name(),
+				       called->eventdef->GetName(),
+				       st.op == OP_EVENTCALL ? "eventcall" : st.op == OP_SYSCALL ? "syscall" : "objectcall",
+				       string1,
+				       string2,
+				       GetFilenameForStatement(ip),
+				       GetLineNumberForStatement(ip));
+			}
+		}
+	}
+}

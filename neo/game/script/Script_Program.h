@@ -526,6 +526,34 @@ public:
 	void										ReturnEntity( idEntity *ent );
 
 	int											NumFilenames( void ) { return fileList.Num( ); }
+
+	void ScanNamespaceForCalls(idVarDef const* ns,
+							 bool (*filter)(const char *),
+							 int (*numarg)(const char*),
+							 void (*action)(const char *funcname, const char *eventname, const char* optype,
+								 const char *string1, const char *string2, const char *filename, int linenum));
+
+	void ScanTypeDefForCalls(idTypeDef const* type,
+	                         bool (*filter)(const char *),
+							 int (*numarg)(const char*),
+							 void (*action)(const char *funcname, const char *eventname, const char* optype,
+								 const char *string1, const char *string2, const char *filename, int linenum));
+
+	void ScanFunctionForCalls(function_t const* func,
+							 bool (*filter)(const char *),
+							 int (*numarg)(const char*),
+							 void (*action)(const char *funcname, const char *eventname, const char* optype,
+								 const char *string1, const char *string2, const char *filename, int linenum));
+
+	void ScanFileForCalls(const char* file,
+							 bool (*filter)(const char *),
+							 int (*numarg)(const char*),
+							 void (*action)(const char *funcname, const char *eventname, const char* optype,
+								 const char *string1, const char *string2, const char *filename, int linenum));
+
+
+private:
+	const char*	GetRawStringArgBeforeCall( int ip, int numArgs );
 };
 
 /*
