@@ -188,8 +188,6 @@ public:
 	void					AddBindConstraints( void );
 	void					RemoveBindConstraints( void );
 
-	virtual void			ShowEditingDialog( void );
-
 	static void				DropAFs( idEntity *ent, const char *type, idList<idEntity *> *list );
 
 protected:

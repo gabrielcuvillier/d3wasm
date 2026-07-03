@@ -2415,14 +2415,9 @@ bool idSessionLocal::emsessionframe_pre() {
 		soundSystem->AsyncUpdate( Sys_Milliseconds() );
 	}
 
-  // Editors that completely take over the game
-  if ( com_editorActive && ( com_editors & ( EDITOR_RADIANT | EDITOR_GUI ))) {
-    return false;
-  }
-
   // if the console is down, we don't need to hold
   // the mouse cursor
-  if ( console->Active() || com_editorActive ) {
+  if ( console->Active() ) {
     Sys_GrabMouseCursor(false);
   }
   else {

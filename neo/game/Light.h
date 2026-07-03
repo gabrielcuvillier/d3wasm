@@ -85,8 +85,6 @@ public:
 	void			SetLightParent( idEntity *lparent ) { lightParent = lparent; }
 	void			SetLightLevel( void );
 
-	virtual void	ShowEditingDialog( void );
-
 	enum {
 		EVENT_BECOMEBROKEN = idEntity::EVENT_MAXEVENTS,
 		EVENT_MAXEVENTS

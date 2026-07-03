@@ -56,8 +56,6 @@ public:
 	void			Think( void );
 	void			SetSound( const char *sound, int channel = SND_CHANNEL_ANY );
 
-	virtual void	ShowEditingDialog( void );
-
 private:
 	float			lastSoundVol;
 	float			soundVol;

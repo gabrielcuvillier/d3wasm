@@ -453,7 +453,7 @@ bool idEditEntities::SelectEntity( const idVec3 &origin, const idVec3 &dir, cons
 		if ( EntityIsSelectable( ent ) ) {
 			AddSelectedEntity( ent );
 			gameLocal.Printf( "entity #%d: %s '%s'\n", ent->entityNumber, ent->GetClassname(), ent->name.c_str() );
-			ent->ShowEditingDialog();
+			//ent->ShowEditingDialog();
 			return true;
 		}
 	}

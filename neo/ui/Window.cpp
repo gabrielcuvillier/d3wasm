@@ -3790,11 +3790,6 @@ idWindow::IsSimple
 */
 bool idWindow::IsSimple() {
 
-	// dont do simple windows when in gui editor
-	if ( com_editors & EDITOR_GUI ) {
-		return false;
-	}
-
 	if (ops.Num()) {
 		return false;
 	}

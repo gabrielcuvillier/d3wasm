@@ -294,11 +294,3 @@ void idSound::Event_Off( void ) {
 	DoSound( false );
 }
 
-/*
-===============
-idSound::ShowEditingDialog
-===============
-*/
-void idSound::ShowEditingDialog( void ) {
-	common->InitTool( EDITOR_SOUND, &spawnArgs );
-}

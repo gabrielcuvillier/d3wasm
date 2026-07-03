@@ -138,12 +138,6 @@ public:
 								// set once to clear the cvar from +set for early init code
 	virtual void				StartupVariable( const char *match, bool once ) = 0;
 
-								// Initializes a tool with the given dictionary.
-	virtual void				InitTool( const toolFlag_t tool, const idDict *dict ) = 0;
-
-								// Activates or deactivates a tool.
-	virtual void				ActivateTool( bool active ) = 0;
-
 								// Writes the user's configuration to a file
 	virtual void				WriteConfigToFile( const char *filename ) = 0;
 

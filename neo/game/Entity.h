@@ -337,7 +337,6 @@ public:
 	virtual void			Teleport( const idVec3 &origin, const idAngles &angles, idEntity *destination );
 	bool					TouchTriggers( void ) const;
 	idCurve_Spline<idVec3> *GetSpline( void ) const;
-	virtual void			ShowEditingDialog( void );
 
 	enum {
 		EVENT_STARTSOUNDSHADER,

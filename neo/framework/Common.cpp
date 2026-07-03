@@ -88,8 +88,6 @@ idCVar com_machineSpec("com_machineSpec", "-1", CVAR_INTEGER | CVAR_ARCHIVE | CV
                        "hardware classification, -1 = not detected, 0 = low quality, 1 = medium quality, 2 = high quality, 3 = ultra quality");
 idCVar com_purgeAll("com_purgeAll", "0", CVAR_BOOL | CVAR_ARCHIVE | CVAR_SYSTEM,
                     "purge everything between level loads");
-idCVar com_memoryMarker("com_memoryMarker", "-1", CVAR_INTEGER | CVAR_SYSTEM | CVAR_INIT,
-                        "used as a marker for memory stats");
 idCVar com_preciseTic("com_preciseTic", "1", CVAR_BOOL | CVAR_SYSTEM, "run one game tick every async thread update");
 #ifdef __EMSCRIPTEN__
 idCVar com_asyncInput("com_asyncInput", "0", CVAR_ROM | CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
@@ -135,8 +133,6 @@ int time_backend;            // renderSystem backend time
 int com_frameTime;            // time for the current frame in milliseconds
 int com_frameNumber;        // variable frame number
 /*volatile */int com_ticNumber;            // 60 hz tics
-int com_editors;            // currently opened editor(s)
-bool com_editorActive;        //  true if an editor has focus
 
 #ifdef __DOOM_DLL__
 idGame *		game = NULL;
@@ -165,10 +161,6 @@ public:
   virtual void Async(void);
 
   virtual void StartupVariable(const char* match, bool once);
-
-  virtual void InitTool(const toolFlag_t tool, const idDict* dict);
-
-  virtual void ActivateTool(bool active);
 
   virtual void WriteConfigToFile(const char* filename);
 
@@ -275,8 +267,6 @@ private:
   void ClearCommandLine(void);
 
   bool SafeMode(void);
-
-  void CheckToolMode(void);
 
   void WriteConfiguration(void);
 
@@ -717,21 +707,13 @@ void idCommonLocal::Error(const char* fmt, ...) {
   // add the message to the error list
   errorList.AddUnique(errorMessage);
 
-  // Dont shut down the session for gui editor or debugger
-  if ( !( com_editors & ( EDITOR_GUI | EDITOR_DEBUGGER ))) {
-    session->Stop();
-  }
+  session->Stop();
 
   if ( code == ERP_DISCONNECT ) {
     com_errorEntered = 0;
     return;
     //throw idException(errorMessage);
     // The gui editor doesnt want thing to com_error so it handles exceptions instead
-  }
-  else if ( com_editors & ( EDITOR_GUI | EDITOR_DEBUGGER )) {
-    com_errorEntered = 0;
-    return;
-    //throw idException(errorMessage);
   }
   else if ( code == ERP_DROP ) {
     Printf("********************\nERROR: %s\n********************\n", errorMessage);
@@ -897,45 +879,6 @@ bool idCommonLocal::SafeMode(void) {
 
 /*
 ==================
-idCommonLocal::CheckToolMode
-
-Check for "renderbump", "dmap", or "editor" on the command line,
-and force fullscreen off in those cases
-==================
-*/
-void idCommonLocal::CheckToolMode(void) {
-  int i;
-
-  for ( i = 0; i < com_numConsoleLines; i++ ) {
-    if ( !idStr::Icmp(com_consoleLines[i].Argv(0), "guieditor")) {
-      com_editors |= EDITOR_GUI;
-    }
-    else if ( !idStr::Icmp(com_consoleLines[i].Argv(0), "debugger")) {
-      com_editors |= EDITOR_DEBUGGER;
-    }
-    else if ( !idStr::Icmp(com_consoleLines[i].Argv(0), "editor")) {
-      com_editors |= EDITOR_RADIANT;
-    }
-      // Nerve: Add support for the material editor
-    else if ( !idStr::Icmp(com_consoleLines[i].Argv(0), "materialEditor")) {
-      com_editors |= EDITOR_MATERIAL;
-    }
-
-    if ( !idStr::Icmp(com_consoleLines[i].Argv(0), "renderbump")
-         || !idStr::Icmp(com_consoleLines[i].Argv(0), "editor")
-         || !idStr::Icmp(com_consoleLines[i].Argv(0), "guieditor")
-         || !idStr::Icmp(com_consoleLines[i].Argv(0), "debugger")
-         || !idStr::Icmp(com_consoleLines[i].Argv(0), "dmap")
-         || !idStr::Icmp(com_consoleLines[i].Argv(0), "materialEditor")
-      ) {
-      cvarSystem->SetCVarBool("r_fullscreen", false);
-      return;
-    }
-  }
-}
-
-/*
-==================
 idCommonLocal::StartupVariable
 
 Searches for command line parameters that are set commands.
@@ -1006,26 +949,6 @@ bool idCommonLocal::AddStartupCommands(void) {
   }
 
   return added;
-}
-
-/*
-=================
-idCommonLocal::InitTool
-=================
-*/
-void idCommonLocal::InitTool(const toolFlag_t tool, const idDict* dict) {
-}
-
-/*
-==================
-idCommonLocal::ActivateTool
-
-Activates or Deactivates a tool
-==================
-*/
-void idCommonLocal::ActivateTool(bool active) {
-  com_editorActive = active;
-  Sys_GrabMouseCursor(!active);
 }
 
 /*
@@ -2746,9 +2669,6 @@ void idCommonLocal::InitGame(void) {
 
   // initialize the declaration manager
   declManager->Init();
-
-  // force r_fullscreen 0 if running a tool
-  CheckToolMode();
 
   idFile* file = fileSystem->OpenExplicitFileRead(fileSystem->RelativePathToOSPath(CONFIG_SPEC, "fs_configpath"));
   bool sysDetect = ( file == NULL );

@@ -874,15 +874,6 @@ void idAFEntity_Base::FreeModelDef( void ) {
 }
 
 /*
-===============
-idAFEntity_Base::ShowEditingDialog
-===============
-*/
-void idAFEntity_Base::ShowEditingDialog( void ) {
-	common->InitTool( EDITOR_AF, &spawnArgs );
-}
-
-/*
 ================
 idAFEntity_Base::DropAFs
 
