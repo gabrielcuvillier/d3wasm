@@ -3696,14 +3696,6 @@ idCurve_Spline<idVec3> *idEntity::GetSpline( void ) const {
 	return spline;
 }
 
-/*
-===============
-idEntity::ShowEditingDialog
-===============
-*/
-void idEntity::ShowEditingDialog( void ) {
-}
-
 /***********************************************************************
 
    Events

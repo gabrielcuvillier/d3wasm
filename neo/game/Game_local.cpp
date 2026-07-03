@@ -1558,7 +1558,7 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
 				// precache the render model
 				renderModelManager->FindModel( kv->GetValue() );
-
+				// precache .cm files only
 				collisionModelManager->LoadModel( kv->GetValue(), true );
 			}
 		}
