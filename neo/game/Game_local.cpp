@@ -1608,7 +1608,9 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
 			declManager->MediaPrint( "Precaching clipmodel %s\n", kv->GetValue().c_str() );
-			collisionModelManager->LoadModel( kv->GetValue(), true );
+			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
+				collisionModelManager->LoadModel( kv->GetValue(), true );
+			}
 		}
 		kv = dict->MatchPrefix( "clipmodel", kv );
 	}

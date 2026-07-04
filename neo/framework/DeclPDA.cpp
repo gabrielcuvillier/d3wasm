@@ -98,7 +98,6 @@ bool idDeclPDA::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "icon") ) {
 			src.ReadToken( &token );
 			icon = token;
-			declManager->FindMaterial( icon );
 			continue;
 		}
 
@@ -639,7 +638,6 @@ bool idDeclAudio::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
-			declManager->FindSound( preview );
 			continue;
 		}
 
