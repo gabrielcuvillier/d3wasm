@@ -4046,9 +4046,7 @@ idEntity::Event_CacheSoundShader
 ================
 */
 void idEntity::Event_CacheSoundShader( const char *soundName ) {
-	cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("touch sound %s\n", soundName));
-	// Old code (not async):
-	//declManager->FindSound( soundName );
+	declManager->FindSound( soundName );
 }
 
 /*
