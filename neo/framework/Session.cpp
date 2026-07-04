@@ -1472,6 +1472,9 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
   }
 #endif
 
+  // set the loading gui that we will wipe to
+  LoadLoadingGui(mapString);
+
   // note which media we are going to need to load
   if ( !reloadingSameMap ) {
     declManager->BeginLevelLoad();
@@ -1481,9 +1484,6 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
 
   uiManager->BeginLevelLoad();
   uiManager->Reload(true);
-
-  // set the loading gui that we will wipe to
-  LoadLoadingGui(mapString);
 
   // cause prints to force screen updates as a pacifier,
   // and draw the loading gui instead of game draws
