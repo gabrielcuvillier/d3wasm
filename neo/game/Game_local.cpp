@@ -958,6 +958,32 @@ void idGameLocal::LoadMap( const char *mapName, int randseed ) {
 	// cache miscellanious media references
 	FindEntityDef( "preCacheExtras", false );
 
+	// Hack: Look for the personnal PDA before to preload it
+	declManager->FindType(DECL_PDA, "personal", false);
+	// as well as other stuff needed
+	declManager->FindMaterial("itemHighlightShell", false);
+	declManager->FindMaterial("textures/decals/duffysplatgun", false);
+	declManager->FindSkin("skins/models/weapons/0rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/1rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/2rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/3rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/4rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/5rox.skin", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_generic", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_moverCrush", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_crush", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_Gib", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_telefrag", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_explosion", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_fatalfall", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_hardfall", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_softfall", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_noair", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_suicide", false);
+	declManager->FindType(DECL_ENTITYDEF,"damage_painTrigger", false);
+	declManager->FindType(DECL_ENTITYDEF,"projectile_debris", false);
+	declManager->FindType(DECL_ENTITYDEF,"projectile_shrapnel", false);
+
 	if ( !sameMap ) {
 		mapFile->RemovePrimitiveData();
 	}
