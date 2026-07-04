@@ -2190,11 +2190,12 @@ void idDeclLocal::ParseLocal( void ) {
 	// always free data before parsing
 	self->FreeData();
 
-	declManagerLocal.MediaPrint( "parsing %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
-
 	// if no text source try to generate default text
 	if ( textSource == NULL ) {
 		generatedDefaultText = self->SetDefaultText();
+		declManagerLocal.MediaPrint( "parsing (generated) %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
+	} else {
+		declManagerLocal.MediaPrint( "parsing %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
 	}
 
 	// indent for DEFAULTED or media file references
