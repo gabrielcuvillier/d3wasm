@@ -1624,7 +1624,7 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
   // stop drawing the laoding screen
   insideExecuteMapChange = false;
 
-  Sys_SetPhysicalWorkMemory(-1, -1);
+  //Sys_SetPhysicalWorkMemory(-1, -1);
 
   // set the game sound world for playback
   soundSystem->SetPlayingSoundWorld(sw);
