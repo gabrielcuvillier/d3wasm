@@ -156,7 +156,6 @@ loading the actual data.
 ====================
 */
 void idSoundCache::BeginLevelLoad() {
-	common->DPrintf( "----- idSoundCache::BeginLevelLoad -----\n" );
 	insideLevelLoad = true;
 
 	for ( int i = 0 ; i < listCache.Num() ; i++ ) {
