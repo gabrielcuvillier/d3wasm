@@ -276,7 +276,7 @@ public :
 	static const opcode_t	opcodes[];
 
 					idCompiler();
-	void			CompileFile( const char *text, const char *filename, bool console );
+	void			CompileFile( const char *text, idStr filename, bool console );
 };
 
 #endif /* !__SCRIPT_COMPILER_H__ */

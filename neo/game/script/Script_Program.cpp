@@ -1897,15 +1897,15 @@ const function_t *idProgram::CompileFunction( const char *functionName, const ch
 idProgram::CompileFile
 ================
 */
-void idProgram::CompileFile( const char *filename ) {
+void idProgram::CompileFile( const char *fname ) {
 	char *src;
 	bool result;
 
-	if ( fileSystem->ReadFile( filename, ( void ** )&src, NULL ) < 0 ) {
-		gameLocal.Error( "Couldn't load %s\n", filename );
+	if ( fileSystem->ReadFile( fname, ( void ** )&src, NULL ) < 0 ) {
+		gameLocal.Error( "Couldn't load %s\n", fname );
 	}
 
-	result = CompileText( filename, src, false );
+	result = CompileText( fname, src, false );
 
 	fileSystem->FreeFile( src );
 
@@ -1914,7 +1914,7 @@ void idProgram::CompileFile( const char *filename ) {
 	}
 
 	if ( !result ) {
-		gameLocal.Error( "Compile failed in file %s.", filename );
+		gameLocal.Error( "Compile failed in file %s.", fname );
 	}
 }
 
