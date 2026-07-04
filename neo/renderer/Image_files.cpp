@@ -548,9 +548,12 @@ static void LoadTGA( const char *name, byte **pic, int *width, int *height, ID_T
 	targa_header.colormap_type = *buf_p++;
 	targa_header.image_type = *buf_p++;
 
-	targa_header.colormap_index = LittleShort ( *(short *)buf_p );
+	// Hack: prevent unaligned reads for the fist two shorts
+	short tmp[2];
+	memcpy(&tmp, buf_p, sizeof(tmp));
+	targa_header.colormap_index = LittleShort ( tmp[0] );
 	buf_p += 2;
-	targa_header.colormap_length = LittleShort ( *(short *)buf_p );
+	targa_header.colormap_length = LittleShort ( tmp[1] );
 	buf_p += 2;
 	targa_header.colormap_size = *buf_p++;
 	targa_header.x_origin = LittleShort ( *(short *)buf_p );
