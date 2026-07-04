@@ -299,6 +299,7 @@ static void	RB_SetBuffer( const void *data ) {
 
 	// Disabled for OES2
 	//qglDrawBuffer( cmd->buffer );
+	qglBindFramebuffer( GL_FRAMEBUFFER, cmd->buffer );
 
 	// clear screen for debugging
 	// automatically enable this with several other debug tools
