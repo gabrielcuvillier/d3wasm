@@ -1766,9 +1766,6 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 	idEntity	*ent;
 	idDict		args;
 
-	// Hack: Look for the personnal PDA before to preload it
-	declManager->FindType(DECL_PDA, "personal");
-
 	// they can connect
 	Printf( "SpawnPlayer: %i\n", clientNum );
 
@@ -3179,15 +3176,6 @@ void idGameLocal::SpawnMapEntities( void ) {
 
 			SpawnEntityDef( args );
 			num++;
-
-			if ( ( num & 15 ) == 0 ) {
-				session->PacifierUpdate();
-#ifdef __EMSCRIPTEN__
-				// Yield case: local graphics update in a long process in main loop
-				emscripten_sleep(0);
-#endif
-			}
-
 		} else {
 			inhibit++;
 		}
