@@ -266,13 +266,17 @@ static void RB_GLSL_GetUniformLocations(shaderProgram_t* shader) {
   for ( i = 0; i < MAX_FRAGMENT_IMAGES; i++ ) {
     idStr::snPrintf(buffer, sizeof(buffer), "u_fragmentMap%d", i);
     shader->u_fragmentMap[i] = qglGetUniformLocation(shader->program, buffer);
-    qglUniform1i(shader->u_fragmentMap[i], i);
+    if (shader->u_fragmentMap[i] != -1) {
+      qglUniform1i(shader->u_fragmentMap[i], i);
+    }
   }
 
   for ( i = 0; i < MAX_FRAGMENT_IMAGES; i++ ) {
     idStr::snPrintf(buffer, sizeof(buffer), "u_fragmentCubeMap%d", i);
     shader->u_fragmentCubeMap[i] = qglGetUniformLocation(shader->program, buffer);
-    qglUniform1i(shader->u_fragmentCubeMap[i], i);
+    if (shader->u_fragmentCubeMap[i] != -1) {
+      qglUniform1i(shader->u_fragmentCubeMap[i], i);
+    }
   }
 
   if (shader->textureMatrix >= 0) {
