@@ -1960,6 +1960,9 @@ void idProgram::FreeData( void ) {
 	top_files		= 0;
 
 	filename = "";
+
+	scriptNamesScanned.Clear();
+	scriptNamesScannedHash.Clear();
 }
 
 /*
@@ -2251,11 +2254,46 @@ void idProgram::ScanTypeDefForCalls(idTypeDef const* type,
                                     int (*numarg)(const char*),
                                     void (*action)(const char *funcname, const char *eventname, const char* optype,
 										const char *string1, const char *string2, const char *filename, int linenum)) {
+
+	const int key = scriptNamesScannedHash.GenerateKey(type->Name());
+	for ( int i = scriptNamesScannedHash.First( key ); i != -1; i = scriptNamesScannedHash.Next( i ) ) {
+		if (scriptNamesScanned[i] == type->Name()) {
+			return;
+		}
+	}
+	scriptNamesScannedHash.Add(key,	scriptNamesScanned.Append(type->Name()));
+
 	// scan script object functions here
 	for (int i = 0; i < type->NumFunctions(); i++) {
 		ScanFunctionForCalls(type->GetFunction(i), filter, numarg, action);
 	}
 }
+
+/*
+================
+idProgram::ClearFunctionsScan
+================
+*/
+void idProgram::ClearScriptNamesScanList() {
+	scriptNamesScannedHash.Clear();
+	scriptNamesScanned.Clear();
+}
+
+/*
+================
+idProgram::ClearFunctionsScan
+================
+*/
+bool idProgram::ScriptNameAlreadyScanned( const char* name ) {
+	const int key = scriptNamesScannedHash.GenerateKey(name);
+	for ( int i = scriptNamesScannedHash.First( key ); i != -1; i = scriptNamesScannedHash.Next( i ) ) {
+		if (scriptNamesScanned[i] == name) {
+			return true;
+		}
+	}
+	return false;
+}
+
 
 /*
 ================
@@ -2267,6 +2305,14 @@ void idProgram::ScanNamespaceForCalls(idVarDef const* ns,
 									int (*numarg)(const char*),
 									void (*action)(const char *funcname, const char *eventname, const char* optype,
 										const char *string1, const char *string2, const char *filename, int linenum)) {
+
+	const int key = scriptNamesScannedHash.GenerateKey(ns->Name());
+	for ( int i = scriptNamesScannedHash.First( key ); i != -1; i = scriptNamesScannedHash.Next( i ) ) {
+		if (scriptNamesScanned[i] == ns->Name()) {
+			return;
+		}
+	}
+	scriptNamesScannedHash.Add(key,	scriptNamesScanned.Append(ns->Name()));
 
 	// scan script object functions here
 	for (int i = 0; i < functions.Num(); i++) {
@@ -2286,6 +2332,14 @@ void idProgram::ScanFileForCalls(const char* file,
 									int (*numarg)(const char*),
 									void (*action)(const char *funcname, const char *eventname, const char* optype,
 										const char *string1, const char *string2, const char *filename, int linenum)) {
+
+	const int key = scriptNamesScannedHash.GenerateKey(file);
+	for ( int i = scriptNamesScannedHash.First( key ); i != -1; i = scriptNamesScannedHash.Next( i ) ) {
+		if (scriptNamesScanned[i] == file) {
+			return;
+		}
+	}
+	scriptNamesScannedHash.Add(key,	scriptNamesScanned.Append(file));
 
 	// scan script object functions here
 	for (int i = 0; i < functions.Num(); i++) {
@@ -2307,6 +2361,15 @@ void  idProgram::ScanFunctionForCalls(function_t const *func,
 			                          int (*numarg)(const char *),
 			                          void (*action)(const char *funcname, const char *eventname, const char* optype,
 			                          	const char *string1, const char *string2, const char *filename, int linenum)) {
+
+	const int key = scriptNamesScannedHash.GenerateKey(func->Name());
+	for ( int i = scriptNamesScannedHash.First( key ); i != -1; i = scriptNamesScannedHash.Next( i ) ) {
+		if (scriptNamesScanned[i] == func->Name()) {
+			return;
+		}
+	}
+	scriptNamesScannedHash.Add(key,	scriptNamesScanned.Append(func->Name()));
+
 	const int start = func->firstStatement;
 	const int end = start + func->numStatements;
 

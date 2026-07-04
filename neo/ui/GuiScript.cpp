@@ -36,6 +36,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "ui/GuiScript.h"
 
+#include "framework/Game.h"
+
 /*
 =========================
 Script_Set
@@ -404,6 +406,13 @@ bool idGuiScript::Parse(idParser *src) {
 		idWinStr *parm = dynamic_cast<idWinStr*>((parms)[0].var);
 		if (parm) {
 			declManager->FindSound( parm->c_str() );
+		}
+	}
+
+	if (handler == Script_RunScript) {
+		idWinStr *parm = dynamic_cast<idWinStr*>((parms)[0].var);
+		if (parm) {
+			game->PrecacheScriptReferencesForFunction(parm->c_str());
 		}
 	}
 	//

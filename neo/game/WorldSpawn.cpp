@@ -77,6 +77,7 @@ void idWorldspawn::Spawn( void ) {
 		// call the main function by default
 		func = gameLocal.program.FindFunction( "main" );
 		if ( func != NULL ) {
+			gameLocal.PrecacheScriptReferencesForFile(scriptname);
 			thread = new idThread( func );
 			thread->DelayedStart( 0 );
 		}
@@ -88,6 +89,8 @@ void idWorldspawn::Spawn( void ) {
 		func = gameLocal.program.FindFunction( kv->GetValue() );
 		if ( func == NULL ) {
 			gameLocal.Error( "Function '%s' not found in script for '%s' key on worldspawn", kv->GetValue().c_str(), kv->GetKey().c_str() );
+		} else {
+			gameLocal.PrecacheScriptReferencesForNamespace(func->def->scope->Name());
 		}
 
 		thread = new idThread( func );

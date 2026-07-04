@@ -196,6 +196,8 @@ public:
 	virtual bool				DownloadRequest( const char *IP, const char *guid, const char *paks, char urls[ MAX_STRING_CHARS ] ) = 0;
 
 	virtual void				GetMapLoadingGUI( char gui[ MAX_STRING_CHARS ] ) = 0;
+
+	virtual void				PrecacheScriptReferencesForFunction( const char* function ) = 0;
 };
 
 extern idGame *					game;

@@ -180,6 +180,7 @@ void idTrigger::Restore( idRestoreGame *savefile ) {
 	savefile->ReadString( funcname );
 	if ( funcname.Length() ) {
 		scriptFunction = gameLocal.program.FindFunction( funcname );
+		gameLocal.PrecacheScriptReferencesForFunction(funcname);
 		if ( scriptFunction == NULL ) {
 			gameLocal.Warning( "idTrigger_Multi '%s' at (%s) calls unknown function '%s'", name.c_str(), GetPhysics()->GetOrigin().ToString(0), funcname.c_str() );
 		}

@@ -1001,6 +1001,8 @@ void idGameLocal::LocalMapRestart( ) {
 
 	gamestate = GAMESTATE_SHUTDOWN;
 
+	program.ClearScriptNamesScanList();
+
 	for ( i = 0; i < MAX_CLIENTS; i++ ) {
 		if ( entities[ i ] && entities[ i ]->IsType( idPlayer::Type ) ) {
 			static_cast< idPlayer * >( entities[ i ] )->PrepareForRestart();
@@ -1141,6 +1143,7 @@ bool idGameLocal::NextMap( void ) {
 		Printf( "Couldn't find mapcycle::cycle\n" );
 		return false;
 	}
+	gameLocal.PrecacheScriptReferencesForFunction("mapcycle::cycle");
 	thread = new idThread( func );
 	thread->Start();
 	delete thread;
@@ -1509,6 +1512,8 @@ void idGameLocal::MapShutdown( void ) {
 
 	gamestate = GAMESTATE_SHUTDOWN;
 
+	program.ClearScriptNamesScanList();
+
 	if ( gameRenderWorld ) {
 		// clear any debug lines, text, and polygons
 		gameRenderWorld->DebugClearLines( 0 );
@@ -1751,6 +1756,7 @@ void idGameLocal::InitScriptForMap( void ) {
 	// run the main game script function (not the level specific main)
 	const function_t *func = program.FindFunction( SCRIPT_DEFAULTFUNC );
 	if ( func != NULL ) {
+		gameLocal.PrecacheScriptReferencesForFunction(SCRIPT_DEFAULTFUNC);
 		idThread *thread = new idThread( func );
 		if ( thread->Start() ) {
 			// thread has finished executing, so delete it
@@ -3023,6 +3029,7 @@ bool idGameLocal::SpawnEntityDef( const idDict &args, idEntity **ent, bool setDe
 			Warning( "Could not spawn '%s'.  Script function '%s' not found%s.", classname, spawn, error.c_str() );
 			return false;
 		}
+		gameLocal.PrecacheScriptReferencesForFunction(spawn);
 		idThread *thread = new idThread( func );
 		thread->DelayedStart( 0 );
 		return true;
@@ -4276,6 +4283,199 @@ bool idGameLocal::NeedRestart() {
 	}
 	return false;
 }
+
+static bool FilterScanCalls(const char *eventname) {
+	return !idStr::Icmp(eventname, "spawn") ||
+	       !idStr::Icmp(eventname, "setShader") ||
+	       !idStr::Icmp(eventname, "setModel") ||
+	       !idStr::Icmp(eventname, "setSkin") ||
+	       !idStr::Icmp(eventname, "cacheSoundShader") ||
+	       !idStr::Icmp(eventname, "startSoundShader") ||
+	       	!idStr::Icmp(eventname, "music") ||
+			!idStr::Icmp(eventname, "attackMelee") ||
+			!idStr::Icmp(eventname, "attackBegin") ||
+			!idStr::Icmp(eventname, "radiusDamage") ||
+			!idStr::Icmp(eventname, "directDamage") ||
+			!idStr::Icmp(eventname, "meleeAttackToJoint") ||
+			!idStr::Icmp(eventname, "launchMissiles") ||
+	       !idStr::Icmp(eventname, "setKey");
+}
+
+static int NumArgStringScanCalls(const char *callname) {
+	if (!idStr::Icmp(callname, "spawn")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "setShader")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "setModel")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "setSkin")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "cacheSoundShader")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "music")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "attackMelee")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "attackBegin")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "meleeAttackToJoint")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "directDamage")) {
+		return 1;
+	} else if (!idStr::Icmp(callname, "startSoundShader")) {
+		return 2;
+	} else if (!idStr::Icmp(callname, "radiusDamage")) {
+		return 2;
+	} else if (!idStr::Icmp(callname, "setKey")) {
+		return 2;
+	} else if (!idStr::Icmp(callname, "launchMissiles")) {
+		return 6;
+	}
+
+	return 0;
+}
+
+static void ActionScanCalls(const char *funcname,
+                            const char *eventname,
+                            const char *optype,
+                            const char *string1,
+                            const char *string2,
+                            const char *filename,
+                            int line) {
+	// Ignore if no string, or if string is a "func_" or "light" entityDef (they are always loaded)
+	if (!string1
+		|| strlen(string1) == 0
+	    || !idStr::Icmpn(string1, "func_", strlen("func_"))
+	    || !idStr::Icmpn(string1, "target_", strlen("target_"))
+	    || !idStr::Icmp(string1, "light")) {
+		return;
+	}
+
+	// Ignore if event is setKey with key other than "snd_*" or empty string2
+	if (!idStr::Icmp(eventname, "setKey") &&
+	    (idStr::Icmpn(string1, "snd_", strlen("snd_")) || !string2)) {
+		return;
+	}
+
+	if (!string2) {
+		common->DPrintf(
+			"%s (%s) %s \"%s\" at %s:%d\n",
+			funcname,
+			optype,
+			eventname,
+			string1,
+			filename,
+			line
+		);
+	} else {
+		common->DPrintf(
+			"%s calls (%s) %s \"%s\" \"%s\" at %s:%d\n",
+			funcname,
+			optype,
+			eventname,
+			string1,
+			string2,
+			filename,
+			line
+		);
+	}
+
+	if (!idStr::Icmp(eventname, "spawn")
+		|| !idStr::Icmp(eventname, "attackMelee")
+		|| !idStr::Icmp(eventname, "attackBegin")
+		|| !idStr::Icmp(eventname, "radiusDamage")
+		|| !idStr::Icmp(eventname, "directDamage")
+		|| !idStr::Icmp(eventname, "meleeAttackToJoint")
+		|| !idStr::Icmp(eventname, "launchMissiles")) {
+		declManager->FindType(DECL_ENTITYDEF, string1, false);
+	} else if (!idStr::Icmp(eventname, "setShader")) {
+		declManager->FindType(DECL_MATERIAL, string1, false);
+	} else if (!idStr::Icmp(eventname, "setModel")) {
+		if ( declManager->FindType(DECL_MODELDEF, string1, false) == NULL ) {
+			renderModelManager->FindModel(string1);
+		}
+	} else if (!idStr::Icmp(eventname, "setSkin")) {
+		declManager->FindType(DECL_SKIN, string1, false);
+	} else if (!idStr::Icmp(eventname, "cacheSoundShader") || !idStr::Icmp(eventname, "startSoundShader")
+		|| !idStr::Icmp(eventname, "music")) {
+		declManager->FindType(DECL_SOUND, string1, false);
+	} else if (!idStr::Icmp(eventname, "setKey")) {
+		if (!idStr::Icmpn(string1, "snd_", strlen("snd_")) && string2) {
+			declManager->FindType(DECL_SOUND, string2, false);
+		}
+	}
+}
+
+
+/*
+===========
+idGameLocal::ScanFunctionsForEventCalls
+============
+*/
+void idGameLocal::PrecacheScriptReferencesForTypeDef(const char *typeName) {
+	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
+		if (program.ScriptNameAlreadyScanned(typeName)) {
+			return;
+		}
+		idTypeDef const* type = program.FindType(typeName);
+		if (type) {
+			common->DPrintf( "INFO: Precaching assets in script typedef \"%s\"\n", typeName );
+			program.ScanTypeDefForCalls(type, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+		}
+	}
+}
+
+/*
+===========
+idGameLocal::ScanFunctionsForEventCalls
+============
+*/
+void idGameLocal::PrecacheScriptReferencesForNamespace(const char *ns) {
+	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
+		if (program.ScriptNameAlreadyScanned(ns)) {
+			return;
+		}
+		idVarDef *namesp = program.GetDefList(ns);
+		if (namesp) {
+			common->DPrintf( "INFO: Precaching assets in script namespace \"%s\"\n", ns );
+			program.ScanNamespaceForCalls(namesp, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+		}
+	}
+}
+
+/*
+===========
+idGameLocal::ScanFunctionsForEventCalls
+============
+*/
+void idGameLocal::PrecacheScriptReferencesForFunction(const char *function) {
+	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
+		if (program.ScriptNameAlreadyScanned(function)) {
+			return;
+		}
+		function_t const* func = program.FindFunction(function);
+		if (func) {
+			common->DPrintf( "INFO: Precaching assets in script function \"%s\"\n", function );
+			program.ScanFunctionForCalls(func, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+		}
+	}
+}
+
+/*
+===========
+idGameLocal::ScanFunctionsForEventCalls
+============
+*/
+void idGameLocal::PrecacheScriptReferencesForFile(const char *file) {
+	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
+		if (program.ScriptNameAlreadyScanned(file)) {
+			return;
+		}
+		common->DPrintf( "INFO: Precaching assets in script file \"%s\"\n", file );
+		program.ScanFileForCalls(file, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+	}
+}
+
 
 /*
 ================

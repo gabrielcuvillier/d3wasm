@@ -315,6 +315,7 @@ const char *idAnim::AddFrameCommand( const idDeclModelDef *modelDef, int framenu
 		}
 		fc.type = FC_SCRIPTFUNCTION;
 		fc.function = gameLocal.program.FindFunction( token );
+		gameLocal.PrecacheScriptReferencesForFunction(token);
 		if ( !fc.function ) {
 			return va( "Function '%s' not found", token.c_str() );
 		}

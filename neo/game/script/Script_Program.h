@@ -468,6 +468,11 @@ public:
 	idVarDef									*returnDef;
 	idVarDef									*returnStringDef;
 
+private:
+	idHashIndex									scriptNamesScannedHash;
+	idList<idStr>								scriptNamesScanned;
+
+public:
 												idProgram();
 												~idProgram();
 
@@ -526,6 +531,10 @@ public:
 	void										ReturnEntity( idEntity *ent );
 
 	int											NumFilenames( void ) { return fileList.Num( ); }
+
+	void ClearScriptNamesScanList( void );
+
+	bool ScriptNameAlreadyScanned( const char *name );
 
 	void ScanNamespaceForCalls(idVarDef const* ns,
 							 bool (*filter)(const char *),

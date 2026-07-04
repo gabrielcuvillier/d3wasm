@@ -567,6 +567,7 @@ void idEntity::Spawn( void ) {
 		if ( !scriptObject.SetType( scriptObjectName ) ) {
 			gameLocal.Error( "Script object '%s' not found on entity '%s'.", scriptObjectName, name.c_str() );
 		}
+		gameLocal.PrecacheScriptReferencesForTypeDef(scriptObjectName);
 
 		ConstructScriptObject();
 	}

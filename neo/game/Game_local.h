@@ -446,6 +446,11 @@ public:
 
 	bool					NeedRestart();
 
+	void					PrecacheScriptReferencesForTypeDef( const char* type );
+	void					PrecacheScriptReferencesForFunction( const char* function );
+	void					PrecacheScriptReferencesForNamespace( const char* ns );
+	void					PrecacheScriptReferencesForFile( const char* type );
+
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;
 
