@@ -266,6 +266,10 @@ void GLimp_SwapBuffers() {
 #endif
 }
 
+#ifdef __EMSCRIPTEN__
+#include "emscripten.h"
+#endif
+
 /*
 =================
 GLimp_SetGamma
@@ -279,6 +283,19 @@ void GLimp_SetGamma(unsigned short red[256], unsigned short green[256], unsigned
 
 #ifdef WEBGL
   // Changing the Gamma is not supported on WebGL. This have to be done differently.
+#ifdef __EMSCRIPTEN__
+  EM_ASM({
+    const brightness = $0;
+    const gamma = $1;
+
+    const cssBrightness = brightness * Math.pow(gamma, 0.3);
+    const cssContrast = Math.pow(gamma, -0.2);
+
+    Module.canvas.style.filter =
+        `brightness(${cssBrightness}) contrast(${cssContrast})`;
+  }, r_brightness.GetFloat(), r_gamma.GetFloat());
+#endif
+
   return;
 #else
   if (SDL_SetWindowGammaRamp(window, red, green, blue))
