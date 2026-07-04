@@ -502,6 +502,9 @@ void idSessionLocal::StartWipe(const char* _wipeMaterial, bool hold) {
 
   renderSystem->CaptureRenderToImage("_scratch");
   renderSystem->UnCrop();
+#ifdef WEBGL
+  Draw();
+#endif
 
   wipeMaterial = declManager->FindMaterial(_wipeMaterial, false);
 

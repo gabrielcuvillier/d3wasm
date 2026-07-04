@@ -562,6 +562,9 @@ void idPlayerView::DoubleVision( idUserInterface *hud, const renderView_t *view,
 	SingleView( hud, view );
 	renderSystem->CaptureRenderToImage( "_scratch" );
 	renderSystem->UnCrop();
+#ifdef WEBGL
+	SingleView( hud, view );
+#endif
 
 	// carry red tint if in berserk mode
 	idVec4 color(1, 1, 1, 1);
@@ -586,6 +589,9 @@ void idPlayerView::BerserkVision( idUserInterface *hud, const renderView_t *view
 	SingleView( hud, view );
 	renderSystem->CaptureRenderToImage( "_scratch" );
 	renderSystem->UnCrop();
+#ifdef WEBGL
+	SingleView( hud, view );
+#endif
 	renderSystem->SetColor4( 1.0f, 1.0f, 1.0f, 1.0f );
 	renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 1, 1, 0, dvMaterial );
 }
@@ -685,6 +691,9 @@ void idPlayerView::InfluenceVision( idUserInterface *hud, const renderView_t *vi
 	if ( player->GetInfluenceMaterial() ) {
 		SingleView( hud, view );
 		renderSystem->CaptureRenderToImage( "_currentRender" );
+#ifdef WEBGL
+		SingleView( hud, view );
+#endif
 		renderSystem->SetColor4( 1.0f, 1.0f, 1.0f, pct );
 		renderSystem->DrawStretchPic( 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 0.0f, 1.0f, 1.0f, player->GetInfluenceMaterial() );
 	} else if ( player->GetInfluenceEntity() == NULL ) {

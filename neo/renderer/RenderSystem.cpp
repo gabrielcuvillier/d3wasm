@@ -842,6 +842,16 @@ void idRenderSystemLocal::CaptureRenderToImage( const char *imageName ) {
 	cmd->imageHeight = rc->height;
 	cmd->image = image;
 
+#ifdef WEBGL
+	// Hack: as we don't use any specific framebuffer for the capture, the main frainbuffer is used.
+	// So we need to clear the view manually to prevent having the capture as an artifact.
+	// The caller has to re-issue the view commands... Not super good, but it works for now
+	setBufferCommand_t* cmd2 = (setBufferCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
+	cmd2->commandId = RC_SET_BUFFER;
+	cmd2->frameCount = frameCount;
+	cmd2->buffer = (int)0;
+#endif
+
 	guiModel->Clear();
 }
 
