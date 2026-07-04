@@ -594,3 +594,5 @@ unzReOpen
 unzSetOffset64
 writeAtOffset*
 WriteGameState_f(idCmdArgs const&)
+idMapFile::NeedsReload()
+idWindow::UpdateFromDictionary (idDict&)
