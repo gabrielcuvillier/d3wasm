@@ -1629,11 +1629,7 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 				// unfortunate flag names, they aren't actually a gui
 			} else {
 				declManager->MediaPrint( "Precaching gui %s\n", kv->GetValue().c_str() );
-				idUserInterface *gui = uiManager->Alloc();
-				if ( gui ) {
-					gui->InitFromFile( kv->GetValue() );
-					uiManager->DeAlloc( gui );
-				}
+				uiManager->FindGui(kv->GetValue(), true);
 			}
 		}
 		kv = dict->MatchPrefix( "gui", kv );
