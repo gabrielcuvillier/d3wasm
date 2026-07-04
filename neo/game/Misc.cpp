@@ -888,7 +888,7 @@ void idForceField::Event_FindTargets( void ) {
 */
 
 const idEventDef EV_Animated_Start( "<start>" );
-const idEventDef EV_LaunchMissiles( "launchMissiles", "ssssdf" );
+const idEventDef EV_LaunchMissiles( "launchMissiles", "ssssdd" );
 const idEventDef EV_LaunchMissilesUpdate( "<launchMissiles>", "dddd" );
 const idEventDef EV_AnimDone( "<AnimDone>", "d" );
 const idEventDef EV_StartRagdoll( "startRagdoll" );
