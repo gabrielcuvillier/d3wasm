@@ -34,6 +34,7 @@ If you have questions concerning this license or the applicable additional terms
 ===============================================================================
 */
 
+#include "Game_local.h"
 #include "sys/platform.h"
 #include "framework/FileSystem.h"
 #include "renderer/Material.h"
@@ -558,6 +559,10 @@ bool idCollisionModelManagerLocal::LoadCollisionModelFile( const char *name, uns
 	idToken token;
 	idLexer *src;
 	unsigned int crc;
+
+	if (gameLocal.GameState() == GAMESTATE_ACTIVE) {
+		return false;
+	}
 
 	// load it
 	fileName = name;
