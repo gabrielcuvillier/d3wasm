@@ -32,7 +32,11 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "framework/EventLoop.h"
 
+#ifndef __EMSCRIPTEN__
 idCVar idEventLoop::com_journal( "com_journal", "0", CVAR_INIT|CVAR_SYSTEM, "1 = record journal, 2 = play back journal", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
+#else
+idCVar idEventLoop::com_journal( "com_journal", "0", CVAR_INIT|CVAR_SYSTEM|CVAR_ROM, "1 = record journal, 2 = play back journal", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
+#endif
 
 idEventLoop eventLoopLocal;
 idEventLoop *eventLoop = &eventLoopLocal;
@@ -44,8 +48,10 @@ idEventLoop::idEventLoop
 =================
 */
 idEventLoop::idEventLoop( void ) {
+#ifndef __EMSCRIPTEN__
 	com_journalFile = NULL;
 	com_journalDataFile = NULL;
+#endif
 	initialTimeOffset = 0;
 }
 
@@ -66,6 +72,7 @@ sysEvent_t	idEventLoop::GetRealEvent( void ) {
 	int			r;
 	sysEvent_t	ev;
 
+#ifndef __EMSCRIPTEN__
 	// either get an event from the system or the journal file
 	if ( com_journal.GetInteger() == 2 ) {
 		r = com_journalFile->Read( &ev, sizeof(ev) );
@@ -80,8 +87,9 @@ sysEvent_t	idEventLoop::GetRealEvent( void ) {
 			}
 		}
 	} else {
+#endif
 		ev = Sys_GetEvent();
-
+#ifndef __EMSCRIPTEN__
 		// write the journal value out if needed
 		if ( com_journal.GetInteger() == 1 ) {
 			r = com_journalFile->Write( &ev, sizeof(ev) );
@@ -96,6 +104,7 @@ sysEvent_t	idEventLoop::GetRealEvent( void ) {
 			}
 		}
 	}
+#endif
 
 	return ev;
 }
@@ -207,6 +216,7 @@ void idEventLoop::Init( void ) {
 
 	common->StartupVariable( "journal", false );
 
+#ifndef __EMSCRIPTEN__
 	if ( com_journal.GetInteger() == 1 ) {
 		common->Printf( "Journaling events\n" );
 		com_journalFile = fileSystem->OpenFileWrite( "journal.dat" );
@@ -223,6 +233,7 @@ void idEventLoop::Init( void ) {
 		com_journalDataFile = 0;
 		common->Printf( "Couldn't open journal files\n" );
 	}
+#endif
 }
 
 /*
@@ -231,6 +242,7 @@ idEventLoop::Shutdown
 =============
 */
 void idEventLoop::Shutdown( void ) {
+#ifndef __EMSCRIPTEN__
 	if ( com_journalFile ) {
 		fileSystem->CloseFile( com_journalFile );
 		com_journalFile = NULL;
@@ -239,6 +251,7 @@ void idEventLoop::Shutdown( void ) {
 		fileSystem->CloseFile( com_journalDataFile );
 		com_journalDataFile = NULL;
 	}
+#endif
 }
 
 /*

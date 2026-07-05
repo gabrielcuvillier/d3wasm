@@ -1048,6 +1048,7 @@ int idFileSystemLocal::ReadFile( const char *relativePath, void **buffer, ID_TIM
 	// it from the journal file
 	if ( strstr( relativePath, ".cfg" ) == relativePath + strlen( relativePath ) - 4 ) {
 		isConfig = true;
+#ifndef __EMSCRIPTEN__
 		if ( eventLoop && eventLoop->JournalLevel() == 2 ) {
 			int		r;
 
@@ -1073,6 +1074,7 @@ int idFileSystemLocal::ReadFile( const char *relativePath, void **buffer, ID_TIM
 
 			return len;
 		}
+#endif
 	} else {
 		isConfig = false;
 	}
@@ -1108,6 +1110,7 @@ int idFileSystemLocal::ReadFile( const char *relativePath, void **buffer, ID_TIM
 	buf[len] = 0;
 	CloseFile( f );
 
+#ifndef __EMSCRIPTEN__
 	// if we are journalling and it is a config file, write it to the journal file
 	if ( isConfig && eventLoop && eventLoop->JournalLevel() == 1 ) {
 		common->DPrintf( "Writing %s to journal file.\n", relativePath );
@@ -1115,6 +1118,7 @@ int idFileSystemLocal::ReadFile( const char *relativePath, void **buffer, ID_TIM
 		eventLoop->com_journalDataFile->Write( buf, len );
 		eventLoop->com_journalDataFile->Flush();
 	}
+#endif
 
 	return len;
 }

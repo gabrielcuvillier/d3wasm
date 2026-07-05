@@ -69,10 +69,11 @@ public:
 					// Returns the journal level, 1 = record, 2 = play back.
 	int				JournalLevel( void ) const;
 
+#ifndef __EMSCRIPTEN__
 					// Journal file.
 	idFile *		com_journalFile;
 	idFile *		com_journalDataFile;
-
+#endif
 private:
 					// all events will have this subtracted from their time
 	int				initialTimeOffset;
