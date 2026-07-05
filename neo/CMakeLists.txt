@@ -276,17 +276,13 @@ set(src_renderer
         renderer/Image_program.cpp
         renderer/Interaction.cpp
         renderer/Material.cpp
-        #renderer/MegaTexture.cpp
         renderer/Model.cpp
         renderer/ModelDecal.cpp
         renderer/ModelManager.cpp
         renderer/ModelOverlay.cpp
         renderer/Model_beam.cpp
         renderer/Model_ase.cpp
-        #renderer/Model_liquid.cpp
         renderer/Model_lwo.cpp
-        #renderer/Model_ma.cpp
-        #renderer/Model_md3.cpp
         renderer/Model_md5.cpp
         renderer/Model_prt.cpp
         renderer/Model_sprite.cpp
@@ -375,19 +371,9 @@ set(src_cm
 add_globbed_headers(src_cm "cm")
 
 set(src_aas
-        #tools/compilers/aas/AASBuild.cpp
-        #tools/compilers/aas/AASBuild_file.cpp
-        #tools/compilers/aas/AASBuild_gravity.cpp
-        #tools/compilers/aas/AASBuild_ledge.cpp
-        #tools/compilers/aas/AASBuild_merge.cpp
-        #tools/compilers/aas/AASCluster.cpp
         tools/compilers/aas/AASFile.cpp
-        #tools/compilers/aas/AASFile_optimize.cpp
         tools/compilers/aas/AASFile_sample.cpp
-        #tools/compilers/aas/AASReach.cpp
         tools/compilers/aas/AASFileManager.cpp
-        #tools/compilers/aas/Brush.cpp
-        #tools/compilers/aas/BrushBSP.cpp
 )
 
 add_globbed_headers(src_aas "tools/compilers/aas")
@@ -395,7 +381,6 @@ add_globbed_headers(src_aas "tools/compilers/aas")
 set(src_snd
         sound/snd_cache.cpp
         sound/snd_decoder.cpp
-        #sound/snd_efxfile.cpp
         sound/snd_emitter.cpp
         sound/snd_shader.cpp
         sound/snd_system.cpp
@@ -411,9 +396,6 @@ set(src_ui
         ui/DeviceContext.cpp
         ui/EditWindow.cpp
         ui/FieldWindow.cpp
-        #ui/GameBearShootWindow.cpp
-        #ui/GameBustOutWindow.cpp
-        #ui/GameSSDWindow.cpp
         ui/GuiScript.cpp
         ui/ListGUI.cpp
         ui/ListWindow.cpp
