@@ -152,16 +152,6 @@ idCompiler::ParseDefs()
 idCompiler::ParseEventDef(idTypeDef*, char const*)
 idCompiler::ParseFunctionDef(idTypeDef*, char const*)
 idCompiler::ParseNamespace(idVarDef*)
-idCompressor*::Compress*
-idCompressor*::Decompress*
-idCompressor*::FinishCompress()
-idCompressor*::Flush()
-idCompressor*::ForceFlush()
-idCompressor*::InitCompress*
-idCompressor*::InitDecompress*
-idCompressor*::Read*
-idCompressor*::Seek*
-idCompressor*::Write*
 idConsoleLocal::Dump(char const*)
 idConsoleLocal::KeyDownEvent(int)
 idConsoleLocal::LoadGraphics()
@@ -192,6 +182,7 @@ idDeclManagerLocal::ReloadDecls_f(idCmdArgs const&)
 idDeclManagerLocal::TouchDecl_f(idCmdArgs const&)
 idDeclManagerLocal::WritePrecacheCommands(idFile*)
 idDeclModelDef::ParseAnim(idLexer&, int)
+idDeclParticle::ParseParticleStage(idLexer&)
 idDeclPDA::GetAudioByIndex(int) const
 idDeclPDA::GetVideoByIndex(int) const
 idDemoFile::Close()
@@ -290,6 +281,7 @@ idGameLocal::SaveGame(idFile*)
 idGameLocal::SpawnEntityDef(idDict const&, idEntity**, bool)
 idGameLocal::SpawnMapEntities()
 idGameLocal::SpawnPlayer(int)
+idGuiModel::ReadFromDemo(idDemoFile*)
 idGuiScript::FixupParms(idWindow*)
 idGuiScript::Parse(idParser*)
 idGuiScript::ReadFromSaveGame(idFile*)
@@ -309,6 +301,7 @@ idLexer::idLexer(char const*, int, bool)
 idLexer::LoadFile(char const*, bool)
 idLib::Error*
 idListWindow::ParseInternalVar(char const*, idParser*)
+idMapFile::NeedsReload()
 idMapFile::Parse(char const*, bool, bool)
 idMapFile::Write(char const*, char const*, bool)
 idMarkerWindow::Activate(bool, idStr&)
@@ -360,6 +353,7 @@ idRenderModelManagerLocal::WritePrecacheCommands(idFile*)
 idRenderModelMD5::InitFromFile(char const*)
 idRenderModelMD5::LoadModel()
 idRenderModelPrt::InitFromFile(char const*)
+idRenderModelStatic::ConvertASEToModelSurfaces(aseModel_s const*)
 idRenderModelStatic::ConvertLWOToModelSurfaces(st_lwObject const*)
 idRenderModelStatic::InitFromFile(char const*)
 idRenderModelStatic::LoadASE(char const*)
@@ -378,7 +372,10 @@ idRenderWindow::Draw(int, float, float)
 idRenderWindow::ParseInternalVar(char const*, idParser*)
 idRenderWindow::PreRender()
 idRenderWorldLocal::InitFromMap(char const*)
+idRenderWorldLocal::ParseModel(idLexer*)
 idRenderWorldLocal::ProcessDemoCommand(idDemoFile*, renderView_s*, int*)
+idRenderWorldLocal::ReadRenderEntity()
+idRenderWorldLocal::ReadRenderLight()
 idRenderWorldLocal::TouchWorldModels()
 idRestoreGame::Error*
 idRestoreGame::ReadClipModel(idClipModel*&)
@@ -464,6 +461,7 @@ idTypeInfoTools::WriteGameState(char const*)
 idUserInterfaceLocal::Activate(bool, int)
 idUserInterfaceLocal::HandleEvent(sysEvent_t const*, int, bool*)
 idUserInterfaceLocal::InitFromFile(char const*, bool, bool)
+idUserInterfaceLocal::ReadFromDemoFile(idDemoFile*)
 idUserInterfaceLocal::Redraw(int)
 idUserInterfaceManagerLocal::CheckGui(char const*) const
 idUserInterfaceManagerLocal::FindGui(char const*, bool, bool, bool)
@@ -594,5 +592,3 @@ unzReOpen
 unzSetOffset64
 writeAtOffset*
 WriteGameState_f(idCmdArgs const&)
-idMapFile::NeedsReload()
-idWindow::UpdateFromDictionary (idDict&)
