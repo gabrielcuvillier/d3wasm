@@ -50,8 +50,13 @@ bool idWindow::registerIsTemporary[MAX_EXPRESSION_REGISTERS];		// statics to ass
 //float idWindow::shaderRegisters[MAX_EXPRESSION_REGISTERS];
 //wexpOp_t idWindow::shaderOps[MAX_EXPRESSION_OPS];
 
+#ifndef __EMSCRIPTEN__
 idCVar idWindow::gui_debug( "gui_debug", "0", CVAR_GUI | CVAR_BOOL, "" );
 idCVar idWindow::gui_edit( "gui_edit", "0", CVAR_GUI | CVAR_BOOL, "" );
+#else
+idCVar idWindow::gui_debug( "gui_debug", "0", CVAR_GUI | CVAR_BOOL | CVAR_ROM, "" );
+idCVar idWindow::gui_edit( "gui_edit", "0", CVAR_GUI | CVAR_BOOL | CVAR_ROM, "" );
+#endif
 
 extern idCVar r_skipGuiShaders;		// 1 = don't render any gui elements on surfaces
 extern idCVar r_scaleMenusTo43;
@@ -334,12 +339,14 @@ void idWindow::Draw( int time, float x, float y ) {
 	}
 	dc->DrawText( text, textScale, textAlign, foreColor, textRect, !( flags & WIN_NOWRAP ), -1 );
 
+#ifndef __EMSCRIPTEN__
 	if ( gui_edit.GetBool() ) {
 		dc->EnableClipping( false );
 		dc->DrawText( va( "x: %i  y: %i", ( int )rect.x(), ( int )rect.y() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x(), rect.y() - 15, 100, 20 ), false );
 		dc->DrawText( va( "w: %i  h: %i", ( int )rect.w(), ( int )rect.h() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x() + rect.w(), rect.w() + rect.h() + 5, 100, 20 ), false );
 		dc->EnableClipping( true );
 	}
+#endif
 
 }
 
@@ -809,6 +816,7 @@ const char *idWindow::HandleEvent(const sysEvent_t *event, bool *updateVisuals) 
 					}
 				}
 			} else if (event->evValue == K_MOUSE3) {
+#ifndef __EMSCRIPTEN__
 				if (gui_edit.GetBool()) {
 					int c = children.Num();
 					for (int i = 0; i < c; i++) {
@@ -823,6 +831,7 @@ const char *idWindow::HandleEvent(const sysEvent_t *event, bool *updateVisuals) 
 						}
 					}
 				}
+#endif
 			} else if (event->evValue == K_TAB && event->evValue2) {
 				if (GetFocusedChild()) {
 					const char *childRet = GetFocusedChild()->HandleEvent(event, updateVisuals);
@@ -959,6 +968,7 @@ idWindow::DebugDraw
 ================
 */
 void idWindow::DebugDraw(int time, float x, float y) {
+#ifndef __EMSCRIPTEN__
 	static char buff[16384];
 	if (dc) {
 		dc->EnableClipping(false);
@@ -990,6 +1000,7 @@ void idWindow::DebugDraw(int time, float x, float y) {
 		}
 		dc->EnableClipping(true);
 	}
+#endif
 }
 
 /*
@@ -1273,9 +1284,11 @@ void idWindow::Redraw(float x, float y) {
 		Draw(time, x, y);
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( gui_debug.GetInteger() ) {
 		DebugDraw(time, x, y);
 	}
+#endif
 
 	int c = drawWindows.Num();
 	for ( int i = 0; i < c; i++ ) {
@@ -1298,6 +1311,7 @@ void idWindow::Redraw(float x, float y) {
 		gui->DrawCursor();
 	}
 
+#ifndef __EMSCRIPTEN__
 	if (gui_debug.GetInteger() && flags & WIN_DESKTOP) {
 		dc->EnableClipping(false);
 		sprintf(str, "x: %1.f y: %1.f",  gui->CursorX(), gui->CursorY());
@@ -1305,6 +1319,7 @@ void idWindow::Redraw(float x, float y) {
 		dc->DrawText(gui->GetSourceFile(), 0.25, 0, dc->colorWhite, idRectangle(0, 20, 300, 20), false);
 		dc->EnableClipping(true);
 	}
+#endif
 
 	if (fixupFor43) { // DG: gotta reset that before returning this function
 		dc->SetMenuScaleFix(false);
