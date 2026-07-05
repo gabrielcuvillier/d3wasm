@@ -634,6 +634,16 @@ static void Session_RecordDemo_f(const idCmdArgs& args) {
 
 /*
 ================
+Session_Died_f
+================
+*/
+static void Session_Died_f(const idCmdArgs& args) {
+  sessLocal.UnloadMap();
+  sessLocal.SetGUI(sessLocal.guiRestartMenu, NULL);
+}
+
+/*
+================
 Session_CompressDemo_f
 ================
 */
@@ -2578,6 +2588,20 @@ bool idSessionLocal::emsessionframe_last() {
     common->Printf("%i ", latchedTicNumber - lastGameTic);
   }
 
+  int gameTicsToRun = latchedTicNumber - lastGameTic;
+  int i;
+  for ( i = 0; i < gameTicsToRun; i++ ) {
+    bool b = RunGameTic();
+    if ( !mapSpawned || !b ) {
+      // exited game play
+      break;
+    }
+    if ( syncNextGameFrame ) {
+      // long game frame, so break out and continue executing as if there was no hitch
+      break;
+    }
+  }
+
   return true;
 }
 
@@ -2625,21 +2649,7 @@ void idSessionLocal::Frame() {
     return;
   }
 
-  if (emsessionframe_last()) {
-    int gameTicsToRun = latchedTicNumber - lastGameTic;
-    int i;
-    for ( i = 0; i < gameTicsToRun; i++ ) {
-      bool b = RunGameTic();
-      if ( !mapSpawned || !b ) {
-        // exited game play
-        break;
-      }
-      if ( syncNextGameFrame ) {
-        // long game frame, so break out and continue executing as if there was no hitch
-        break;
-      }
-    }
-  }
+  emsessionframe_last();
 }
 
 /*
@@ -2745,9 +2755,13 @@ bool idSessionLocal::RunGameTic() {
       return false;
     }
     else if ( !idStr::Icmp(args.Argv(0), "died")) {
+#ifndef __EMSCRIPTEN__
       // restart on the same map
       UnloadMap();
       SetGUI(guiRestartMenu, NULL);
+#else
+      cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("died\n"));
+#endif
     }
     else if ( !idStr::Icmp(args.Argv(0), "disconnect")) {
       cmdSystem->BufferCommandText(CMD_EXEC_INSERT, "stoprecording ; disconnect");
@@ -2783,6 +2797,7 @@ void idSessionLocal::Init() {
   cmdSystem->AddCommand("timeCmdDemo", Session_TimeCmdDemo_f, CMD_FL_SYSTEM, "times a command demo");
   cmdSystem->AddCommand("exitCmdDemo", Session_ExitCmdDemo_f, CMD_FL_SYSTEM, "exits a command demo");
 #endif
+  cmdSystem->AddCommand("died", Session_Died_f, CMD_FL_SYSTEM, "");
   cmdSystem->AddCommand("recordDemo", Session_RecordDemo_f, CMD_FL_SYSTEM, "records a demo");
   cmdSystem->AddCommand("stopRecording", Session_StopRecordingDemo_f, CMD_FL_SYSTEM, "stops demo recording");
   cmdSystem->AddCommand("playDemo", Session_PlayDemo_f, CMD_FL_SYSTEM, "plays back a demo",
