@@ -91,7 +91,7 @@ idCVar ui_spectate(					"ui_spectate",		si_spectateArgs[ 0 ],	CVAR_GAME | CVAR_U
 idCVar ui_chat(						"ui_chat",					"0",			CVAR_GAME | CVAR_USERINFO | CVAR_BOOL | CVAR_ROM | CVAR_CHEAT, "player is chatting" );
 
 // change anytime vars
-idCVar developer(					"developer",				"0",			CVAR_GAME | CVAR_BOOL, "" );
+//idCVar developer(					"developer",				"0",			CVAR_GAME | CVAR_BOOL, "" );
 
 idCVar r_aspectRatio(				"r_aspectRatio",			"-1",			CVAR_RENDERER | CVAR_INTEGER | CVAR_ARCHIVE, "aspect ratio of view:\n0 = 4:3\n1 = 16:9\n2 = 16:10\n-1 = auto (guess from resolution)", -1, 2 );
 

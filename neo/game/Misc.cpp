@@ -1867,7 +1867,7 @@ void idTextEntity::Spawn( void ) {
 	text = spawnArgs.GetString( "text" );
 	playerOriented = spawnArgs.GetBool( "playerOriented" );
 	bool force = spawnArgs.GetBool( "force" );
-	if ( developer.GetBool() || force ) {
+	if ( com_developer.GetBool() || force ) {
 		BecomeActive(TH_THINK);
 	}
 }

@@ -654,7 +654,7 @@ void idGameLocal::DPrintf( const char *fmt, ... ) const {
 	va_list		argptr;
 	char		text[MAX_STRING_CHARS];
 
-	if ( !developer.GetBool() ) {
+	if ( !com_developer.GetBool() ) {
 		return;
 	}
 
@@ -697,7 +697,7 @@ void idGameLocal::DWarning( const char *fmt, ... ) const {
 	char		text[MAX_STRING_CHARS];
 	idThread *	thread;
 
-	if ( !developer.GetBool() ) {
+	if ( !com_developer.GetBool() ) {
 		return;
 	}
 
@@ -2844,7 +2844,7 @@ bool idGameLocal::CheatsOk( bool requirePlayer ) {
 		return false;
 	}
 
-	if ( developer.GetBool() ) {
+	if ( com_developer.GetBool() ) {
 		return true;
 	}
 
