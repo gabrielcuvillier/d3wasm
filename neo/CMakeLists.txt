@@ -60,16 +60,23 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang" OR EMSCRIPTE
     add_compile_options(-Wall)
 
     set(CMAKE_C_FLAGS_DEBUG "-g -D_DEBUG")
-    set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fno-unsafe-math-optimizations -fno-math-errno -fno-trapping-math -fomit-frame-pointer")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -fno-unsafe-math-optimizations -fno-math-errno -fno-trapping-math -fno-omit-frame-pointer")
-    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG -fno-unsafe-math-optimizations -fno-math-errno -fno-trapping-math -fomit-frame-pointer ")
+    set(CMAKE_C_FLAGS_RELEASE "-O3 -msimd128 -D__SSE__ -D__SSE2__ -DNDEBUG -fomit-frame-pointer")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -fno-omit-frame-pointer")
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -msimd128 -D__SSE__ -D__SSE2__ -fomit-frame-pointer ")
 
     set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELWITHDEBINFO})
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
     set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
 
-    # LTO management (for Release and MinSizeRel only)
+    add_compile_options(-fno-math-errno -fno-trapping-math)
+
+    CHECK_CXX_COMPILER_FLAG("-ffp-contract=off" cxx_has_fp-contract)
+    if(cxx_has_fp-contract)
+        add_compile_options(-ffp-contract=off)
+    endif()
+
+    # LTO management
     set(ENABLE_LTO OFF CACHE BOOL "Enable LTO")
     if (ENABLE_LTO)
         add_compile_options(-flto)

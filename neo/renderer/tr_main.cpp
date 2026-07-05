@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #if defined(__GNUC__) && defined(__SSE2__)
 #include <xmmintrin.h>
+#include <emmintrin.h>
 #endif
 
 #include "sys/platform.h"
@@ -460,7 +461,6 @@ void R_AxisToModelMatrix( const idMat3 &axis, const idVec3 &origin, float modelM
 
 
 // FIXME: these assume no skewing or scaling transforms
-
 void R_LocalPointToGlobal( const float modelMatrix[16], const idVec3 &in, idVec3 &out ) {
 #if defined(__GNUC__) && defined(__SSE2__)
 	__m128 m0, m1, m2, m3;

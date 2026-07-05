@@ -52,11 +52,9 @@ Sys_GetProcessorId
 int Sys_GetProcessorId( void ) {
 	int flags = CPUID_GENERIC;
 
+#ifndef __EMSCRIPTEN__
 	if (SDL_HasMMX())
 		flags |= CPUID_MMX;
-
-	if (SDL_Has3DNow())
-		flags |= CPUID_3DNOW;
 
 	if (SDL_HasSSE())
 		flags |= CPUID_SSE;
@@ -67,7 +65,14 @@ int Sys_GetProcessorId( void ) {
 	if (SDL_HasSSE3()) {
 		flags |= CPUID_SSE3;
 	}
-
+#else
+#if defined(__SSE__) || defined(__SSE2__)
+	flags |= CPUID_SSE | CPUID_MMX;
+#endif
+#if defined(__SSE2__)
+	flags |= CPUID_SSE2;
+#endif
+#endif
 	return flags;
 }
 

@@ -441,6 +441,7 @@ void VPCALL idSIMD_SSE::MinMax( idVec3 &min, idVec3 &max, const idDrawVert *src,
 	_mm_store_ss((float *)(max_p+8), xmm1);
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idSIMD_SSE::Dot
@@ -616,5 +617,5 @@ void VPCALL idSIMD_SSE::Dot( float *dst, const idVec3 &constant, const idPlane *
 	done:
 	*/
 }
-
+#endif
 #endif

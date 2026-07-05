@@ -48,7 +48,10 @@ public:
 	virtual const char * VPCALL GetName( void ) const;
 	virtual void VPCALL Dot( float *dst,			const idPlane &constant,const idDrawVert *src,	const int count );
 	virtual	void VPCALL MinMax( idVec3 &min,		idVec3 &max,			const idDrawVert *src,	const int *indexes,		const int count );
+#ifndef __EMSCRIPTEN__
+	// This ones creates lots of issues in shadows on Emscripten
 	virtual void VPCALL Dot( float *dst,			const idVec3 &constant,	const idPlane *src,		const int count );
+#endif
 #endif
 };
 

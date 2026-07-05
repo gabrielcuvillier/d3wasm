@@ -93,15 +93,13 @@ idCVar com_preciseTic("com_preciseTic", "1", CVAR_BOOL | CVAR_SYSTEM, "run one g
 idCVar com_asyncInput("com_asyncInput", "0", CVAR_ROM | CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
 idCVar com_asyncSound("com_asyncSound", "0", CVAR_ROM | CVAR_INTEGER | CVAR_SYSTEM,
                       "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
-idCVar com_forceGenericSIMD("com_forceGenericSIMD", "1", CVAR_ROM | CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
-                            "force generic platform independent SIMD");
 #else
 idCVar com_asyncInput("com_asyncInput", "0", CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
 idCVar com_asyncSound("com_asyncSound", "0", CVAR_INTEGER | CVAR_SYSTEM,
                       "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
+#endif
 idCVar com_forceGenericSIMD("com_forceGenericSIMD", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                             "force generic platform independent SIMD");
-#endif
 idCVar com_developer("developer", "1", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "developer mode");
 idCVar com_allowConsole("com_allowConsole", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                         "allow toggling console with the tilde key");
@@ -184,15 +182,11 @@ public:
 
   virtual void Warning(const char* fmt, ...)
 
-  id_attribute ((format(printf,
-
-  2, 3)));
+  id_attribute ((format(printf, 2, 3)));
 
   virtual void DWarning(const char* fmt, ...)
 
-  id_attribute ((format(printf,
-
-  2, 3)));
+  id_attribute ((format(printf, 2, 3)));
 
   virtual void PrintWarnings(void);
 
@@ -200,15 +194,11 @@ public:
 
   virtual void Error(const char* fmt, ...)
 
-  id_attribute ((format(printf,
-
-  2, 3)));
+  id_attribute ((format(printf, 2, 3)));
 
   virtual void FatalError(const char* fmt, ...)
 
-  id_attribute ((format(printf,
-
-  2, 3)));
+  id_attribute ((format(printf, 2, 3)));
 
   virtual const idLangDict* GetLanguageDict(void);
 
