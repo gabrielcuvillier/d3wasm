@@ -201,12 +201,14 @@ public:
 
 	int					numClients;				// from serverInfo
 
+#ifndef __EMSCRIPTEN__
 	int					logIndex;
 	logCmd_t			loggedUsercmds[MAX_LOGGED_USERCMDS];
 	int					statIndex;
 	logStats_t			loggedStats[MAX_LOGGED_STATS];
 	int					lastSaveIndex;
 	// each game tic, numClients usercmds will be added, until full
+#endif
 
 	bool				insideUpdateScreen;	// true while inside ::UpdateScreen()
 
@@ -214,7 +216,9 @@ public:
 	idFile *			savegameFile;		// this is the savegame file to load from
 	int					savegameVersion;
 
+#ifndef __EMSCRIPTEN__
 	idFile *			cmdDemoFile;		// if non-zero, we are reading commands from a file
+#endif
 
 	int					latchedTicNumber;	// set to com_ticNumber each frame
 	int					lastGameTic;		// while latchedTicNumber > lastGameTic, run game frames
