@@ -1881,9 +1881,11 @@ const function_t *idProgram::CompileFunction( const char *functionName, const ch
 
 	result = CompileText( functionName, text, false );
 
+#ifndef __EMSCRIPTEN__
 	if ( g_disasm.GetBool() ) {
 		Disassemble();
 	}
+#endif
 
 	if ( !result ) {
 		gameLocal.Error( "Compile failed." );
@@ -1909,9 +1911,11 @@ void idProgram::CompileFile( const char *fname ) {
 
 	fileSystem->FreeFile( src );
 
+#ifndef __EMSCRIPTEN__
 	if ( g_disasm.GetBool() ) {
 		Disassemble();
 	}
+#endif
 
 	if ( !result ) {
 		gameLocal.Error( "Compile failed in file %s.", fname );
