@@ -270,6 +270,18 @@ bool IsDoom3DemoVersion()
 	return ret;
 }
 
+/*
+===================
+Cmd_UpdatePDAInfo_f
+===================
+*/
+static void Cmd_UpdatePDAInfo_f( const idCmdArgs &args ) {
+	idPlayer* p = gameLocal.GetLocalPlayer();
+	if (p && args.Argc() >= 2) {
+		bool b = args.Argv(1)[0] == '1';
+		p->UpdatePDAInfo(b);
+	}
+}
 
 
 /*
@@ -317,6 +329,8 @@ void idGameLocal::Init( void ) {
 
 	cmdSystem->AddCommand( "listModelDefs", idListDecls_f<DECL_MODELDEF>, CMD_FL_SYSTEM|CMD_FL_GAME, "lists model defs" );
 	cmdSystem->AddCommand( "printModelDefs", idPrintDecls_f<DECL_MODELDEF>, CMD_FL_SYSTEM|CMD_FL_GAME, "prints a model def", idCmdSystem::ArgCompletion_Decl<DECL_MODELDEF> );
+
+	cmdSystem->AddCommand( "updatepdainfo", Cmd_UpdatePDAInfo_f, CMD_FL_SYSTEM|CMD_FL_GAME, "");
 
 	Clear();
 

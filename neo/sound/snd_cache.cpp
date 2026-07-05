@@ -90,19 +90,20 @@ idSoundSample *idSoundCache::FindSound( const idStr& filename, bool loadOnDemand
 	fname.BackSlashesToSlashes();
 	fname.ToLower();
 
-	declManager->MediaPrint( "%s\n", fname.c_str() );
-
 	// check to see if object is already in cache
 	for( int i = 0; i < listCache.Num(); i++ ) {
 		idSoundSample *def = listCache[i];
 		if ( def && def->name == fname ) {
 			def->levelLoadReferenced = true;
 			if ( def->purged && !loadOnDemandOnly ) {
+				declManager->MediaPrint( "%s\n", fname.c_str() );
 				def->Load();
 			}
 			return def;
 		}
 	}
+
+	declManager->MediaPrint( "%s\n", fname.c_str() );
 
 	// create a new entry
 	idSoundSample *def = new idSoundSample;

@@ -4206,12 +4206,20 @@ bool idPlayer::HandleSingleGuiCommand( idEntity *entityGui, idLexer *src ) {
 	}
 
 	if ( token.Icmp( "updatepda" ) == 0 ) {
+#ifndef __EMSCRIPTEN__
 		UpdatePDAInfo( true );
+#else
+		cmdSystem->BufferCommandText( CMD_EXEC_APPEND, va( "updatepdainfo %s\n", "1" ) );
+#endif
 		return true;
 	}
 
 	if ( token.Icmp( "updatepda2" ) == 0 ) {
+#ifndef __EMSCRIPTEN__
 		UpdatePDAInfo( false );
+#else
+		cmdSystem->BufferCommandText( CMD_EXEC_APPEND, va( "updatepdainfo %s\n", "0" ) );
+#endif
 		return true;
 	}
 
@@ -5295,6 +5303,14 @@ void idPlayer::UpdatePDAInfo( bool updatePDASel ) {
 					vid = static_cast< const idDeclVideo * >( declManager->FindType( DECL_VIDEO, inventory.videos[ sel ], false ) );
 				}
 				if ( vid ) {
+#ifdef __EMSCRIPTEN__
+					const idMaterial* roq_shader = declManager->FindMaterial( vid->GetRoq(), false);
+					const idSoundShader* snd_shader = declManager->FindSound( vid->GetWave(), false);
+					const idMaterial* preview_shader = declManager->FindMaterial( vid->GetPreview(), false);
+					if (snd_shader) {
+						snd_shader->TouchCache();
+					}
+#endif
 					pdaVideo = vid->GetRoq();
 					pdaVideoWave = vid->GetWave();
 					objectiveSystem->SetStateString( "PDAVideoTitle", vid->GetVideoName() );
@@ -5326,6 +5342,13 @@ void idPlayer::UpdatePDAInfo( bool updatePDASel ) {
 					aud = pda->GetAudioByIndex( sel );
 				}
 				if ( aud ) {
+#ifdef __EMSCRIPTEN__
+					const idSoundShader* wave_shader = declManager->FindSound( aud->GetWave(), false);
+					const idMaterial* preview_shader = declManager->FindMaterial( aud->GetPreview(), false);
+					if (wave_shader) {
+						wave_shader->TouchCache();
+					}
+#endif
 					pdaAudio = aud->GetWave();
 					objectiveSystem->SetStateString( "PDAAudioTitle", aud->GetAudioName() );
 					objectiveSystem->SetStateString( "PDAAudioIcon", aud->GetPreview() );
@@ -5417,7 +5440,11 @@ void idPlayer::TogglePDA( void ) {
 		objectiveSystem->SetStateInt( "listPDAVideo_sel_0", inventory.selVideo );
 		objectiveSystem->SetStateInt( "listPDAAudio_sel_0", inventory.selAudio );
 		objectiveSystem->SetStateInt( "listPDAEmail_sel_0", inventory.selEMail );
+#ifndef __EMSCRIPTEN__
 		UpdatePDAInfo( false );
+#else
+		cmdSystem->BufferCommandText( CMD_EXEC_APPEND, va( "updatepdainfo %s\n", "0" ) );
+#endif
 		UpdateObjectiveInfo();
 		objectiveSystem->Activate( true, gameLocal.time );
 		hud->HandleNamedEvent( "pdaPickupHide" );

@@ -670,7 +670,9 @@ private:
 	void					UpdateFocus( void );
 	void					UpdateLocation( void );
 	idUserInterface *		ActiveGui( void );
+public:
 	void					UpdatePDAInfo( bool updatePDASel );
+private:
 	int						AddGuiPDAData( const declType_t dataType, const char *listName, const idDeclPDA *src, idUserInterface *gui );
 	void					ExtractEmailInfo( const idStr &email, const char *scan, idStr &out );
 	void					UpdateObjectiveInfo( void );

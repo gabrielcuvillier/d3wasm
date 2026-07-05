@@ -414,7 +414,6 @@ bool idDeclEmail::Parse( const char *_text, const int textLength ) {
 		if ( !token.Icmp( "image") ) {
 			src.ReadToken( &token );
 			image = token;
-			declManager->FindMaterial( image );
 			continue;
 		}
 	}
@@ -510,14 +509,12 @@ bool idDeclVideo::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
-			declManager->FindMaterial( preview );
 			continue;
 		}
 
 		if ( !token.Icmp( "video") ) {
 			src.ReadToken( &token );
 			video = token;
-			declManager->FindMaterial( video );
 			continue;
 		}
 
@@ -530,7 +527,6 @@ bool idDeclVideo::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "audio") ) {
 			src.ReadToken( &token );
 			audio = token;
-			declManager->FindSound(audio);
 			continue;
 		}
 
@@ -625,7 +621,6 @@ bool idDeclAudio::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "audio") ) {
 			src.ReadToken( &token );
 			audio = token;
-			declManager->FindSound(audio);
 			continue;
 		}
 
