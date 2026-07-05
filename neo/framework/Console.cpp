@@ -137,10 +137,14 @@ idConsole	*console = &localConsole;
 
 idCVar idConsoleLocal::con_speed( "con_speed", "3", CVAR_SYSTEM, "speed at which the console moves up and down" );
 idCVar idConsoleLocal::con_notifyTime( "con_notifyTime", "3", CVAR_SYSTEM, "time messages are displayed onscreen when console is pulled up" );
+#ifndef __EPSCRIPTEN__
 #ifdef DEBUG
 idCVar idConsoleLocal::con_noPrint( "con_noPrint", "0", CVAR_BOOL|CVAR_SYSTEM|CVAR_NOCHEAT, "print on the console but not onscreen when console is pulled up" );
 #else
 idCVar idConsoleLocal::con_noPrint( "con_noPrint", "1", CVAR_BOOL|CVAR_SYSTEM|CVAR_NOCHEAT, "print on the console but not onscreen when console is pulled up" );
+#endif
+#else
+idCVar idConsoleLocal::con_noPrint( "con_noPrint", "0", CVAR_BOOL|CVAR_SYSTEM|CVAR_NOCHEAT|CVAR_ROM, "print on the console but not onscreen when console is pulled up" );
 #endif
 
 
@@ -1037,9 +1041,11 @@ void idConsoleLocal::DrawNotify() {
 	int		time;
 	int		currentColor;
 
+#ifndef __EMSCRIPTEN__
 	if ( con_noPrint.GetBool() ) {
 		return;
 	}
+#endif
 
 	currentColor = idStr::ColorIndex( C_COLOR_WHITE );
 	renderSystem->SetColor( idStr::ColorForIndex( currentColor ) );
@@ -1217,9 +1223,11 @@ void	idConsoleLocal::Draw( bool forceFullScreen ) {
 	} else {
 		// only draw the notify lines if the developer cvar is set,
 		// or we are a debug build
+#ifndef __EMSCRIPTEN__
 		if ( !con_noPrint.GetBool() ) {
 			DrawNotify();
 		}
+#endif
 	}
 
 	if ( com_showFPS.GetBool() ) {
