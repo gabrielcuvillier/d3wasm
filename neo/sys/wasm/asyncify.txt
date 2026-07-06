@@ -276,9 +276,9 @@ idGameLocal::MapPopulate()
 idGameLocal::NextMap()
 idGameLocal::NextMap_f(idCmdArgs const&)
 idGameLocal::PrecacheScriptReferencesForFile(char const*)
+idGameLocal::PrecacheScriptReferencesForFunction(char const*)
 idGameLocal::PrecacheScriptReferencesForNamespace(char const*)
 idGameLocal::PrecacheScriptReferencesForTypeDef(char const*)
-idGameLocal::PrecacheScriptReferencesForFunction(char const*)
 idGameLocal::SaveGame(idFile*)
 idGameLocal::SpawnEntityDef(idDict const&, idEntity**, bool)
 idGameLocal::SpawnMapEntities()
@@ -589,5 +589,6 @@ unzOpenInternal(void const*, zlib_filefunc64_32_def_s*, int)
 unzReadCurrentFile
 unzReOpen
 unzSetOffset64
+UpdateGuiParms(idUserInterface*, idDict const*)
 writeAtOffset*
 WriteGameState_f(idCmdArgs const&)
