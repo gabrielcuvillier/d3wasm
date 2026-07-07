@@ -43,10 +43,17 @@ If you have questions concerning this license or the applicable additional terms
 //===============================================================
 
 #define UNROLL1(Y) { int _IX; for (_IX=0;_IX<count;_IX++) {Y(_IX);} }
+
+#ifndef __EMSCRIPTEN__
 #define UNROLL2(Y) { int _IX, _NM = count&0xfffffffe; for (_IX=0;_IX<_NM;_IX+=2){Y(_IX+0);Y(_IX+1);} if (_IX < count) {Y(_IX);}}
 #define UNROLL4(Y) { int _IX, _NM = count&0xfffffffc; for (_IX=0;_IX<_NM;_IX+=4){Y(_IX+0);Y(_IX+1);Y(_IX+2);Y(_IX+3);}for(;_IX<count;_IX++){Y(_IX);}}
 #define UNROLL8(Y) { int _IX, _NM = count&0xfffffff8; for (_IX=0;_IX<_NM;_IX+=8){Y(_IX+0);Y(_IX+1);Y(_IX+2);Y(_IX+3);Y(_IX+4);Y(_IX+5);Y(_IX+6);Y(_IX+7);} _NM = count&0xfffffffe; for(;_IX<_NM;_IX+=2){Y(_IX); Y(_IX+1);} if (_IX < count) {Y(_IX);} }
-
+#else
+// Don't try to be too smart on Emscripten, and let the compiler do its job for autoscalarization
+#define UNROLL2(Y) UNROLL1(Y)
+#define UNROLL4(Y) UNROLL1(Y)
+#define UNROLL8(Y) UNROLL1(Y)
+#endif
 #ifdef _DEBUG
 #define NODEFAULT	default: assert( 0 )
 #else
@@ -72,7 +79,7 @@ idSIMD_Generic::Add
 */
 void VPCALL idSIMD_Generic::Add( float *dst, const float constant, const float *src, const int count ) {
 #define OPER(X) dst[(X)] = src[(X)] + constant;
-	UNROLL4(OPER)
+	UNROLL1(OPER)
 #undef OPER
 }
 
@@ -323,7 +330,7 @@ idSIMD_Generic::Dot
 ============
 */
 void VPCALL idSIMD_Generic::Dot( float &dot, const float *src1, const float *src2, const int count ) {
-#if 1
+#if !defined(__EMSCRIPTEN__)
 
 	switch( count ) {
 		case 0: {
@@ -382,7 +389,7 @@ void VPCALL idSIMD_Generic::Dot( float &dot, const float *src1, const float *src
 #else
 
 	dot = 0.0f;
-	for ( i = 0; i < count; i++ ) {
+	for ( int i = 0; i < count; i++ ) {
 		dot += src1[i] * src2[i];
 	}
 
@@ -1746,7 +1753,7 @@ idSIMD_Generic::MatX_LowerTriangularSolve
 ============
 */
 void VPCALL idSIMD_Generic::MatX_LowerTriangularSolve( const idMatX &L, float *x, const float *b, const int n, int skip ) {
-#if 1
+#if !defined(__EMSCRIPTEN__)
 
 	int nc;
 	const float *lptr;
@@ -1879,7 +1886,7 @@ idSIMD_Generic::MatX_LowerTriangularSolveTranspose
 ============
 */
 void VPCALL idSIMD_Generic::MatX_LowerTriangularSolveTranspose( const idMatX &L, float *x, const float *b, const int n ) {
-#if 1
+#if !defined(__EMSCRIPTEN__)
 
 	int nc;
 	const float *lptr;
@@ -2024,7 +2031,7 @@ idSIMD_Generic::MatX_LDLTFactor
 ============
 */
 bool VPCALL idSIMD_Generic::MatX_LDLTFactor( idMatX &mat, idVecX &invDiag, const int n ) {
-#if 1
+#if !defined(__EMSCRIPTEN__)
 
 	int i, j, k, nc;
 	float *v, *diag, *mptr;

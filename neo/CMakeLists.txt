@@ -60,9 +60,9 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang" OR EMSCRIPTE
     add_compile_options(-Wall)
 
     set(CMAKE_C_FLAGS_DEBUG "-g -D_DEBUG")
-    set(CMAKE_C_FLAGS_RELEASE "-O3 -msimd128 -D__SSE__ -D__SSE2__ -DNDEBUG -fomit-frame-pointer")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -fno-omit-frame-pointer")
-    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -msimd128 -D__SSE__ -D__SSE2__ -fomit-frame-pointer ")
+    set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fomit-frame-pointer -msimd128")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG -fno-omit-frame-pointer -msimd128")
+    set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG -fomit-frame-pointer -msimd128")
 
     set(CMAKE_CXX_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELWITHDEBINFO})
@@ -71,10 +71,10 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang" OR EMSCRIPTE
 
     add_compile_options(-fno-math-errno -fno-trapping-math)
 
-    CHECK_CXX_COMPILER_FLAG("-ffp-contract=off" cxx_has_fp-contract)
-    if(cxx_has_fp-contract)
-        add_compile_options(-ffp-contract=off)
-    endif()
+    #CHECK_CXX_COMPILER_FLAG("-ffp-contract=off" cxx_has_fp-contract)
+    #if(cxx_has_fp-contract)
+    #    add_compile_options(-ffp-contract=off)
+    #endif()
 
     # LTO management
     set(ENABLE_LTO OFF CACHE BOOL "Enable LTO")
@@ -446,10 +446,10 @@ set(src_idlib
         idlib/math/Rotation.cpp
         idlib/math/Simd.cpp
         idlib/math/Simd_Generic.cpp
-        idlib/math/Simd_MMX.cpp
-        idlib/math/Simd_SSE.cpp
-        idlib/math/Simd_SSE2.cpp
-        idlib/math/Simd_SSE3.cpp
+        #idlib/math/Simd_MMX.cpp
+        #idlib/math/Simd_SSE.cpp
+        #idlib/math/Simd_SSE2.cpp
+        #idlib/math/Simd_SSE3.cpp
         idlib/math/Vector.cpp
         idlib/BitMsg.cpp
         idlib/LangDict.cpp
