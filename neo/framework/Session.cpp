@@ -520,7 +520,7 @@ void idSessionLocal::StartWipe(const char* _wipeMaterial, bool hold) {
 idSessionLocal::CompleteWipe
 ================
 */
-__attribute__((noinline)) void idSessionLocal::CompleteWipe() {
+void idSessionLocal::CompleteWipe() {
   if ( com_ticNumber == 0 ) {
     // if the async thread hasn't started, we would hang here
     wipeStopTic = 0;
@@ -547,7 +547,7 @@ __attribute__((noinline)) void idSessionLocal::CompleteWipe() {
 idSessionLocal::ShowLoadingGui
 ================
 */
-__attribute__((noinline)) void idSessionLocal::ShowLoadingGui() {
+void idSessionLocal::ShowLoadingGui() {
   if ( com_ticNumber == 0 ) {
     return;
   }

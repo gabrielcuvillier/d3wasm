@@ -784,10 +784,6 @@ void idCommonLocal::Quit(void) {
     Shutdown();
   }
 
-#ifdef __EMSCRIPTEN__
-  // Sync IDBFS so that changes in the memory filesystem are updated to the IndexedDB store
-#endif
-
   Sys_Quit();
 }
 
@@ -1025,10 +1021,6 @@ void idCommonLocal::WriteConfiguration(void) {
   // restore the developer cvar
   com_developer.SetBool(developer);
 
-#ifdef __EMSCRIPTEN__
-  // If there is some configuration file changes, sync IDBFS so that changes
-  // in the memory filesystem are updated to the IndexedDB store
-#endif
 }
 
 /*
@@ -2017,7 +2009,7 @@ void idCommonLocal::InitCommands(void) {
 idCommonLocal::InitRenderSystem
 =================
 */
-__attribute__((noinline)) void idCommonLocal::InitRenderSystem(void) {
+void idCommonLocal::InitRenderSystem( void ) {
   if ( com_skipRenderer.GetBool()) {
     return;
   }
@@ -2029,8 +2021,6 @@ __attribute__((noinline)) void idCommonLocal::InitRenderSystem(void) {
 /*
 =================
 idCommonLocal::PrintLoadingMessage
-
-EMSCRITPEN Note: This is an EMTERPRETIFY function
 =================
 */
 void idCommonLocal::PrintLoadingMessage(const char* msg) {
@@ -2062,8 +2052,6 @@ void idCommonLocal::InitSIMD(void) {
 /*
 =================
 idCommonLocal::Frame
-
-EMSCRIPTEN Note: This is an EMTERPRETIFY function
 =================
 */
 void idCommonLocal::Frame(void) {
@@ -2143,8 +2131,6 @@ void idCommonLocal::Frame(void) {
 /*
 =================
 idCommonLocal::GUIFrame
-
-EMSCRIPTEN Note: This is an EMTERPRETIFY function
 =================
 */
 void idCommonLocal::GUIFrame(bool execCmd, bool network) {

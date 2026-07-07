@@ -70,7 +70,6 @@ NetadrToSockadr
 */
 static void NetadrToSockadr( const netadr_t * a, struct sockaddr_in *s ) {
 	memset(s, 0, sizeof(*s));
-#ifndef __EMSCRIPTEN__
 	if ( a->type == NA_BROADCAST ) {
 		s->sin_family = AF_INET;
 
@@ -82,7 +81,6 @@ static void NetadrToSockadr( const netadr_t * a, struct sockaddr_in *s ) {
 		*(int *) &s->sin_addr = *(int *) &a->ip;
 		s->sin_port = htons( (short)a->port );
 	}
-#endif
 }
 
 /*
@@ -91,7 +89,6 @@ SockadrToNetadr
 =============
 */
 static void SockadrToNetadr(struct sockaddr_in *s, netadr_t * a) {
-#ifndef __EMSCRIPTEN__
 	unsigned int ip = *(int *)&s->sin_addr;
 	*(int *)&a->ip = ip;
 	a->port = ntohs( s->sin_port );
@@ -102,7 +99,6 @@ static void SockadrToNetadr(struct sockaddr_in *s, netadr_t * a) {
 	} else {
 		a->type = NA_IP;
 	}
-#endif
 }
 
 /*
@@ -111,7 +107,6 @@ ExtractPort
 =============
 */
 static bool ExtractPort( const char *src, char *buf, int bufsize, int *port ) {
-#ifndef __EMSCRIPTEN__
 	char *p;
 	strncpy( buf, src, bufsize );
 	p = buf; p += Min( bufsize - 1, (int)strlen( src ) ); *p = '\0';
@@ -126,9 +121,6 @@ static bool ExtractPort( const char *src, char *buf, int bufsize, int *port ) {
 		return false;
 	}
 	return true;
-#else
-	return false;
-#endif
 }
 
 /*
@@ -137,7 +129,6 @@ StringToSockaddr
 =============
 */
 static bool StringToSockaddr( const char *s, struct sockaddr_in *sadr, bool doDNSResolve ) {
-#ifndef __EMSCRIPTEN__
 	struct hostent *h;
 	char buf[256];
 	int port;
@@ -172,9 +163,6 @@ static bool StringToSockaddr( const char *s, struct sockaddr_in *sadr, bool doDN
 	}
 
 	return true;
-#else
-	return false;
-#endif
 }
 
 /*
@@ -183,7 +171,6 @@ Sys_StringToAdr
 =============
 */
 bool Sys_StringToNetAdr( const char *s, netadr_t * a, bool doDNSResolve ) {
-#ifndef __EMSCRIPTEN__
 	struct sockaddr_in sadr;
 
 	if ( !StringToSockaddr( s, &sadr, doDNSResolve ) ) {
@@ -192,9 +179,6 @@ bool Sys_StringToNetAdr( const char *s, netadr_t * a, bool doDNSResolve ) {
 
 	SockadrToNetadr( &sadr, a );
 	return true;
-#else
-	return false;
-#endif
 }
 
 /*
@@ -204,7 +188,6 @@ Sys_NetAdrToString
 */
 const char *Sys_NetAdrToString( const netadr_t a ) {
 	static char s[64];
-#ifndef __EMSCRIPTEN__
 	if ( a.type == NA_LOOPBACK ) {
 		if ( a.port ) {
 			idStr::snPrintf( s, sizeof(s), "localhost:%i", a.port );
@@ -215,9 +198,6 @@ const char *Sys_NetAdrToString( const netadr_t a ) {
 		idStr::snPrintf( s, sizeof(s), "%i.%i.%i.%i:%i",
 			a.ip[0], a.ip[1], a.ip[2], a.ip[3], a.port );
 	}
-#else
-	s[0] = 0;
-#endif
 	return s;
 }
 
@@ -227,7 +207,6 @@ Sys_IsLANAddress
 ==================
 */
 bool Sys_IsLANAddress( const netadr_t adr ) {
-#ifndef __EMSCRIPTEN__
 	int i;
 	unsigned int ip;
 
@@ -254,7 +233,6 @@ bool Sys_IsLANAddress( const netadr_t adr ) {
 			return true;
 		}
 	}
-#endif
 	return false;
 }
 
@@ -266,7 +244,6 @@ Compares without the port
 ===================
 */
 bool Sys_CompareNetAdrBase( const netadr_t a, const netadr_t b ) {
-#ifndef __EMSCRIPTEN__
 	if ( a.type != b.type ) {
 		return false;
 	}
@@ -283,7 +260,6 @@ bool Sys_CompareNetAdrBase( const netadr_t a, const netadr_t b ) {
 	}
 
 	common->Printf( "Sys_CompareNetAdrBase: bad address type\n" );
-#endif
 	return false;
 }
 
@@ -669,12 +645,10 @@ idTCP::Close
 ==================
 */
 void idTCP::Close() {
-#ifndef __EMSCRIPTEN__
 	if (fd) {
 		close(fd);
 	}
 	fd = 0;
-#endif
 }
 
 /*
