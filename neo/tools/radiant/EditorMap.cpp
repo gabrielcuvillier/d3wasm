@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 
@@ -50,14 +50,6 @@ entity_t	*world_entity = NULL;	// "classname" "worldspawn" !
 
 void		AddRegionBrushes(void);
 void		RemoveRegionBrushes(void);
-
-/*
- =======================================================================================================================
- =======================================================================================================================
- */
-void DupLists() {
-	DWORD	dw = GetTickCount();
-}
 
 /*
  * Cross map selection saving this could mess this up if you have only part of a
@@ -443,6 +435,11 @@ void Map_LoadFile(const char *filename) {
 
 	common->Printf( "Map_LoadFile: %s\n", fileStr.c_str() );
 
+	// DG: make sure that this is set to the default value.
+	//     it's changed when Entity_PostParse() is called with the worldspawn
+	//     and the worldspawn has "allow_nospecular" "1" set
+	tr.allowNoSpecular = false;
+
 	Map_Free();
 
 	g_qeglobals.d_parsed_brushes = 0;
@@ -699,10 +696,13 @@ bool Map_SaveFile(const char *filename, bool use_region, bool autosave) {
 		if ( _unlink(backup) != 0 && errno != 2 ) { // errno 2 means the file doesn't exist, which we don't care about
 			g_pParentWnd->MessageBox( va("Unable to delete %s: %s", backup.c_str(), strerror(errno) ), "File Error" );
 		}
-
-		if ( rename(filename, backup) != 0 ) {
-			g_pParentWnd->MessageBox( va("Unable to rename %s to %s: %s", filename, backup.c_str(), strerror(errno) ), "File Error" );
-		}
+	// DG: from SteelStorm2:
+// Removed this check.  On the first save, it is valid that the map file does not exist because
+// it has not been written to disk yet.
+// KJA
+//		if ( rename(filename, backup) != 0 ) {
+//			g_pParentWnd->MessageBox( va("Unable to rename %s to %s: %s", filename, backup.c_str(), strerror(errno) ), "File Error" );
+//		}
 	}
 
 	common->Printf("Map_SaveFile: %s\n", filename);
@@ -815,6 +815,9 @@ void Map_New(void) {
 	world_entity->brushes.onext = world_entity->brushes.oprev = &world_entity->brushes;
 	SetKeyValue(world_entity, "classname", "worldspawn");
 	world_entity->eclass = Eclass_ForName("worldspawn", true);
+
+	// DG: make sure this is (re) set to the default value when creating a new map
+	tr.allowNoSpecular = false;
 
 	g_pParentWnd->GetCamera()->Camera().angles[YAW] = 0;
 	g_pParentWnd->GetCamera()->Camera().angles[PITCH] = 0;

@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -445,6 +445,7 @@ void idGLDrawableMaterial::draw(int x, int y, int w, int h) {
 		}
 
 		renderView_t	refdef;
+		
 		// render it
 		renderSystem->BeginFrame(w, h);
 		memset( &refdef, 0, sizeof( refdef ) );
@@ -464,8 +465,8 @@ void idGLDrawableMaterial::draw(int x, int y, int w, int h) {
 		refdef.time = eventLoop->Milliseconds();
 
 		world->RenderScene( &refdef );
-		int frontEnd, backEnd;
-		renderSystem->EndFrame( &frontEnd, &backEnd );
+		int rsFrontEnd, rsBackEnd;
+		renderSystem->EndFrame( &rsFrontEnd, &rsBackEnd );
 
 		qglMatrixMode( GL_MODELVIEW );
 		qglLoadIdentity();
@@ -806,7 +807,7 @@ void idGLWidget::setDrawable(idGLDrawable *d) {
 }
 
 
-void idGLWidget::OnTimer(UINT nIDEvent) {
+void idGLWidget::OnTimer(UINT_PTR nIDEvent) {
 	if (drawable && drawable->getRealTime()) {
 		Invalidate(FALSE);
 	} else {

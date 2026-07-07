@@ -5,12 +5,27 @@
     Feel free to customize this file to suit your needs
 */
 
-#include "SDL.h"
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+#ifdef D3_SDL3
+  #include <SDL3/SDL.h>
+  // as SDL.h doesn't implicitly include SDL_main.h anymore,
+  // declare SDL_main() here. I think it's the only part of SDL_main.h we used,
+  // we implement it in DOOMController.mm an call it here in applicationDidFinishLaunching
+  extern "C" int SDL_main( int argc, char *argv[] );
+#else // SDL2 and SDL1.2
+  #include "SDL.h"
+#endif
 #include "SDLMain.h"
 #include <sys/param.h> /* for MAXPATHLEN */
 #include <unistd.h>
 
-/* For some reaon, Apple removed setAppleMenu from the headers in 10.4,
+#include <Availability.h>
+
+/* For some reason, Apple removed setAppleMenu from the headers in 10.4,
  but the method still is there and works. To avoid warnings, we declare
  it ourselves here. */
 @interface NSApplication(SDL_Missing_Methods)
@@ -221,7 +236,13 @@ static void CustomApplicationMain (int argc, char **argv)
 
     /* Create SDLMain and make it the app delegate */
     sdlMain = [[SDLMain alloc] init];
+
+#if defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 1060 /* before 10.6 */
     [NSApp setDelegate:sdlMain];
+#else /* 10.6 introduced NSApplicationDelegate, according to
+         https://developer.apple.com/documentation/appkit/nsapplicationdelegate?language=objc */
+    [NSApp setDelegate:(id<NSApplicationDelegate>)sdlMain];
+#endif
 
     /* Start the main event loop */
     [NSApp run];
@@ -378,3 +399,7 @@ int main (int argc, char **argv)
 #endif
     return 0;
 }
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif

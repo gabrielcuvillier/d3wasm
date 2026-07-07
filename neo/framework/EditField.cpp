@@ -286,7 +286,7 @@ void idEditField::AutoComplete( void ) {
 		autoComplete = globalAutoComplete;
 
 		// and print it
-		idStr::snPrintf( buffer, sizeof( buffer ), autoComplete.currentMatch );
+		idStr::snPrintf( buffer, sizeof( buffer ), "%s", autoComplete.currentMatch );
 		if ( autoComplete.length > (int)strlen( buffer ) ) {
 			autoComplete.length = strlen( buffer );
 		}
@@ -478,7 +478,8 @@ void idEditField::KeyDownEvent( int key ) {
 	}
 
 	// clear autocompletion buffer on normal key input
-	if ( key != K_CAPSLOCK && key != K_ALT && key != K_CTRL && key != K_SHIFT ) {
+	if ( key != K_CAPSLOCK && key != K_ALT && key != K_CTRL && key != K_SHIFT
+	     && key != K_RIGHT_CTRL && key != K_RIGHT_SHIFT ) { // TODO: K_RIGHT_ALT ?
 		ClearAutoComplete();
 	}
 }
@@ -504,7 +505,7 @@ void idEditField::Paste( void ) {
 		CharEvent( cbd[i] );
 	}
 
-	Mem_Free( cbd );
+	Sys_FreeClipboardData( cbd );
 }
 
 /*

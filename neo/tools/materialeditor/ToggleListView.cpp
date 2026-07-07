@@ -25,8 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "ToggleListView.h"
 
@@ -160,7 +160,8 @@ void ToggleListView::OnSize(UINT nType, int cx, int cy) {
 * Returns the size of each item in the toggle list.
 */
 void ToggleListView::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) {
-	lpMeasureItemStruct->itemHeight = TOGGLELIST_ITEMHEIGHT;
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
+	lpMeasureItemStruct->itemHeight = TOGGLELIST_ITEMHEIGHT * scaling_factor;
 }
 
 /**

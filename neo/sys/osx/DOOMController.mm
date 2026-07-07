@@ -32,38 +32,47 @@ If you have questions concerning this license or the applicable additional terms
 #include <fenv.h>
 #include <mach/thread_status.h>
 #include <AppKit/AppKit.h>
-
-#include <SDL_main.h>
-
 #include "sys/platform.h"
+
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
 #include "idlib/Str.h"
 #include "framework/Common.h"
 
 #include "sys/posix/posix_public.h"
 
-bool Sys_GetPath(sysPath_t type, idStr &path) {
-	char buf[MAXPATHLEN];
-	char *snap;
+// usually the following would be from SDL_main.h,
+// but this way we should be able to avoid that header
+// for better compatibility between SDL1.2 to SDL3
+extern "C" int SDL_main( int argc, char *argv[] );
 
+static char base_path[MAXPATHLEN];
+static char exe_path[MAXPATHLEN];
+static char save_path[MAXPATHLEN];
+
+
+const char* Posix_GetExePath() {
+	return exe_path;
+}
+
+const char* Posix_GetSavePath() {
+	return save_path;
+}
+
+bool Sys_GetPath(sysPath_t type, idStr &path) {
 	switch(type) {
 	case PATH_BASE:
-		strncpy(buf, [ [ [ NSBundle mainBundle ] bundlePath ] cString ], MAXPATHLEN );
-		snap = strrchr(buf, '/');
-		if (snap)
-			*snap = '\0';
-
-		path = buf;
+		path = base_path;
 		return true;
 
 	case PATH_CONFIG:
 	case PATH_SAVE:
-		sprintf(buf, "%s/Library/Application Support/dhewm3", [NSHomeDirectory() cString]);
-		path = buf;
+		path = save_path;
 		return true;
 
 	case PATH_EXE:
-		strncpy(buf, [ [ [ NSBundle mainBundle ] bundlePath ] cString ], MAXPATHLEN);
-		path = buf;
+		path = exe_path;
 		return true;
 	}
 
@@ -86,10 +95,16 @@ returns in megabytes
 ================
 */
 int Sys_GetSystemRam( void ) {
-	SInt32 ramSize;
-
-	if ( Gestalt( gestaltPhysicalRAMSize, &ramSize ) == noErr ) {
-		return ramSize / (1024*1024);
+	// from https://discussions.apple.com/thread/1775836?answerId=8396559022#8396559022
+	// should work (at least) from the Mac OSX 10.2.8 SDK on
+	int mib[2];
+	uint64_t memsize;
+	size_t len;
+	mib[0] = CTL_HW;
+	mib[1] = HW_MEMSIZE; /* uint64_t: physical ram size */
+	len = sizeof(memsize);
+	if(sysctl(mib, 2, &memsize, &len, NULL, 0) == 0) {
+		return (int)(memsize / (1024*1024));
 	}
 	else
 		return 1024;
@@ -179,6 +194,21 @@ int SDL_main( int argc, char *argv[] ) {
 
 	if (![[NSFileManager defaultManager] changeCurrentDirectoryPath:[[NSBundle mainBundle] resourcePath]])
 		Sys_Error("Could not access application resources");
+
+	// DG: set exe_path so Posix_InitSignalHandlers() can call Posix_GetExePath()
+	strncpy(exe_path, [ [ [ NSBundle mainBundle ] bundlePath ] cStringUsingEncoding:NSUTF8StringEncoding ], sizeof(exe_path)-1);
+	exe_path[sizeof(exe_path)-1] = '\0';
+	// same for save_path for Posix_GetSavePath()
+	D3_snprintfC99(save_path, sizeof(save_path), "%s/Library/Application Support/dhewm3", [NSHomeDirectory() cStringUsingEncoding:NSUTF8StringEncoding]);
+	// and preinitializing basepath is easy enough so do that as well
+	{
+		char* snap;
+		strncpy(base_path, exe_path, sizeof(base_path)-1);
+		base_path[sizeof(base_path)-1] = '\0';
+		snap = strrchr(base_path, '/');
+		if (snap)
+			*snap = '\0';
+	}
 
 	Posix_InitSignalHandlers(); // DG: added signal handlers for POSIX platforms
 

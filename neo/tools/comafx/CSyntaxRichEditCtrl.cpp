@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "CSyntaxRichEditCtrl.h"
 
@@ -1361,7 +1361,7 @@ void CSyntaxRichEditCtrl::GoToLine( int line ) {
 CSyntaxRichEditCtrl::OnToolHitTest
 ================
 */
-int CSyntaxRichEditCtrl::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
+INT_PTR CSyntaxRichEditCtrl::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
 	CRichEditCtrl::OnToolHitTest( point, pTI );
 
 	pTI->hwnd = GetSafeHwnd();
@@ -1380,8 +1380,12 @@ CSyntaxRichEditCtrl::OnToolTipNotify
 ================
 */
 BOOL CSyntaxRichEditCtrl::OnToolTipNotify( UINT id, NMHDR *pNMHDR, LRESULT *pResult ) {
+
+#ifdef _UNICODE
 	TOOLTIPTEXTA* pTTTA = (TOOLTIPTEXTA*)pNMHDR;
+#else
 	TOOLTIPTEXTW* pTTTW = (TOOLTIPTEXTW*)pNMHDR;
+#endif
 
 	*pResult = 0;
 

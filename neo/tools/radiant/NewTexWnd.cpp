@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -878,7 +878,7 @@ BOOL CNewTexWnd::OnToolTipNotify( UINT id, NMHDR * pNMHDR, LRESULT * pResult ) {
 	return(FALSE);
 }
 
-int CNewTexWnd::OnToolHitTest(CPoint point, TOOLINFO * pTI)
+INT_PTR CNewTexWnd::OnToolHitTest(CPoint point, TOOLINFO * pTI)
 {
 	const idMaterial *mat = getMaterialAtPoint(point);
 	if (mat) {

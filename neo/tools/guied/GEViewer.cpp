@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/rc/guied_resource.h"
 #include "../../renderer/tr_local.h"
@@ -125,7 +125,8 @@ bool rvGEViewer::OpenFile ( const char* filename )
 	tempfile.StripPath ();
 	tempfile.StripFileExtension ( );
 	tempfile = va("guis/temp.guied", tempfile.c_str() );
-	ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_basepath" );
+	//ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_basepath" ); DG: change from SteelStorm2
+	ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_savepath" );
 
 	// Make sure the gui directory exists
 	idStr createDir = ospath;
@@ -228,7 +229,7 @@ static int MapKey (int key)
 
 LRESULT CALLBACK rvGEViewer::WndProc ( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam )
 {
-	rvGEViewer* viewer = (rvGEViewer*) GetWindowLong ( hwnd, GWL_USERDATA );
+	rvGEViewer* viewer = (rvGEViewer*) GetWindowLongPtr ( hwnd, GWLP_USERDATA );
 
 	switch ( msg )
 	{
@@ -364,7 +365,7 @@ LRESULT CALLBACK rvGEViewer::WndProc ( HWND hwnd, UINT msg, WPARAM wParam, LPARA
 		case WM_CREATE:
 		{
 			CREATESTRUCT* cs = (CREATESTRUCT*) lParam;
-			SetWindowLong ( hwnd, GWL_USERDATA, (LONG)cs->lpCreateParams );
+			SetWindowLongPtr( hwnd, GWLP_USERDATA, (LONG_PTR)cs->lpCreateParams );
 
 			viewer = (rvGEViewer*)cs->lpCreateParams;
 			viewer->mWnd = hwnd;
@@ -452,7 +453,7 @@ bool rvGEViewer::SetupPixelFormat ( void )
 	HDC	 hDC    = GetDC ( mWnd );
 	bool result = true;
 
-	int pixelFormat = ChoosePixelFormat(hDC, &win32.pfd);
+	int pixelFormat = Win_ChoosePixelFormat(hDC);
 	if (pixelFormat > 0)
 	{
 		if (SetPixelFormat(hDC, pixelFormat, &win32.pfd) == NULL)
@@ -505,11 +506,11 @@ void rvGEViewer::Render	( HDC dc )
 	qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Render the workspace below
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	qglMatrixMode(GL_PROJECTION);
+	qglLoadIdentity();
 	qglOrtho(0,mWindowWidth, mWindowHeight, 0, -1, 1);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	qglMatrixMode(GL_MODELVIEW);
+	qglLoadIdentity();
 
 	if ( mInterface )
 	{

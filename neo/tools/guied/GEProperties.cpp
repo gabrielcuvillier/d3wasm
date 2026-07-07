@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/rc/guied_resource.h"
 
@@ -199,7 +199,7 @@ Window Procedure for the properties window
 */
 LRESULT CALLBACK rvGEProperties::WndProc ( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 {
-	rvGEProperties* kv = (rvGEProperties*) GetWindowLong ( hWnd, GWL_USERDATA );
+	rvGEProperties* kv = (rvGEProperties*) GetWindowLongPtr ( hWnd, GWLP_USERDATA );
 
 	if ( kv && kv->mGrid.ReflectMessage ( hWnd, msg, wParam, lParam ) )
 	{
@@ -271,7 +271,7 @@ LRESULT CALLBACK rvGEProperties::WndProc ( HWND hWnd, UINT msg, WPARAM wParam, L
 			// Attach the class to the window first
 			cs = (LPCREATESTRUCT) lParam;
 			kv = (rvGEProperties*) cs->lpCreateParams;
-			SetWindowLong ( hWnd, GWL_USERDATA, (LONG)kv );
+			SetWindowLongPtr( hWnd, GWLP_USERDATA, (LONG_PTR)kv );
 
 			kv->mGrid.Create ( hWnd, 999, PGS_ALLOWINSERT );
 

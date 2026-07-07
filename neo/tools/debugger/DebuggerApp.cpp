@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/rc/debugger_resource.h"
 #include "DebuggerApp.h"
@@ -37,8 +37,8 @@ If you have questions concerning this license or the applicable additional terms
 rvDebuggerApp::rvDebuggerApp
 ================
 */
-rvDebuggerApp::rvDebuggerApp ( ) :
-	mOptions ( "Software\\id Software\\DOOM3\\Tools\\Debugger" )
+rvDebuggerApp::rvDebuggerApp ( ) //:
+	//mOptions ( "Software\\id Software\\DOOM3\\Tools\\Debugger" )
 {
 	mInstance		= NULL;
 	mDebuggerWindow = NULL;

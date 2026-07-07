@@ -60,6 +60,11 @@ else
 
 */
 
+// DG: functions used for improved frame timing - I put them here so they don't end up in the SDK
+extern void Com_UpdateFrameTime();
+extern void Com_WaitForNextTicStart();
+
+
 typedef struct {
 	usercmd_t	cmd;
 	int			consistencyHash;
@@ -163,7 +168,11 @@ public:
 	idStr				GetAutoSaveName( const char *mapName ) const;
 
 	bool				LoadGame(const char *saveName);
-	bool				SaveGame(const char *saveName, bool autosave = false);
+	// DG: added saveFileName so we can set a sensible filename for autosaves (see comment in MoveToNewMap())
+	bool				SaveGame(const char *saveName, bool autosave = false, const char* saveFileName = NULL);
+
+	bool				QuickSave();
+	bool				QuickLoad();
 
 	const char			*GetAuthMsg( void );
 
@@ -181,6 +190,8 @@ public:
 	static idCVar		com_aviDemoTics;
 	static idCVar		com_wipeSeconds;
 	static idCVar		com_guid;
+	static idCVar		com_numQuicksaves;
+	static idCVar		com_disableAutoSaves;
 
 	static idCVar		gui_configServerRate;
 
@@ -265,8 +276,10 @@ public:
 	const idMaterial *	whiteMaterial;
 
 	const idMaterial *	wipeMaterial;
-	int					wipeStartTic;
-	int					wipeStopTic;
+	// DG: make wiping use Sys_Milliseconds() instead of tics
+	//     so we can get rid of the AsyncThread
+	unsigned			wipeStartTime;
+	unsigned			wipeStopTime;
 	bool				wipeHold;
 
 #if ID_CONSOLE_LOCK

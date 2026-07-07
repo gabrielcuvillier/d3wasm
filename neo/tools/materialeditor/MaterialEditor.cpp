@@ -1,3 +1,4 @@
+
 /*
 ===========================================================================
 
@@ -25,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/win_local.h"
 
@@ -50,7 +51,6 @@ void MaterialEditorInit( void ) {
 
 	com_editors = EDITOR_MATERIAL;
 
-	Sys_GrabMouseCursor( false );
 
 	InitAfx();
 
@@ -131,7 +131,8 @@ void MaterialEditorShutdown( void ) {
 * Allows the doom engine to reflect console output to the material editors console.
 */
 void MaterialEditorPrintConsole( const char *msg ) {
-	if(com_editors & EDITOR_MATERIAL)
+	//meMainFrame can be null when starting immedeatly from commandline.
+	if(meMainFrame && com_editors & EDITOR_MATERIAL)
 		meMainFrame->PrintConsoleMessage(msg);
 }
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.6...3.22 FATAL_ERROR)
 project(dhewm3)
 
 # TODO
@@ -33,6 +33,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/sys/cmake")
 
 if(LINUX_RELEASE_BINS)
 	message(STATUS "Setting RPATH to \$ORIGIN/libs/ so you can put dependencies in there")
+	set(CMAKE_SKIP_RPATH OFF CACHE BOOL "Skip RPATH" FORCE)
 	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 	set(CMAKE_INSTALL_RPATH "$ORIGIN/libs")
@@ -45,13 +46,35 @@ set(DHEWM3BINARY "dhewm3")
 
 include(CheckCXXCompilerFlag)
 include(GNUInstallDirs OPTIONAL RESULT_VARIABLE GNUINSTALLDIRS)
+include(TestBigEndian)
 
 option(CORE			"Build the core" ON)
 option(BASE			"Build the base game code" ON)
 option(D3XP			"Build the d3xp game code" ON)
+if(MSVC)
+	option(TOOLS		"Build the tools game code (Visual Studio+SDL2/SDL3 only)" OFF)
+endif()
 option(DEDICATED	"Build the dedicated server" OFF)
 option(ONATIVE		"Optimize for the host CPU" OFF)
 option(SDL2			"Use SDL2 instead of SDL1.2" ON)
+option(SDL3			"Use SDL3 instead of SDL2 or SDL1.2" OFF)
+option(IMGUI		"Build with Dear ImGui integration - requires SDL2/SDL3 and C++11" ON)
+option(REPRODUCIBLE_BUILD "Replace __DATE__ and __TIME__ by hardcoded values for reproducible builds" OFF)
+
+option(TRACY		"Build and integrate the Tracy profiler, requires HARDLINK_GAME" OFF)
+
+option(HARDLINK_GAME "Compile gamecode into executable (no game DLLs)" OFF)
+
+if(NOT MSVC) # GCC/clang or compatible, hopefully
+	option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored compiler warnings/errors (GCC/Clang only; esp. useful with ninja)." OFF)
+	option(ASAN		"Enable GCC/Clang Adress Sanitizer (ASan)" OFF) # TODO: MSVC might also support this, somehow?
+	option(UBSAN	"Enable GCC/Clang Undefined Behavior Sanitizer (UBSan), implies HARDLINK_GAME" OFF)
+
+	if(UBSAN AND NOT HARDLINK_GAME)
+		message(STATUS "UBSAN requires linking the gamecode into the executable, will enable HARDLINK_GAME")
+		set(HARDLINK_GAME ON)
+	endif()
+endif()
 
 if(NOT CMAKE_SYSTEM_PROCESSOR)
 	message(FATAL_ERROR "No target CPU architecture set")
@@ -63,14 +86,56 @@ endif()
 
 # target cpu
 set(cpu ${CMAKE_SYSTEM_PROCESSOR})
-if(cpu STREQUAL "powerpc")
-	set(cpu "ppc")
-elseif(cpu MATCHES "i.86")
-	set(cpu "x86")
+
+# Originally, ${CMAKE_SYSTEM_PROCESSOR} was supposed to contain the *target* CPU, according to CMake's documentation.
+# As far as I can tell this has always been broken (always returns host CPU) at least on Windows
+# (see e.g. https://cmake.org/pipermail/cmake-developers/2014-September/011405.html) and wasn't reliable on
+# other systems either, for example on Linux with 32bit userland but 64bit kernel it returned the kernel CPU type
+# (e.g. x86_64 instead of i686). Instead of fixing this, CMake eventually updated their documentation in 3.20,
+# now it's officially the same as CMAKE_HOST_SYSTEM_PROCESSOR except when cross-compiling (where it's explicitly set)
+# So we gotta figure out the actual target CPU type ourselves.. (why am I sticking to this garbage buildsystem?)
+if(NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL CMAKE_HOST_SYSTEM_PROCESSOR))
+	# special case: cross-compiling, here CMAKE_SYSTEM_PROCESSOR should be correct, hopefully
+	# (just leave cpu at ${CMAKE_SYSTEM_PROCESSOR})
+elseif(MSVC)
+	# because all this wasn't ugly enough, it turned out that, unlike standalone CMake, Visual Studio's
+	# integrated CMake doesn't set CMAKE_GENERATOR_PLATFORM, so I gave up on guessing the CPU arch here
+	# and moved the CPU detection to MSVC-specific code in neo/sys/platform.h
+else() # not MSVC and not cross-compiling, assume GCC or clang (-compatible), seems to work for MinGW as well
+	execute_process(COMMAND ${CMAKE_C_COMPILER} "-dumpmachine"
+	                RESULT_VARIABLE cc_dumpmachine_res
+	                OUTPUT_VARIABLE cc_dumpmachine_out)
+	if(cc_dumpmachine_res EQUAL 0)
+		string(STRIP ${cc_dumpmachine_out} cc_dumpmachine_out) # get rid of trailing newline
+		message(STATUS "`${CMAKE_C_COMPILER} -dumpmachine` says: \"${cc_dumpmachine_out}\"")
+		# gcc -dumpmachine and clang -dumpmachine seem to print something like "x86_64-linux-gnu" (gcc)
+		# or "x64_64-pc-linux-gnu" (clang) or "i686-w64-mingw32" (32bit mingw-w64) i.e. starting with the CPU,
+		# then "-" and then OS or whatever - so use everything up to first "-"
+		string(REGEX MATCH "^[^-]+" cpu ${cc_dumpmachine_out})
+		message(STATUS "  => CPU architecture extracted from that: \"${cpu}\"")
+	else()
+		message(WARNING "${CMAKE_C_COMPILER} -dumpmachine failed with error (code) ${cc_dumpmachine_res}")
+		message(WARNING "will use the (sometimes incorrect) CMAKE_SYSTEM_PROCESSOR (${cpu}) to determine D3_ARCH")
+	endif()
 endif()
 
-if(MSVC AND CMAKE_CL_64)
-	set(cpu "amd64")
+if(cpu STREQUAL "powerpc")
+	set(cpu "ppc")
+elseif(cpu STREQUAL "aarch64")
+	# "arm64" is more obvious, and some operating systems (like macOS) use it instead of "aarch64"
+	set(cpu "arm64")
+elseif(cpu MATCHES "i.86")
+	set(cpu "x86")
+elseif(cpu MATCHES "[aA][mM][dD]64" OR cpu MATCHES "[xX]64")
+	set(cpu "x86_64")
+elseif(cpu MATCHES "[aA][rR][mM].*") # some kind of arm..
+	# On 32bit Raspbian gcc -dumpmachine returns sth starting with "arm-",
+	# while clang -dumpmachine says "arm6k-..." - try to unify that to "arm"
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8) # sizeof(void*) == 8 => must be arm64
+		set(cpu "arm64")
+	else() # should be 32bit arm then (probably "armv7l" "armv6k" or sth like that)
+		set(cpu "arm")
+	endif()
 endif()
 
 # target os
@@ -78,6 +143,24 @@ if(APPLE)
 	set(os "macosx")
 else()
 	string(TOLOWER "${CMAKE_SYSTEM_NAME}" os)
+endif()
+
+add_definitions(-DD3_OSTYPE="${os}" -DD3_SIZEOFPTR=${CMAKE_SIZEOF_VOID_P})
+
+if(MSVC)
+	# for MSVC D3_ARCH is set in code (in neo/sys/platform.h)
+	message(STATUS "Setting -DD3_SIZEOFPTR=${CMAKE_SIZEOF_VOID_P} -DD3_OSTYPE=\"${os}\" - NOT setting D3_ARCH, because we're targeting MSVC (VisualC++)")
+	# make sure ${cpu} isn't (cant't be) used by CMake when building with MSVC
+	unset(cpu)
+else()
+	add_definitions(-DD3_ARCH="${cpu}")
+	message(STATUS "Setting -DD3_ARCH=\"${cpu}\" -DD3_SIZEOFPTR=${CMAKE_SIZEOF_VOID_P} -DD3_OSTYPE=\"${os}\" ")
+
+	if(cpu MATCHES ".*64.*" AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+		# tough luck if some CPU architecture has "64" in its name but uses 32bit pointers
+		message(SEND_ERROR "CMake thinks sizeof(void*) == 4, but the target CPU ${cpu} looks like a 64bit CPU!")
+		message(FATAL_ERROR "If you're building in a 32bit chroot on a 64bit host, switch to it with 'linux32 chroot' or at least call cmake with linux32 (or your OSs equivalent)!")
+	endif()
 endif()
 
 # build type
@@ -99,29 +182,34 @@ if(DHEWM3LIBS)
 	set(ENV{SDL2DIR} ${DHEWM3LIBS})
 endif()
 
+if(CMAKE_MAJOR_VERSION LESS 3 OR ( CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION LESS 8 ))
+	# cmake < 3.8 doesn't support source_group(TREE ...) so replace it with a dummy
+	# (it's only cosmetical anyway, to make source files show up properly in Visual Studio)
+	function(source_group)
+	endfunction()
+	message(STATUS "Using CMake < 3.8, doesn't support source_group(TREE ...), replacing it with a dummy")
+	message(STATUS "  (this is only relevants for IDEs, doesn't matter for just compiling dhewm3)")
+#else()
+#	message(STATUS "Using CMake >= 3.8, supports source_group(TREE ...)")
+endif()
+
 # libs
-find_package(ZLIB REQUIRED)
-include_directories(${ZLIB_INCLUDE_DIRS})
-
-find_package(JPEG REQUIRED)
-include_directories(${JPEG_INCLUDE_DIR})
-
-set(CMAKE_REQUIRED_INCLUDES ${JPEG_INCLUDE_DIR})
-set(CMAKE_REQUIRED_LIBRARIES ${JPEG_LIBRARY})
-
-find_package(OGG REQUIRED)
-include_directories(${OGG_INCLUDE_DIR})
-
-find_package(Vorbis REQUIRED)
-include_directories(${VORBIS_INCLUDE_DIR})
-
-find_package(VorbisFile REQUIRED)
-include_directories(${VORBISFILE_INCLUDE_DIR})
-
 find_package(OpenAL REQUIRED)
 include_directories(${OPENAL_INCLUDE_DIR})
 
-if (SDL2)
+if (SDL3)
+	if(SDL2)
+		message(WARNING "You enabled both SDL2 and SDL3. Only one can be used at a time, disabling SDL2")
+		set(SDL2 OFF CACHE BOOL "Use SDL2 (make sure SDL3 is disabled!)" FORCE)
+	endif()
+	# 1. Look for a SDL3 package,
+	# 2. look for the SDL3-shared component, and
+	# 3. fail if the shared component cannot be found.
+	find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3-shared)
+	# TODO: include dirs?
+	set(SDLx_LIBRARY SDL3::SDL3)
+	add_definitions(-DD3_SDL3=1)
+elseif (SDL2)
 	# skip SDL2main
 	if(APPLE OR WIN32)
 		set(SDL2_BUILDING_LIBRARY TRUE)
@@ -139,18 +227,142 @@ else()
 	set(SDLx_LIBRARY ${SDL_LIBRARY})
 endif()
 
+if(REPRODUCIBLE_BUILD)
+	# don't use __DATE__ and __TIME__ macros so builds are reproducible
+	add_definitions(-DID_REPRODUCIBLE_BUILD)
+endif()
+
+if(IMGUI)
+	if(SDL2 OR SDL3)
+		# we need C++11 for ImGui
+		set (CMAKE_CXX_STANDARD 11)
+		message(STATUS "Dear ImGui integration enabled")
+		if(AROS)
+			add_definitions(-DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS)
+		endif()
+	else()
+		message(WARNING "Disabling IMGUI because SDL1.2 is used - it needs SDL2 or SDL3!")
+		set(IMGUI OFF)
+		add_definitions(-DIMGUI_DISABLE)
+	endif()
+else()
+	message(STATUS "Dear ImGui integration disabled")
+	add_definitions(-DIMGUI_DISABLE)
+endif()
+
+if(NOT IMGUI)
+	# without ImGui C++98 should suffices, preserves compatibility
+	# with vintage system like PPC Macs
+	set (CMAKE_CXX_STANDARD 98)
+endif()
+
+if(DEFINED ENV{MSYSTEM})
+	message(STATUS "Detected MSYS or similar environment. Using alternate curl path")
+	set(CURL_NO_CURL_CMAKE ON)
+endif()
+
 find_package(CURL QUIET)
 if(CURL_FOUND)
 	set(ID_ENABLE_CURL ON)
 	include_directories(${CURL_INCLUDE_DIR})
+	message(STATUS "libcurl found and enabled")
 else()
-	message(STATUS "libcurl not found, server downloads won't be available")
+	message(WARNING "libcurl not found, server downloads won't be available (apart from that dhewm3 will work)")
 	set(ID_ENABLE_CURL OFF)
 	set(CURL_LIBRARY "")
 endif()
 
+if(TRACY)
+	if(CMAKE_MAJOR_VERSION LESS 3 OR ( CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION LESS 11 ))
+		message(WARNING "To build with support for Tracy, CMake 3.11 or newer is required (for the FetchContent module)!")
+		unset(TRACY)
+	else()
+		add_definitions(-DTRACY_ENABLE=1)
+		# on demand has some overhead per sample, but when it's disabled and dhewm3 is started
+		# without the viewer it'll cache all the measurement data until the viewer connects
+		# which will eat lots of RAM (growing the longer the game runs)
+		add_definitions(-DTRACY_ON_DEMAND=1)
+		option(TRACY_ENABLE "" ON)
+		include(FetchContent)
+		FetchContent_Declare(
+			tracy
+			GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+			GIT_TAG v0.12.2
+			#GIT_TAG master
+			GIT_SHALLOW TRUE
+			GIT_PROGRESS TRUE
+		)
+		FetchContent_MakeAvailable(tracy)
+
+		# make sure tracy/Tracy.hpp can be included everywhere, not just in dhewm3(ded) source
+		FetchContent_GetProperties(tracy SOURCE_DIR tracy_src)
+		include_directories("${tracy_src}/public")
+
+		# link it into the executables
+		set(sys_libs ${sys_libs} TracyClient)
+
+		# to get calltraces for every sampled "zone" (expensive!)
+		#add_definitions(-DTRACY_CALLSTACK=10)
+	endif()
+endif()
+
+
+set(D3_COMPILER_IS_CLANG FALSE)
+set(D3_COMPILER_IS_GCC_OR_CLANG FALSE)
+
+if(MSVC)
+	# This is required for tools on windows.
+	find_package(MFC)
+	
+	if(TOOLS AND NOT MFC_FOUND)
+		message(SEND_ERROR "MFC ('Microsoft Foundation Classes for C++') couldn't be found, but is needed for TOOLS!")
+		message(FATAL_ERROR "If you're using VS2013, you'll also need the 'Multibyte MFC Library for Visual Studio 2013': https://www.microsoft.com/en-us/download/details.aspx?id=40770 (VS2015 and 2017 include that in the default MFC package)")
+	endif()
+
+else() # not MSVC
+
+if(NOT WIN32)
+	# libbacktrace support - TODO: might work with MinGW? we don't have a crash handler for win32 though..
+	include(CheckCSourceCompiles)
+	set(CMAKE_REQUIRED_LIBRARIES backtrace)
+	check_c_source_compiles( "#include <backtrace.h>
+	int main() { backtrace_create_state(NULL, 0, NULL, NULL); return 0; }" HAVE_LIBBACKTRACE )
+	unset(CMAKE_REQUIRED_LIBRARIES)
+
+	if(HAVE_LIBBACKTRACE)
+		set(sys_libs ${sys_libs} backtrace)
+		add_definitions(-DD3_HAVE_LIBBACKTRACE)
+		message(STATUS "Using libbacktrace")
+	else()
+		message(WARNING "libbacktrace wasn't found. It's not required but recommended, because it provides useful backtraces if dhewm3 crashes")
+	endif()
+endif() # NOT WIN32
+
+# check if this is some kind of clang (Clang, AppleClang, whatever)
+# (convert compiler ID to lowercase so we match Clang, clang, AppleClang etc, regardless of case)
+string(TOLOWER ${CMAKE_CXX_COMPILER_ID} compiler_id_lower)
+if(compiler_id_lower MATCHES ".*clang.*")
+	message(STATUS "Compiler \"${CMAKE_CXX_COMPILER_ID}\" detected as some kind of clang")
+	set(D3_COMPILER_IS_CLANG TRUE)
+	set(D3_COMPILER_IS_GCC_OR_CLANG TRUE)
+elseif(CMAKE_COMPILER_IS_GNUCC)
+	set(D3_COMPILER_IS_GCC_OR_CLANG TRUE)
+endif()
+unset(compiler_id_lower)
+
+endif() # not MSVC
+
+TEST_BIG_ENDIAN(is_big_endian)
+if(is_big_endian)
+	message(STATUS "Detected Big Endian architecture, setting -DD3_IS_BIG_ENDIAN=1")
+	add_definitions(-DD3_IS_BIG_ENDIAN=1)
+else()
+	message(STATUS "Detected Little Endian architecture, setting -DD3_IS_BIG_ENDIAN=0")
+	add_definitions(-DD3_IS_BIG_ENDIAN=0)
+endif()
+
 # compiler specific flags
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+if(D3_COMPILER_IS_GCC_OR_CLANG)
 	add_compile_options(-pipe)
 	add_compile_options(-Wall)
 
@@ -160,19 +372,63 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 		add_compile_options(-march=pentium3)
 	endif()
 
+	if(FORCE_COLORED_OUTPUT)
+		if(CMAKE_COMPILER_IS_GNUCC)
+		   add_compile_options (-fdiagnostics-color=always)
+		elseif (D3_COMPILER_IS_CLANG)
+		   add_compile_options (-fcolor-diagnostics)
+		endif ()
+	endif ()
+
+	if(cpu STREQUAL "e2k" AND CMAKE_COMPILER_IS_GNUCC)
+		# O3 on E2K mcst-lcc approximately equal to O2 at X86/ARM gcc
+		set(OPT_LEVEL "-O3")
+	else()
+		set(OPT_LEVEL "-O2")
+	endif()
+
 	set(CMAKE_C_FLAGS_DEBUG "-g -ggdb -D_DEBUG -O0")
 	set(CMAKE_C_FLAGS_DEBUGALL "-g -ggdb -D_DEBUG")
 	set(CMAKE_C_FLAGS_PROFILE "-g -ggdb -D_DEBUG -O1 -fno-omit-frame-pointer")
-	set(CMAKE_C_FLAGS_RELEASE "-O2 -fno-unsafe-math-optimizations -fno-math-errno -fno-trapping-math -fomit-frame-pointer")
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -ggdb -O2 -fno-unsafe-math-optimizations -fno-math-errno -fno-trapping-math -fno-omit-frame-pointer")
-	set(CMAKE_C_FLAGS_MINSIZEREL "-Os -fno-unsafe-math-optimizations -fno-math-errno -fno-trapping-math -fomit-frame-pointer")
+	set(CMAKE_C_FLAGS_RELEASE "${OPT_LEVEL} -fomit-frame-pointer")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -ggdb ${OPT_LEVEL} -fno-omit-frame-pointer")
+	set(CMAKE_C_FLAGS_MINSIZEREL "-Os -fomit-frame-pointer")
 
 	set(CMAKE_CXX_FLAGS_DEBUGALL ${CMAKE_C_FLAGS_DEBUGALL})
 	set(CMAKE_CXX_FLAGS_PROFILE ${CMAKE_C_FLAGS_PROFILE})
 
+	# these options (together with -ffinite-math-only) should make compilers use direct
+	# CPU instructions (if available) instead of libm calls for many math operations
+	add_compile_options(-fno-math-errno -fno-trapping-math)
+	if( (NOT cpu STREQUAL "arm64") OR APPLE OR WIN32 )
+		# RPi5 on Linux has a weird bug with -ffinite-math-only (#749)
+		# so only enable it for other CPU architectures or Apple or Windows ARM64 devices,
+		# that most probably use different CPUs that hopefully don't have this bug
+		add_compile_options(-ffinite-math-only)
+	endif()
+
+	# Doom3 code wouldn't work with strict aliasing optimizations
 	add_compile_options(-fno-strict-aliasing)
 
-	if(NOT AROS)
+	# dear idiot compilers, don't fuck up math code with useless FMA "optimizations"
+	# (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100839)
+	CHECK_CXX_COMPILER_FLAG("-ffp-contract=off" cxx_has_fp-contract)
+	if(cxx_has_fp-contract)
+		add_compile_options(-ffp-contract=off)
+	endif()
+
+	if(ASAN)
+		# if this doesn't work, ASan might not be available on your platform, don't set ASAN then..
+		add_compile_options(-fsanitize=address)
+		set(sys_libs ${sys_libs} -fsanitize=address)
+	endif()
+	if(UBSAN)
+		# if this doesn't work, UBSan might not be available on your platform, don't set UBSAN then..
+		add_compile_options(-fsanitize=undefined)
+		set(sys_libs ${sys_libs} -fsanitize=undefined)
+	endif()
+
+	if(NOT AROS AND NOT WIN32)
 		CHECK_CXX_COMPILER_FLAG("-fvisibility=hidden" cxx_has_fvisibility)
 		if(NOT cxx_has_fvisibility)
 			message(FATAL_ERROR "Compiler does not support -fvisibility")
@@ -183,11 +439,28 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 	# TODO fix these warnings
 	add_compile_options(-Wno-sign-compare)
 	add_compile_options(-Wno-switch)
-	add_compile_options(-Wno-format-security)
+
+	CHECK_CXX_COMPILER_FLAG("-Wdangling-reference" cxx_has_Wdangling_reference)
+	if(cxx_has_Wdangling_reference)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=dangling-reference")
+	endif()
 
 	CHECK_CXX_COMPILER_FLAG("-Woverloaded-virtual" cxx_has_Woverload_virtual)
 	if(cxx_has_Woverload_virtual)
-		add_compile_options(-Woverloaded-virtual)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Woverloaded-virtual")
+	endif()
+	
+	# shut up about using memcpy() on classes, in the cases doom3 uses it it seems to be fine
+	CHECK_CXX_COMPILER_FLAG("-Wno-class-memaccess" cxx_has_Wno-class-memaccess)
+	if(cxx_has_Wno-class-memaccess)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-class-memaccess")
+	endif()
+
+	# ignore warnings about variables named "requires" for now (in C++20 it's a keyword,
+	#  but currently we barely use C++11 features)
+	CHECK_CXX_COMPILER_FLAG("-Wno-c++20-compat" cxx_has_Wno-cpp20-compat)
+	if(cxx_has_Wno-cpp20-compat)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++20-compat")
 	endif()
 
 	if(AROS)
@@ -197,8 +470,11 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 		add_definitions(-DMACOS_X=1)
 
 		if(cpu STREQUAL "x86_64")
-			add_compile_options(-arch x86_64 -mmacosx-version-min=10.9)
-			set(ldflags "${ldflags} -arch x86_64 -mmacosx-version-min=10.9")
+			add_compile_options(-arch x86_64 -mmacosx-version-min=10.7)
+			set(ldflags "${ldflags} -arch x86_64 -mmacosx-version-min=10.7")
+		elseif(cpu STREQUAL "arm64")
+			add_compile_options(-arch arm64 -mmacosx-version-min=10.7)
+			set(ldflags "${ldflags} -arch arm64 -mmacosx-version-min=10.7")
 		elseif(cpu STREQUAL "x86")
 			CHECK_CXX_COMPILER_FLAG("-arch i386" cxx_has_arch_i386)
 			if(cxx_has_arch_i386)
@@ -211,8 +487,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 		elseif(cpu STREQUAL "ppc")
 			CHECK_CXX_COMPILER_FLAG("-arch ppc" cxx_has_arch_ppc)
 			if(cxx_has_arch_ppc)
-				add_compile_options(-arch ppc)
-				set(ldflags "${ldflags} -arch ppc")
+				add_compile_options(-arch ppc -mone-byte-bool)
+				set(ldflags "${ldflags} -arch ppc -mone-byte-bool")
 			endif()
 
 			add_compile_options(-mmacosx-version-min=10.4)
@@ -223,7 +499,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 
 		set(sys_libs ${sys_libs} "-framework Carbon -framework Cocoa -framework IOKit")
 	elseif(WIN32)
-		set(ldflags "${ldflags} -static-libgcc -static-libstdc++")
+		# use 8MB stack instead of 1MB, so big models don't overflow it with _alloca()
+		set(ldflags "${ldflags} -static-libgcc -static-libstdc++ -Wl,--stack,8388608")
 	elseif(os STREQUAL "linux")
 		set(sys_libs ${sys_libs} dl)
 	elseif(os STREQUAL "freebsd")
@@ -231,7 +508,13 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
 		set(sys_libs ${sys_libs} ${EXECINFO_LIBRARIES})
 	endif()
 elseif(MSVC)
-	add_compile_options(/W4)
+	add_compile_options(/MP) # parallel build (use all cores, or as many as configured in VS)
+	
+	add_compile_options(/W3) # TODO: was /W4, caused trouble with VS2019 (and/or its integrated CMake? or only HarrieVG's setup?)
+	add_compile_options(/we4840) # treat as error when passing a class to a vararg-function (probably printf-like)
+	# treat several kinds of truncating int<->pointer conversions as errors (for more 64bit-safety)
+	add_compile_options(/we4306 /we4311 /we4312 /we4302)
+	# ignore the following warnings:
 	add_compile_options(/wd4100) # unreferenced formal parameter
 	add_compile_options(/wd4127) # conditional expression is constant
 	add_compile_options(/wd4244) # possible loss of data
@@ -246,6 +529,8 @@ elseif(MSVC)
 	set(CMAKE_C_FLAGS_RELEASE "/Ox /Oy /MD")
 	set(CMAKE_C_FLAGS_RELWITHDEBINFO "/Ox /Oy /Zi /MD")
 	set(CMAKE_C_FLAGS_MINSIZEREL "/Ox /Oy /Os /MD")
+	# use 8MB stack instead of 1MB, so big models don't overflow it with _alloca()
+	set(ldflags "${ldflags} /STACK:8388608")
 else()
 	message(FATAL_ERROR "Unsupported compiler")
 endif()
@@ -267,6 +552,26 @@ if(WIN32)
 		wsock32
 		ole32
 	)
+endif()
+
+# optimize this source file even in debug builds, to make speed (esp. loading times) more bearable
+# used for libs integrated here like stb_* and miniz(ip)
+if(CMAKE_MAJOR_VERSION LESS 3 OR ( CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION LESS 11 ))
+	function(always_optimize_sourcefile srcfilename)
+		if(MSVC)
+			set_source_files_properties(${srcfilename} PROPERTIES COMPILE_FLAGS "/Ox")
+		else()
+			set_source_files_properties(${srcfilename} PROPERTIES COMPILE_FLAGS "-O2")
+		endif()
+	endfunction()
+else()
+	function(always_optimize_sourcefile srcfilename)
+		if(MSVC)
+			set_source_files_properties(${srcfilename} PROPERTIES COMPILE_OPTIONS "/Ox")
+		else()
+			set_source_files_properties(${srcfilename} PROPERTIES COMPILE_OPTIONS "-O2")
+		endif()
+	endfunction()
 endif()
 
 # fallback for cmake versions without GNUInstallDirs
@@ -299,7 +604,9 @@ configure_file(
 	"${CMAKE_BINARY_DIR}/config.h"
 )
 
+if(NOT MSVC)
 message(STATUS "Building ${CMAKE_BUILD_TYPE} for ${os}-${cpu}")
+endif()
 
 if(NOT APPLE AND NOT WIN32)
 	message(STATUS "The install target will use the following directories:")
@@ -359,7 +666,11 @@ set(src_renderer
 	renderer/tr_trace.cpp
 	renderer/tr_trisurf.cpp
 	renderer/tr_turboshadow.cpp
+
+	renderer/stblib_impls.c
 )
+
+always_optimize_sourcefile(renderer/stblib_impls.c)
 
 # I'm a bit sloppy with headers and just glob them in..
 # they're only handled in CMake at all so they turn up in Visual Studio solutions..
@@ -387,6 +698,7 @@ set(src_framework
 	framework/DeclPDA.cpp
 	framework/DeclSkin.cpp
 	framework/DeclTable.cpp
+	framework/Dhewm3SettingsMenu.cpp
 	framework/EditField.cpp
 	framework/EventLoop.cpp
 	framework/File.cpp
@@ -401,9 +713,14 @@ set(src_framework
 	framework/async/MsgChannel.cpp
 	framework/async/NetworkSystem.cpp
 	framework/async/ServerScan.cpp
+	framework/miniz/miniz.c
 	framework/minizip/ioapi.c
 	framework/minizip/unzip.cpp
 )
+
+always_optimize_sourcefile(framework/miniz/miniz.c)
+always_optimize_sourcefile(framework/minizip/ioapi.c)
+always_optimize_sourcefile(framework/minizip/unzip.cpp)
 
 add_globbed_headers(src_framework "framework")
 
@@ -481,7 +798,11 @@ set(src_snd
 	sound/snd_system.cpp
 	sound/snd_wavefile.cpp
 	sound/snd_world.cpp
+
+	sound/stbvorbis_impl.c
 )
+
+always_optimize_sourcefile(sound/stbvorbis_impl.c)
 
 add_globbed_headers(src_snd "sound")
 
@@ -508,12 +829,6 @@ set(src_ui
 )
 
 add_globbed_headers(src_ui "ui")
-
-set(src_tools
-	tools/guied/GEWindowWrapper_stub.cpp
-)
-
-# TODO: add_globbed_headers(src_tools "tools/guied")
 
 set(src_idlib
 	idlib/bv/Bounds.cpp
@@ -567,6 +882,34 @@ set(src_idlib
 )
 
 add_globbed_headers(src_idlib "idlib")
+
+if(IMGUI)
+
+	if(SDL3)
+		set(src_imgui libs/imgui/backends/imgui_impl_sdl3.cpp)
+	else()
+		set(src_imgui libs/imgui/backends/imgui_impl_sdl2.cpp)
+	endif()
+
+set(src_imgui ${src_imgui}
+	libs/imgui/backends/imgui_impl_opengl2.cpp
+	
+	libs/imgui/imgui.h
+	libs/imgui/imgui.cpp
+	libs/imgui/imgui_draw.cpp
+	libs/imgui/imgui_tables.cpp
+	libs/imgui/imgui_widgets.cpp
+	
+	libs/imgui/imgui_demo.cpp
+	
+	sys/sys_imgui.h
+	sys/sys_imgui.cpp
+	sys/imgui_savestyle.cpp
+)
+else()
+set(src_imgui sys/sys_imgui.h)
+endif()
+
 
 set(src_game
 	game/AF.cpp
@@ -718,6 +1061,17 @@ set(src_d3xp
 
 add_globbed_headers(src_d3xp "d3xp")
 
+set(src_debuggerServer
+	tools/debugger/DebuggerBreakpoint.h
+	tools/debugger/DebuggerBreakpoint.cpp
+	tools/debugger/DebuggerServer.h
+	tools/debugger/DebuggerServer.cpp
+	tools/debugger/DebuggerScript.h
+	tools/debugger/DebuggerScript.cpp
+	tools/debugger/DebuggerMessages.h
+	tools/debugger/debugger.cpp
+)
+
 set(src_core
 	${src_renderer}
 	${src_framework}
@@ -734,15 +1088,104 @@ set(src_core
 set(src_stub_openal		sys/stub/openal_stub.cpp)
 set(src_stub_gl			sys/stub/stub_gl.cpp)
 
+
+set(src_tools
+	tools/guied/GEWindowWrapper_stub.cpp
+)
+
+# TODO: add_globbed_headers(src_tools "tools/guied")
+
+# Begin normal tools code
+if (TOOLS AND MFC_FOUND AND MSVC)
+	set(ALLOWRESOURCES ON)
+	# Common files.
+	file(GLOB src_comafx "tools/comafx/*.cpp")
+	add_globbed_headers(src_comafx "tools/comafx")
+	file(GLOB_RECURSE src_tools_common "tools/common/*.cpp")
+	add_globbed_headers(src_tools_common "tools/common")
+
+	#Compilers.
+	# DG: this is always added, why add it again? file(GLOB src_compiler_renderbump "neo/tools/compilers/renderbump/*.cpp")
+	file(GLOB src_compiler_roqvq	  "tools/compilers/roqvq/*.cpp") # FIXME: some of those were added before
+	add_globbed_headers(src_compiler_roqvq "tools/compilers/roqvq")
+	#tools
+	# Articulated Frame editor.
+	file(GLOB src_afeditor "tools/af/*.cpp")
+	add_globbed_headers(src_afeditor "tools/af")
+	# Declaration editor
+	file(GLOB src_decleditor "tools/decl/*.cpp")
+	add_globbed_headers(src_decleditor "tools/decl")
+	# GUI Editor.
+	file(GLOB src_gui_editor "tools/guied/*.cpp")
+	add_globbed_headers(src_gui_editor "tools/guied")
+	# Material editor
+	file(GLOB src_materialeditor "tools/materialeditor/*.cpp")
+	add_globbed_headers(src_materialeditor "tools/materialeditor")
+	# Particle Editor
+	file(GLOB src_particleeditor "tools/particle/*.cpp")
+	add_globbed_headers(src_particleeditor "tools/particle")
+	# PDA editor
+	file(GLOB src_pdaeditor "tools/pda/*.cpp")
+	add_globbed_headers(src_pdaeditor "tools/pda")
+	# Radiant ( Map editor )
+	file(GLOB src_map_editor "tools/radiant/*.cpp")
+	add_globbed_headers(src_map_editor "tools/radiant")
+	# Script editor
+	file(GLOB src_script_editor "tools/script/*.cpp")
+	add_globbed_headers(src_script_editor "tools/script")
+	# Script Debugger
+	set(src_debuggerClient
+		tools/debugger/DebuggerClient.h
+		tools/debugger/DebuggerClient.cpp
+		tools/debugger/DebuggerApp.h
+		tools/debugger/DebuggerApp.cpp
+		tools/debugger/DebuggerQuickWatchDlg.h
+		tools/debugger/DebuggerQuickWatchDlg.cpp
+		tools/debugger/DebuggerWindow.h
+		tools/debugger/DebuggerWindow.cpp
+		tools/debugger/DebuggerFindDlg.h
+		tools/debugger/DebuggerFindDlg.cpp
+	)
+	set(src_script_debugger
+		${src_debuggerServer}
+		${src_debuggerClient}
+	)
+	# sound editor?
+	file(GLOB src_sound_editor "tools/sound/*.cpp")
+	add_globbed_headers(src_sound_editor "tools/sound")
+	
+
+	# The numerous tools in a nice list.
+	list(APPEND src_editor_tools
+		${src_comafx}
+		${src_tools_common}
+		${src_compiler_renderbump}
+		${src_afeditor}
+		${src_decleditor}
+		${src_gui_editor}
+		${src_materialeditor}
+		${src_particleeditor}
+		${src_pdaeditor}
+		${src_map_editor}
+		${src_script_editor}
+		${src_sound_editor}
+		${src_script_debugger}
+		"tools/edit_public.h"
+		"tools/edit_gui_common.h"
+		)
+	SET(CMAKE_MFC_FLAG 2)
+	set(TOOLS_DEFINES "ID_ALLOW_TOOLS;_AFXDLL")
+else()
+	set(src_editor_tools "tools/edit_stub.cpp" "tools/edit_public.h" "tools/debugger/debugger_common.h")
+	list(APPEND src_editor_tools
+		${src_debuggerServer}
+	)
+endif()
+
+
 if(AROS)
 	set(DHEWM3BINARY "ADoom3")
-	set(sys_libs ${sys_libs} dll)
-
-	set(src_arosdll
-		sys/aros/dll/dllstartup.c
-		sys/aros/dll/dll.c
-		sys/aros/dll/dllimport.c
-	)
+	set(sys_libs ${sys_libs} dynmod)
 
 	set(src_sys_base
 		sys/cpu.cpp
@@ -752,6 +1195,8 @@ if(AROS)
 		sys/aros/aros_net.cpp
 		sys/aros/aros_signal.cpp
 		sys/aros/aros_main.cpp
+		 sys/aros/aros_dynmodcommon.cpp
+		sys/aros/aros_support.cpp
 		sys/aros/aros_dos.cpp
 	)
 
@@ -783,9 +1228,6 @@ elseif(APPLE)
 		${OSX_RESOURCE_FILES}
 	)
 elseif(WIN32)
-	set(WIN32_RESOURCE_FILES
-		"${CMAKE_SOURCE_DIR}/sys/win32/rc/dhewm3.rc"
-	)
 
 	set(src_sys_base
 		sys/cpu.cpp
@@ -797,9 +1239,13 @@ elseif(WIN32)
 		sys/win32/win_net.cpp
 		sys/win32/win_shared.cpp
 		sys/win32/win_syscon.cpp
-		sys/win32/SDL_win32_main.c
 	)
-	
+
+	if(NOT SDL2 AND NOT SDL3)
+		# only SDL1.2 still uses SDL_win32_main.c
+		set(src_sys_base ${src_sys_base} sys/win32/SDL_win32_main.c)
+	endif()
+
 	# adding the few relevant headers in sys/ manually..
 	set(src_sys_base ${src_sys_base}
 		sys/platform.h
@@ -810,8 +1256,16 @@ elseif(WIN32)
 
 	set(src_sys_core
 		sys/glimp.cpp
-		${WIN32_RESOURCE_FILES}
 	)
+
+	if(TOOLS)
+		set(src_sys_core ${src_sys_core} "sys/win32/rc/doom.rc")
+	else()
+		# adding both .rc files breaks the build, but I think it only contains the icon
+		# and doom.rc also contains that (+icons for editor etc, AFAIK), so this is fine
+		set(src_sys_core ${src_sys_core} "${CMAKE_SOURCE_DIR}/sys/win32/rc/dhewm3.rc" )
+	endif()
+
 else()
 	set(src_sys_base
 		sys/cpu.cpp
@@ -832,43 +1286,68 @@ include_directories(${CMAKE_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR})
 
 add_library(idlib STATIC ${src_idlib})
+if(SDL3)
+	target_link_libraries(idlib SDL3::Headers) # so it can use SDL_Endian.h
+endif()
 if (AROS)
-	add_library(dll STATIC ${src_arosdll})
-        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "i386")
+	if(CMAKE_SYSTEM_PROCESSOR STREQUAL "i386")
 		set(AROS_ARCH "x86")
-        else()
+	else()
 		set(AROS_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 	endif()
 else()
-	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang" AND NOT MINGW)
+	if(D3_COMPILER_IS_GCC_OR_CLANG AND NOT MINGW)
 		set_target_properties(idlib PROPERTIES COMPILE_FLAGS "-fPIC")
 	endif()
 endif()
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX neo FILES ${src_idlib})
 
+if(HARDLINK_GAME)
+	if(BASE)
+		set(src_core ${src_core} ${src_game})
+		set(game_includes "${CMAKE_SOURCE_DIR}/game")
+		if(D3XP)
+			message(WARNING "hardlinking the base game, d3xp will not be supported (disable BASE for D3XP support with HARDLINK_GAME)")
+		endif()
+		
+	elseif(D3XP)
+		set(src_core ${src_core} ${src_d3xp})
+		set(game_includes "${CMAKE_SOURCE_DIR}/d3xp")
+	endif()
+endif()# HARDLINK_GAME
+
 if(CORE)
 	add_executable(${DHEWM3BINARY} WIN32 MACOSX_BUNDLE
 		${src_core}
 		${src_sys_base}
 		${src_sys_core}
+		${src_imgui}
+		${src_editor_tools}
 	)
+	
+	if(MSVC AND CMAKE_MAJOR_VERSION GREATER 3 OR ( CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER_EQUAL 6 ))
+		# CMake >= 3.6 supports setting the default project started for debugging (instead of trying to launch ALL_BUILD ...)
+		set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${DHEWM3BINARY})
+	endif()
 
-	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX neo FILES ${src_core} ${src_sys_base} ${src_sys_core})
+	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX neo FILES ${src_core} ${src_sys_base} ${src_sys_core} ${src_imgui} ${src_editor_tools})
 
-	set_target_properties(${DHEWM3BINARY} PROPERTIES COMPILE_DEFINITIONS "__DOOM_DLL__")
+	target_include_directories(${DHEWM3BINARY} PRIVATE "${CMAKE_SOURCE_DIR}/libs/imgui")
+
+if(HARDLINK_GAME)
+	set_target_properties(${DHEWM3BINARY} PROPERTIES COMPILE_DEFINITIONS "${TOOLS_DEFINES}")
+	target_include_directories(${DHEWM3BINARY} PRIVATE ${game_includes})
+else()
+	set_target_properties(${DHEWM3BINARY} PROPERTIES COMPILE_DEFINITIONS "__DOOM_DLL__;${TOOLS_DEFINES}")
+endif()
 	set_target_properties(${DHEWM3BINARY} PROPERTIES LINK_FLAGS "${ldflags}")
 	set_target_properties(${DHEWM3BINARY} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/sys/osx/Info.plist)
 
 	target_link_libraries(${DHEWM3BINARY}
 		idlib
 		${OPENAL_LIBRARY}
-		${VORBISFILE_LIBRARIES}
-		${VORBIS_LIBRARIES}
-		${OGG_LIBRARIES}
 		${CURL_LIBRARY}
-		${JPEG_LIBRARY}
-		${ZLIB_LIBRARY}
 		${SDLx_LIBRARY}
 		${sys_libs}
 	)
@@ -888,20 +1367,21 @@ if(DEDICATED)
 		${src_stub_openal}
 		${src_stub_gl}
 		${src_sys_base}
+		${src_debuggerServer}
 	)
 	
-	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX neo FILES ${src_core} ${src_sys_base} ${src_stub_openal} ${src_stub_gl})
+	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX neo FILES ${src_core} ${src_sys_base} ${src_stub_openal} ${src_stub_gl} ${src_debuggerServer})
 
-	set_target_properties(${DHEWM3BINARY}ded PROPERTIES COMPILE_DEFINITIONS "ID_DEDICATED;__DOOM_DLL__")
+if(HARDLINK_GAME)
+	set_target_properties(${DHEWM3BINARY}ded PROPERTIES COMPILE_DEFINITIONS "IMGUI_DISABLE;ID_DEDICATED")
+	target_include_directories(${DHEWM3BINARY}ded PRIVATE ${game_includes})
+else()
+	set_target_properties(${DHEWM3BINARY}ded PROPERTIES COMPILE_DEFINITIONS "IMGUI_DISABLE;ID_DEDICATED;__DOOM_DLL__")
+endif()
 	set_target_properties(${DHEWM3BINARY}ded PROPERTIES LINK_FLAGS "${ldflags}")
 	target_link_libraries(${DHEWM3BINARY}ded
 		idlib
-		${VORBISFILE_LIBRARIES}
-		${VORBIS_LIBRARIES}
-		${OGG_LIBRARIES}
 		${CURL_LIBRARY}
-		${JPEG_LIBRARY}
-		${ZLIB_LIBRARY}
 		${SDLx_LIBRARY}
 		${sys_libs}
 	)
@@ -915,9 +1395,10 @@ if(DEDICATED)
 	endif()
 endif()
 
-if(BASE)
+if(BASE AND NOT HARDLINK_GAME)
 	if (AROS)
-		add_executable(base sys/aros/dll/dllglue.c ${src_game})
+		add_executable(base ${src_game} sys/aros/aros_dynmodule.cpp sys/aros/aros_dynmodcommon.cpp)
+		target_link_libraries(base idlib dynmodglue)
 		set_target_properties(base PROPERTIES OUTPUT_NAME "base.aros-${AROS_ARCH}")
 	else()
 		add_library(base SHARED ${src_game})
@@ -931,7 +1412,7 @@ if(BASE)
 	set_target_properties(base PROPERTIES LINK_FLAGS "${ldflags}")
 	set_target_properties(base PROPERTIES INSTALL_NAME_DIR "@executable_path")
 	if (AROS)
-		target_link_libraries(base idlib dll)
+		target_link_libraries(base idlib dynmod)
 	else()
 		target_link_libraries(base idlib)
 	endif()
@@ -945,9 +1426,10 @@ if(BASE)
 	endif()
 endif()
 
-if(D3XP)
+if(D3XP AND NOT HARDLINK_GAME)
 	if (AROS)
-		add_executable(d3xp sys/aros/dll/dllglue.c ${src_d3xp})
+		add_executable(d3xp ${src_d3xp} sys/aros/aros_dynmodule.cpp sys/aros/aros_dynmodcommon.cpp)
+		target_link_libraries(d3xp dynmodglue)
 		set_target_properties(d3xp PROPERTIES OUTPUT_NAME "d3xp.aros-${AROS_ARCH}")
 	else()
 		add_library(d3xp SHARED ${src_d3xp})
@@ -959,7 +1441,7 @@ if(D3XP)
 	set_target_properties(d3xp PROPERTIES LINK_FLAGS "${ldflags}")
 	set_target_properties(d3xp PROPERTIES INSTALL_NAME_DIR "@executable_path")
 	if (AROS)
-		target_link_libraries(d3xp idlib dll)
+		target_link_libraries(d3xp idlib dynmod)
 	else()
 		target_link_libraries(d3xp idlib)
 	endif()

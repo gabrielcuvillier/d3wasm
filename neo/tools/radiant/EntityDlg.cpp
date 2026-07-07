@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -106,7 +106,7 @@ BOOL CEntityDlg::OnInitDialog()
 	// EXCEPTION: OCX Property Pages should return FALSE
 }
 
-int CEntityDlg::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
+INT_PTR CEntityDlg::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const
 {
 	// TODO: Add your specialized code here and/or call the base class
 
@@ -164,85 +164,94 @@ void CEntityDlg::OnSize(UINT nType, int cx, int cy)
 	CDialog::OnSize(nType, cx, cy);
 	CRect rect, crect, crect2;
 	GetClientRect(rect);
-	int bh = (float)rect.Height() * (rect.Height() - 210) / rect.Height() / 2;
+	float scaling_factor = Win_GetWindowScalingFactor(staticTitle.GetSafeHwnd());
+
+	int s2 =  int(	2 * scaling_factor);
+	int s8 =  int(	8 * scaling_factor);
+	int s4 =  int(	4 * scaling_factor);
+	int s6 =  int(	6 * scaling_factor);
+	int s12 = int( 12 * scaling_factor);
+	int s16 = int( 16 * scaling_factor);
+
+	int bh = (float)rect.Height() * (rect.Height() - (210* scaling_factor)) / rect.Height() / 2;
 	staticTitle.GetWindowRect(crect);
-	staticTitle.SetWindowPos(NULL, 4, 4, rect.Width() -8, crect.Height(), SWP_SHOWWINDOW);
-	int top = 4 + crect.Height() + 4;
+	staticTitle.SetWindowPos(NULL, s4, s4, rect.Width() - s8, crect.Height(), SWP_SHOWWINDOW);
+	int top = crect.Height() + s8;
 	comboClass.GetWindowRect(crect);
 	btnCreate.GetWindowRect(crect2);
-	comboClass.SetWindowPos(NULL, 4, top, rect.Width() - 12 - crect2.Width(), crect.Height(), SWP_SHOWWINDOW);
+	comboClass.SetWindowPos(NULL, s4, top, rect.Width() - s12 - crect2.Width(), crect.Height(), SWP_SHOWWINDOW);
 	btnCreate.SetWindowPos(NULL, rect.Width() - crect2.Width() - 4, top, crect2.Width(), crect.Height(), SWP_SHOWWINDOW);
-	top += crect.Height() + 4;
-	listVars.SetWindowPos(NULL, 4, top, rect.Width() - 8, bh, SWP_SHOWWINDOW);
-	top += bh + 4;
-	listKeyVal.SetWindowPos(NULL, 4, top, rect.Width() - 8, bh, SWP_SHOWWINDOW);
-	top += bh + 4;
+	top += crect.Height() + s4;
+	listVars.SetWindowPos(NULL, s4, top, rect.Width() - s8, bh, SWP_SHOWWINDOW);
+	top += bh + s4;
+	listKeyVal.SetWindowPos(NULL, s4, top, rect.Width() - s8, bh, SWP_SHOWWINDOW);
+	top += bh + s4;
 	staticKey.GetWindowRect(crect);
-	staticKey.SetWindowPos(NULL, 4, top + 2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
-	int left = 4 + crect.Width() + 4;
+	staticKey.SetWindowPos(NULL, s4, top + s2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
+	int left = crect.Width() + s8;
 	int pad = crect.Width();
 	editKey.GetWindowRect(crect);
-	editKey.SetWindowPos(NULL, left, top, rect.Width() - 12 - pad, crect.Height(), SWP_SHOWWINDOW);
-	top += crect.Height() + 4;
+	editKey.SetWindowPos(NULL, left, top, rect.Width() - s12 - pad, crect.Height(), SWP_SHOWWINDOW);
+	top += crect.Height() + s4;
 	staticVal.GetWindowRect(crect);
-	staticVal.SetWindowPos(NULL, 4, top + 2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
+	staticVal.SetWindowPos(NULL, s4, top + s2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
 	editVal.GetWindowRect(crect);
 	bh = crect.Height();
-	editVal.SetWindowPos(NULL, left, top, rect.Width() - 16 - bh - pad, crect.Height(), SWP_SHOWWINDOW);
-	btnBrowse.SetWindowPos(NULL, rect.right - 4 - bh, top, bh, bh, SWP_SHOWWINDOW);
-	top += crect.Height() + 8;
+	editVal.SetWindowPos(NULL, left, top, rect.Width() - s16 - bh - pad, crect.Height(), SWP_SHOWWINDOW);
+	btnBrowse.SetWindowPos(NULL, rect.right - s4 - bh, top, bh, bh, SWP_SHOWWINDOW);
+	top += crect.Height() + s8;
 	btnModel.GetWindowRect(crect);
-	btnModel.SetWindowPos(NULL, rect.right - 4 - crect.Width(), top + 8, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
-	btnSound.SetWindowPos(NULL, rect.right - 4 - crect.Width(), top + 12 + crect.Height(), crect.Width(), crect.Height(), SWP_SHOWWINDOW);
-	btnGui.SetWindowPos(NULL, rect.right - 4 - crect.Width(), top + 16 + crect.Height() * 2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
-	btnParticle.SetWindowPos(NULL, rect.right - 8 - (crect.Width() * 2), top + 16 + crect.Height() * 2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
-	btnSkin.SetWindowPos( NULL, rect.right - 8 - ( crect.Width() * 2 ), top + 12 + crect.Height(), crect.Width(), crect.Height(), SWP_SHOWWINDOW );
-	btnCurve.SetWindowPos( NULL, rect.right - 8 - ( crect.Width() * 2 ), top + 8, crect.Width(), crect.Height(), SWP_SHOWWINDOW );
+	btnModel.SetWindowPos(NULL, rect.right - s4 - crect.Width(), top + s8, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
+	btnSound.SetWindowPos(NULL, rect.right - s4 - crect.Width(), top + s12 + crect.Height(), crect.Width(), crect.Height(), SWP_SHOWWINDOW);
+	btnGui.SetWindowPos(NULL, rect.right - s4 - crect.Width(), top + s16 + crect.Height() * 2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
+	btnParticle.SetWindowPos(NULL, rect.right - s8 - (crect.Width() * 2), top + s16 + crect.Height() * 2, crect.Width(), crect.Height(), SWP_SHOWWINDOW);
+	btnSkin.SetWindowPos( NULL, rect.right - s8 - ( crect.Width() * 2 ), top + s12 + crect.Height(), crect.Width(), crect.Height(), SWP_SHOWWINDOW );
+	btnCurve.SetWindowPos( NULL, rect.right - s8 - ( crect.Width() * 2 ), top + s8, crect.Width(), crect.Height(), SWP_SHOWWINDOW );
 
 	//*************************************
 	//animation controls
 	//*************************************
-	int rightAnimAreaBorder = rect.right - 75 - crect.Width (); /*models, etc button width*/
+	int rightAnimAreaBorder = rect.right - (75 * scaling_factor) -crect.Width(); /*models, etc button width*/
 
 	btnStopAnim.GetWindowRect(crect);
 	btnStopAnim.SetWindowPos(NULL,rightAnimAreaBorder - crect.Width (),
 		top + 8  ,crect.Width(),crect.Height(),SWP_SHOWWINDOW);
 
-	left = rightAnimAreaBorder - crect.Width() - 4;
+	left = rightAnimAreaBorder - crect.Width() - s4;
 	btnPlayAnim.GetWindowRect(crect);
-	btnPlayAnim.SetWindowPos(NULL,left-crect.Width () ,top + 8 , crect.Width(),crect.Height(),SWP_SHOWWINDOW);
+	btnPlayAnim.SetWindowPos(NULL,left-crect.Width () ,top + s8 , crect.Width(),crect.Height(),SWP_SHOWWINDOW);
 
-	left -= crect.Width() + 4;
+	left -= crect.Width() + s4;
 	cbAnimations.GetWindowRect(crect);
-	cbAnimations.SetWindowPos(NULL,left-crect.Width (),top + 8  ,crect.Width(),crect.Height(),SWP_SHOWWINDOW);
+	cbAnimations.SetWindowPos(NULL,left-crect.Width (),top + s8  ,crect.Width(),crect.Height(),SWP_SHOWWINDOW);
 
 	staticFrame.GetWindowRect(crect);
 	staticFrame.SetWindowPos(NULL,rightAnimAreaBorder - crect.Width (),
-		top + 34  ,crect.Width(),crect.Height(),SWP_SHOWWINDOW);
+		top + (34 * scaling_factor)  ,crect.Width(),crect.Height(),SWP_SHOWWINDOW);
 
-	left = rightAnimAreaBorder - crect.Width () - 4;
+	left = rightAnimAreaBorder - crect.Width () - s4;
 
 	slFrameSlider.GetWindowRect(crect);
 	slFrameSlider.SetWindowPos(NULL,left - crect.Width (),
-	top + 32  ,crect.Width(),crect.Height(),SWP_SHOWWINDOW);
+	top + (32 * scaling_factor)  ,crect.Width(),crect.Height(),SWP_SHOWWINDOW);
 
 	//*************************************
 	//*************************************
 
 	btn135.GetWindowRect(crect);
 	bh = crect.Width();
-	btn135.SetWindowPos(NULL, 4, top, bh, bh, SWP_SHOWWINDOW);
-	btn90.SetWindowPos(NULL, 4 + 2 + bh, top, bh, bh, SWP_SHOWWINDOW);
-	btn45.SetWindowPos(NULL, 4 + 2 + 2 + bh * 2, top, bh, bh, SWP_SHOWWINDOW);
-	btnUp.SetWindowPos(NULL, 4 + 2 + 2 + 6 + bh * 3, top + bh / 2,bh,bh, SWP_SHOWWINDOW);
-	btnDown.SetWindowPos(NULL, 4 + 2 + 2 + 6 + bh *3, top + bh / 2 + bh + 2,bh,bh, SWP_SHOWWINDOW);
-	top += bh + 2;
-	btn180.SetWindowPos(NULL, 4, top, bh, bh, SWP_SHOWWINDOW);
-	btn360.SetWindowPos(NULL, 4 + 2 + 2 + bh * 2, top, bh, bh, SWP_SHOWWINDOW);
-	top += bh + 2;
-	btn225.SetWindowPos(NULL, 4, top, bh, bh, SWP_SHOWWINDOW);
-	btn270.SetWindowPos(NULL, 4 + 2 + bh, top, bh, bh, SWP_SHOWWINDOW);
-	btn315.SetWindowPos(NULL, 4 + 2 + 2 + bh * 2, top, bh, bh, SWP_SHOWWINDOW);
+	btn135.SetWindowPos(NULL, s4, top, bh, bh, SWP_SHOWWINDOW);
+	btn90.SetWindowPos(NULL, s4 + s2 + bh, top, bh, bh, SWP_SHOWWINDOW);
+	btn45.SetWindowPos(NULL, s4 + s2 + s2 + bh * 2, top, bh, bh, SWP_SHOWWINDOW);
+	btnUp.SetWindowPos(NULL, s4 + s2 + s2 + s6 + bh * 3, top + bh / 2,bh,bh, SWP_SHOWWINDOW);
+	btnDown.SetWindowPos(NULL, s4 + s2 + s2 + s6 + bh *3, top + bh / 2 + bh + s2,bh,bh, SWP_SHOWWINDOW);
+	top += bh + s2;
+	btn180.SetWindowPos(NULL, s4, top, bh, bh, SWP_SHOWWINDOW);
+	btn360.SetWindowPos(NULL, s4 + s2 + s2 + bh * 2, top, bh, bh, SWP_SHOWWINDOW);
+	top += bh + s2;
+	btn225.SetWindowPos(NULL, s4, top, bh, bh, SWP_SHOWWINDOW);
+	btn270.SetWindowPos(NULL, s4 + s2 + bh, top, bh, bh, SWP_SHOWWINDOW);
+	btn315.SetWindowPos(NULL, s4 + s2 + s2 + bh * 2, top, bh, bh, SWP_SHOWWINDOW);
 	Invalidate();
 }
 
@@ -476,6 +485,11 @@ void CEntityDlg::DelProp() {
 			Entity_UpdateCurveData( b->owner );
 		}
 	} else {
+		// DG: update tr_allowNoSpecular if the user has removed the worldspawn's allow_nospecular value
+		if ( (editEntity->eclass->nShowFlags & ECLASS_WORLDSPAWN) && stricmp(key, "allow_nospecular") == 0 ) {
+			tr.allowNoSpecular = false;
+		}
+
 		DeleteKey(editEntity, key);
 		Entity_UpdateCurveData( editEntity );
 	}
@@ -625,6 +639,10 @@ void CEntityDlg::AddProp() {
 		} else {
 			if ( ! ( ( isModel || isOrigin ) && ( editEntity->eclass->nShowFlags & ECLASS_WORLDSPAWN ) ) ) {
 				SetKeyValue(editEntity, Key, Value);
+			}
+			// DG: update tr_allowNoSpecular if the user has changed the worldspawn's allow_nospecular value
+			if ( (editEntity->eclass->nShowFlags & ECLASS_WORLDSPAWN) && stricmp(Key, "allow_nospecular") == 0 ) {
+				tr.allowNoSpecular = !Value.IsEmpty() && atoi(Value) != 0;
 			}
 		}
 
@@ -940,7 +958,7 @@ void CEntityDlg::OnCbnDblclkComboClass()
 // =======================================================================================================================
 //
 void CEntityDlg::CreateEntity() {
-	entity_t	*petNew;
+	entity_t	*petNew = NULL;
 	bool		forceFixed = false;
 
 	// check to make sure we have a brush
@@ -1148,7 +1166,7 @@ void CEntityDlg::OnBnClickedStopAnimation()
 	KillTimer ( 0 );
 }
 
-void CEntityDlg::OnTimer(UINT nIDEvent)
+void CEntityDlg::OnTimer( UINT_PTR nIDEvent )
 {
 	if ( !editEntity ) {
 		OnBnClickedStopAnimation ();

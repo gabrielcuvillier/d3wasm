@@ -58,6 +58,11 @@ idCVar	idSessionLocal::com_aviDemoTics( "com_aviDemoTics", "2", CVAR_SYSTEM | CV
 idCVar	idSessionLocal::com_wipeSeconds( "com_wipeSeconds", "1", CVAR_SYSTEM, "" );
 idCVar	idSessionLocal::com_guid( "com_guid", "", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_ROM, "" );
 
+idCVar	idSessionLocal::com_numQuicksaves( "com_numQuicksaves", "4", CVAR_SYSTEM|CVAR_ARCHIVE|CVAR_INTEGER,
+                                           "number of quicksaves to keep before overwriting the oldest", 1, 99 );
+idCVar	idSessionLocal::com_disableAutoSaves( "com_disableAutoSaves", "0", CVAR_SYSTEM|CVAR_ARCHIVE|CVAR_BOOL,
+                                              "Don't create Autosaves when entering a new map" );
+
 idSessionLocal		sessLocal;
 idSession			*session = &sessLocal;
 
@@ -105,6 +110,13 @@ static void Session_Map_f( const idCmdArgs &args ) {
 
 	map = args.Argv(1);
 	if ( !map.Length() ) {
+		// DG: if the map command is called without any arguments, print the current map
+		// TODO: could check whether we're currently in a game, otherwise the last loaded
+		//       map is printed.. but OTOH, who cares
+		const char* curmap = sessLocal.mapSpawnData.serverInfo.GetString( "si_map" );
+		if ( curmap[0] != '\0' ) {
+			common->Printf( "Current Map: %s\n", curmap );
+		}
 		return;
 	}
 	map.StripFileExtension();
@@ -496,8 +508,8 @@ void idSessionLocal::StartWipe( const char *_wipeMaterial, bool hold ) {
 
 	wipeMaterial = declManager->FindMaterial( _wipeMaterial, false );
 
-	wipeStartTic = com_ticNumber;
-	wipeStopTic = wipeStartTic + 1000.0f / USERCMD_MSEC * com_wipeSeconds.GetFloat();
+	wipeStartTime = Sys_Milliseconds();
+	wipeStopTime = wipeStartTime + com_wipeSeconds.GetFloat() * 1000.0f;
 	wipeHold = hold;
 }
 
@@ -508,18 +520,19 @@ idSessionLocal::CompleteWipe
 */
 void idSessionLocal::CompleteWipe() {
 	if ( com_ticNumber == 0 ) {
-		// if the async thread hasn't started, we would hang here
-		wipeStopTic = 0;
+		// if the tic counting hasn't started, we would hang here
+		wipeStopTime = 0;
 		UpdateScreen( true );
 		return;
 	}
-	while ( com_ticNumber < wipeStopTic ) {
+	while ( Sys_Milliseconds() < wipeStopTime ) {
 #if ID_CONSOLE_LOCK
 		emptyDrawCount = 0;
 #endif
 		UpdateScreen( true );
 	}
 }
+
 
 /*
 ================
@@ -538,7 +551,7 @@ void idSessionLocal::ShowLoadingGui() {
 	int stop = Sys_Milliseconds() + 1000;
 	int force = 10;
 	while ( Sys_Milliseconds() < stop || force-- > 0 ) {
-		com_frameTime = com_ticNumber * USERCMD_MSEC;
+		Com_UpdateFrameTime(); // DG: put updating com_frameTime into a function
 		session->Frame();
 		session->UpdateScreen( false );
 	}
@@ -561,8 +574,8 @@ idSessionLocal::ClearWipe
 */
 void idSessionLocal::ClearWipe( void ) {
 	wipeHold = false;
-	wipeStopTic = 0;
-	wipeStartTic = wipeStopTic + 1;
+	wipeStopTime = 0;
+	wipeStartTime = 16;
 }
 
 /*
@@ -876,7 +889,7 @@ void idSessionLocal::StopPlayingRenderDemo() {
 		float	demoFPS = numDemoFrames / demoSeconds;
 		idStr	message = va( "%i frames rendered in %3.1f seconds = %3.1f fps\n", numDemoFrames, demoSeconds, demoFPS );
 
-		common->Printf( message );
+		common->Printf( "%s", message.c_str() );
 		if ( timeDemo == TD_YES_THEN_QUIT ) {
 			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "quit\n" );
 		} else {
@@ -1236,9 +1249,16 @@ void idSessionLocal::MoveToNewMap( const char *mapName ) {
 
 	ExecuteMapChange();
 
-	if ( !mapSpawnData.serverInfo.GetBool("devmap") ) {
-		// Autosave at the beginning of the level
-		SaveGame( GetAutoSaveName( mapName ), true );
+	if ( !com_disableAutoSaves.GetBool() && !mapSpawnData.serverInfo.GetBool("devmap") ) {
+		// Autosave at the beginning of the level - DG: unless disabled with "com_disableAutoSaves 1"
+
+		// DG: set an explicit savename to avoid problems with autosave names
+		//     (they were translated which caused problems like all alpha labs parts
+		//      getting the same filename in spanish, probably because the strings contained
+		//      dots and everything behind them was cut off as "file extension".. see #305)
+		idStr saveFileName = "Autosave_";
+		saveFileName += mapName;
+		SaveGame( GetAutoSaveName( mapName ), true, saveFileName );
 	}
 
 	SetGUI( NULL, NULL );
@@ -1437,6 +1457,9 @@ void idSessionLocal::UnloadMap() {
 	}
 
 	mapSpawned = false;
+
+	// DG: that state needs to be reset now
+	Sys_SetInteractiveIngameGuiActive( false, NULL );
 }
 
 /*
@@ -1451,7 +1474,7 @@ void idSessionLocal::LoadLoadingGui( const char *mapName ) {
 	stripped.StripPath();
 
 	char guiMap[ MAX_STRING_CHARS ];
-	strncpy( guiMap, va( "guis/map/%s.gui", stripped.c_str() ), MAX_STRING_CHARS );
+	idStr::Copynz( guiMap, va( "guis/map/%s.gui", stripped.c_str() ), MAX_STRING_CHARS );
 	// give the gamecode a chance to override
 	game->GetMapLoadingGUI( guiMap );
 
@@ -1645,6 +1668,8 @@ void idSessionLocal::ExecuteMapChange( bool noFadeWipe ) {
 			fileSystem->CloseFile( savegameFile );
 			savegameFile = NULL;
 
+			common->Warning( "WARNING: Loading savegame failed, will restart the map with the player persistent data!" );
+
 			game->SetServerInfo( mapSpawnData.serverInfo );
 			game->InitFromNewMap( fullMapName + ".map", rw, sw, idAsyncNetwork::server.IsActive(), idAsyncNetwork::client.IsActive(), Sys_Milliseconds() );
 		}
@@ -1744,8 +1769,7 @@ LoadGame_f
 void LoadGame_f( const idCmdArgs &args ) {
 	console->Close();
 	if ( args.Argc() < 2 || idStr::Icmp(args.Argv(1), "quick" ) == 0 ) {
-		idStr saveName = common->GetLanguageDict()->GetString( "#str_07178" );
-		sessLocal.LoadGame( saveName );
+		sessLocal.QuickLoad();
 	} else {
 		sessLocal.LoadGame( args.Argv(1) );
 	}
@@ -1758,10 +1782,7 @@ SaveGame_f
 */
 void SaveGame_f( const idCmdArgs &args ) {
 	if ( args.Argc() < 2 || idStr::Icmp( args.Argv(1), "quick" ) == 0 ) {
-		idStr saveName = common->GetLanguageDict()->GetString( "#str_07178" );
-		if ( sessLocal.SaveGame( saveName ) ) {
-			common->Printf( "%s\n", saveName.c_str() );
-		}
+		sessLocal.QuickSave();
 	} else {
 		if ( sessLocal.SaveGame( args.Argv(1) ) ) {
 			common->Printf( "Saved %s\n", args.Argv(1) );
@@ -1898,13 +1919,15 @@ void idSessionLocal::ScrubSaveGameFileName( idStr &saveFileName ) const {
 idSessionLocal::SaveGame
 ===============
 */
-bool idSessionLocal::SaveGame( const char *saveName, bool autosave ) {
+bool idSessionLocal::SaveGame( const char *saveName, bool autosave, const char* saveFileName ) {
 #ifdef	ID_DEDICATED
 	common->Printf( "Dedicated servers cannot save games.\n" );
 	return false;
 #else
 	int i;
-	idStr gameFile, previewFile, descriptionFile, mapName;
+	idStr previewFile, descriptionFile, mapName;
+	// DG: support setting an explicit savename to avoid problems with autosave names
+	idStr gameFile = (saveFileName != NULL) ? saveFileName : saveName;
 
 	if ( !mapSpawned ) {
 		common->Printf( "Not playing a game.\n" );
@@ -1935,7 +1958,6 @@ bool idSessionLocal::SaveGame( const char *saveName, bool autosave ) {
 	}
 
 	// setup up filenames and paths
-	gameFile = saveName;
 	ScrubSaveGameFileName( gameFile );
 
 	gameFile = "savegames/" + gameFile;
@@ -2109,8 +2131,7 @@ bool idSessionLocal::LoadGame( const char *saveName ) {
 	// check the version, if it doesn't match, cancel the loadgame,
 	// but still load the map with the persistant playerInfo from the header
 	// so that the player doesn't lose too much progress.
-	if ( savegameVersion != SAVEGAME_VERSION &&
-		 !( savegameVersion == 16 && SAVEGAME_VERSION == 17 ) ) {	// handle savegame v16 in v17
+	if ( savegameVersion < 16 || savegameVersion > SAVEGAME_VERSION ) { // dhewm3 supports savegames with v16 - v18
 		common->Warning( "Savegame Version mismatch: aborting loadgame and starting level with persistent data" );
 		loadingSaveGame = false;
 		fileSystem->CloseFile( savegameFile );
@@ -2149,6 +2170,104 @@ bool idSessionLocal::LoadGame( const char *saveName ) {
 
 	return true;
 #endif
+}
+
+bool idSessionLocal::QuickSave()
+{
+	idStr saveName = common->GetLanguageDict()->GetString( "#str_07178" );
+
+	idStr saveFilePathBase = saveName;
+	ScrubSaveGameFileName( saveFilePathBase );
+	saveFilePathBase = "savegames/" + saveFilePathBase;
+
+	const char* game = cvarSystem->GetCVarString( "fs_game" );
+	if ( game != NULL && game[0] == '\0' ) {
+		game = NULL;
+	}
+
+	const int maxNum = com_numQuicksaves.GetInteger();
+	int indexToUse = 1;
+	ID_TIME_T oldestTime = 0;
+	for( int i = 1; i <= maxNum; ++i ) {
+		idStr saveFilePath = saveFilePathBase;
+		if ( i > 1 ) {
+			// the first one is just called "QuickSave" without a number, like before.
+			// the others are called "QuickSave2" "QuickSave3" etc
+			saveFilePath += i;
+		}
+		saveFilePath.SetFileExtension( ".save" );
+
+		idFile *f = fileSystem->OpenFileRead( saveFilePath, true, game );
+		if ( f == NULL ) {
+			// this savegame doesn't exist yet => we can use this index for the name
+			indexToUse = i;
+			break;
+		} else {
+			ID_TIME_T ts = f->Timestamp();
+			assert( ts != 0 );
+			if ( ts < oldestTime || oldestTime == 0 ) {
+				// this is the oldest quicksave we found so far => a candidate to be overwritten
+				indexToUse = i;
+				oldestTime = ts;
+			}
+			delete f;
+		}
+	}
+
+	if ( indexToUse > 1 ) {
+		saveName += indexToUse;
+	}
+
+	if ( SaveGame( saveName ) ) {
+		common->Printf( "%s\n", saveName.c_str() );
+		return true;
+	}
+	return false;
+}
+
+bool idSessionLocal::QuickLoad()
+{
+	idStr saveName = common->GetLanguageDict()->GetString( "#str_07178" );
+
+	idStr saveFilePathBase = saveName;
+	ScrubSaveGameFileName( saveFilePathBase );
+	saveFilePathBase = "savegames/" + saveFilePathBase;
+
+	const char* game = cvarSystem->GetCVarString( "fs_game" );
+	if ( game != NULL && game[0] == '\0' ) {
+		game = NULL;
+	}
+
+	// find the newest QuickSave (or QuickSave2, QuickSave3, ...)
+	const int maxNum = com_numQuicksaves.GetInteger();
+	int indexToUse = 1;
+	ID_TIME_T newestTime = 0;
+	for( int i = 1; i <= maxNum; ++i ) {
+		idStr saveFilePath = saveFilePathBase;
+		if ( i > 1 ) {
+			// the first one is just called "QuickSave" without a number, like before.
+			// the others are called "QuickSave2" "QuickSave3" etc
+			saveFilePath += i;
+		}
+		saveFilePath.SetFileExtension( ".save" );
+
+		idFile *f = fileSystem->OpenFileRead( saveFilePath, true, game );
+		if ( f != NULL ) {
+			ID_TIME_T ts = f->Timestamp();
+			assert( ts != 0 );
+			if ( ts > newestTime ) {
+				indexToUse = i;
+				newestTime = ts;
+			}
+			delete f;
+		}
+	}
+
+	if ( indexToUse > 1 ) {
+		saveName += indexToUse;
+	}
+
+	return sessLocal.LoadGame( saveName );
 }
 
 /*
@@ -2227,17 +2346,17 @@ Draw the fade material over everything that has been drawn
 ===============
 */
 void	idSessionLocal::DrawWipeModel() {
-	int		latchedTic = com_ticNumber;
+	unsigned now = Sys_Milliseconds();
 
-	if (  wipeStartTic >= wipeStopTic ) {
+	if (  wipeStartTime >= wipeStopTime ) {
 		return;
 	}
 
-	if ( !wipeHold && latchedTic >= wipeStopTic ) {
+	if ( !wipeHold && now > wipeStopTime ) {
 		return;
 	}
 
-	float fade = ( float )( latchedTic - wipeStartTic ) / ( wipeStopTic - wipeStartTic );
+	float fade = ( float )( now - wipeStartTime ) / ( wipeStopTime - wipeStartTime );
 	renderSystem->SetColor4( 1, 1, 1, fade );
 	renderSystem->DrawStretchPic( 0, 0, 640, 480, 0, 0, 1, 1, wipeMaterial );
 }
@@ -2378,6 +2497,7 @@ idSessionLocal::Draw
 ===============
 */
 void idSessionLocal::Draw() {
+	D3P_ScopedCPUSample(Session_Draw);
 	bool fullConsole = false;
 
 	if ( insideExecuteMapChange ) {
@@ -2478,7 +2598,7 @@ idSessionLocal::UpdateScreen
 ===============
 */
 void idSessionLocal::UpdateScreen( bool outOfSequence ) {
-
+	D3P_ScopedCPUSample(Session_UpdateScreen);
 #ifdef _WIN32
 
 	if ( com_editors ) {
@@ -2501,16 +2621,20 @@ void idSessionLocal::UpdateScreen( bool outOfSequence ) {
 		Sys_GrabMouseCursor( false );
 	}
 
+	D3P_BeginCPUSample(Render_BeginFrame);
 	renderSystem->BeginFrame( renderSystem->GetScreenWidth(), renderSystem->GetScreenHeight() );
+	D3P_EndCPUSample(Render_BeginFrame);
 
 	// draw everything
 	Draw();
 
+	D3P_BeginCPUSample(Render_EndFrame);
 	if ( com_speeds.GetBool() ) {
 		renderSystem->EndFrame( &time_frontend, &time_backend );
 	} else {
 		renderSystem->EndFrame( NULL, NULL );
 	}
+	D3P_EndCPUSample(Render_EndFrame);
 
 	insideUpdateScreen = false;
 }
@@ -2520,17 +2644,26 @@ void idSessionLocal::UpdateScreen( bool outOfSequence ) {
 idSessionLocal::Frame
 ===============
 */
+extern bool CheckOpenALDeviceAndRecoverIfNeeded();
+extern int g_screenshotFormat;
 void idSessionLocal::Frame() {
+	D3P_ScopedCPUSample(Session_Frame);
 
 	if ( com_asyncSound.GetInteger() == 0 ) {
-		soundSystem->AsyncUpdate( Sys_Milliseconds() );
+		soundSystem->AsyncUpdateWrite( Sys_Milliseconds() );
 	}
+
+	// DG: periodically check if sound device is still there and try to reset it if not
+	//     (calling this from idSoundSystem::AsyncUpdate(), which runs in a separate thread
+	//      by default, causes a deadlock when calling idCommon->Warning())
+	CheckOpenALDeviceAndRecoverIfNeeded();
 
 	// Editors that completely take over the game
 	if ( com_editorActive && ( com_editors & ( EDITOR_RADIANT | EDITOR_GUI ) ) ) {
 		return;
 	}
 
+#if 0 // handled via Sys_GenerateEvents() -> handleMouseGrab()
 	// if the console is down, we don't need to hold
 	// the mouse cursor
 	if ( console->Active() || com_editorActive ) {
@@ -2538,6 +2671,7 @@ void idSessionLocal::Frame() {
 	} else {
 		Sys_GrabMouseCursor( true );
 	}
+#endif
 
 	// save the screenshot and audio from the last draw if needed
 	if ( aviCaptureMode ) {
@@ -2551,6 +2685,7 @@ void idSessionLocal::Frame() {
 			// skipped frames so write them out
 			int c = aviDemoFrameCount - aviTicStart;
 			while ( c-- ) {
+				g_screenshotFormat = 0;
 				renderSystem->TakeScreenshot( com_aviDemoWidth.GetInteger(), com_aviDemoHeight.GetInteger(), name, com_aviDemoSamples.GetInteger(), NULL );
 				name = va("demos/%s/%s_%05i.tga", aviDemoShortName.c_str(), aviDemoShortName.c_str(), ++aviTicStart );
 			}
@@ -2561,6 +2696,7 @@ void idSessionLocal::Frame() {
 		console->ClearNotifyLines();
 
 		// this will call Draw, possibly multiple times if com_aviDemoSamples is > 1
+		g_screenshotFormat = 0;
 		renderSystem->TakeScreenshot( com_aviDemoWidth.GetInteger(), com_aviDemoHeight.GetInteger(), name, com_aviDemoSamples.GetInteger(), NULL );
 	}
 
@@ -2597,7 +2733,8 @@ void idSessionLocal::Frame() {
 		if ( latchedTicNumber >= minTic ) {
 			break;
 		}
-		Sys_WaitForEvent( TRIGGER_EVENT_ONE );
+		D3P_ScopedCPUSample(WaitForNextFrameTime);
+		Com_WaitForNextTicStart();
 	}
 
 	if ( authEmitTimeout ) {
@@ -2636,10 +2773,8 @@ void idSessionLocal::Frame() {
 	//------------ single player game tics --------------
 
 	if ( !mapSpawned || guiActive ) {
-		if ( !com_asyncInput.GetBool() ) {
-			// early exit, won't do RunGameTic .. but still need to update mouse position for GUIs
-			usercmdGen->GetDirectUsercmd();
-		}
+		// early exit, won't do RunGameTic .. but still need to update mouse position for GUIs
+		usercmdGen->GetDirectUsercmd();
 	}
 
 	if ( !mapSpawned ) {
@@ -2733,6 +2868,7 @@ idSessionLocal::RunGameTic
 ================
 */
 void idSessionLocal::RunGameTic() {
+	D3P_ScopedCPUSample(Session_RunGameTic);
 	logCmd_t	logCmd;
 	usercmd_t	cmd;
 
@@ -2759,11 +2895,7 @@ void idSessionLocal::RunGameTic() {
 	// if we didn't get one from the file, get it locally
 	if ( !cmdDemoFile ) {
 		// get a locally created command
-		if ( com_asyncInput.GetBool() ) {
-			cmd = usercmdGen->TicCmd( lastGameTic );
-		} else {
-			cmd = usercmdGen->GetDirectUsercmd();
-		}
+		cmd = usercmdGen->GetDirectUsercmd();
 		lastGameTic++;
 	}
 

@@ -47,7 +47,13 @@ If you have questions concerning this license or the applicable additional terms
 #include "Misc.h"
 #include "Trigger.h"
 
+#include "framework/Licensee.h" // DG: for ID__DATE__
+
 #include "Game_local.h"
+
+#ifndef GAME_DLL
+#include "tools/compilers/aas/AASFileManager.h"
+#endif
 
 const int NUM_RENDER_PORTAL_BITS	= idMath::BitsForInteger( PS_BLOCK_ALL );
 
@@ -87,6 +93,8 @@ idAnimManager				animationLib;
 // the rest of the engine will only reference the "game" variable, while all local aspects stay hidden
 idGameLocal					gameLocal;
 idGame *					game = &gameLocal;	// statically pointed at an idGameLocal
+
+const float idGameLocal::msecPrecise = 1000.0f/60.0f;
 
 const char *idGameLocal::sufaceTypeNames[ MAX_SURFACE_TYPES ] = {
 	"none",	"metal", "stone", "flesh", "wood", "cardboard", "liquid", "glass", "plastic",
@@ -211,6 +219,7 @@ void idGameLocal::Clear( void ) {
 	framenum = 0;
 	previousTime = 0;
 	time = 0;
+	msec = USERCMD_MSEC;
 	vacuumAreaNum = 0;
 	mapFileName.Clear();
 	mapFile = NULL;
@@ -266,6 +275,14 @@ bool IsDoom3DemoVersion()
 	return ret;
 }
 
+static bool ( *updateDebuggerFnPtr )( idInterpreter *interpreter, idProgram *program, int instructionPointer ) = NULL;
+bool updateGameDebugger( idInterpreter *interpreter, idProgram *program, int instructionPointer ) {
+	bool ret = false;
+	if ( interpreter != NULL && program != NULL ) {
+		ret = updateDebuggerFnPtr ? updateDebuggerFnPtr( interpreter, program, instructionPointer ) : false;
+	}
+	return ret;
+}
 
 
 /*
@@ -298,7 +315,7 @@ void idGameLocal::Init( void ) {
 
 	Printf( "----- Initializing Game -----\n" );
 	Printf( "gamename: %s\n", GAME_VERSION );
-	Printf( "gamedate: %s\n", __DATE__ );
+	Printf( "gamedate: %s\n", ID__DATE__ );
 
 	// register game specific decl types
 	declManager->RegisterDeclType( "model",				DECL_MODELDEF,		idDeclAllocator<idDeclModelDef> );
@@ -348,6 +365,8 @@ void idGameLocal::Init( void ) {
 
 	// DG: hack to support the Demo version of Doom3
 	common->GetAdditionalFunction(idCommon::FT_IsDemo, (idCommon::FunctionPointer*)&isDemoFnPtr, NULL);
+	//debugger support
+	common->GetAdditionalFunction(idCommon::FT_UpdateDebugger,(idCommon::FunctionPointer*) &updateDebuggerFnPtr,NULL);
 }
 
 /*
@@ -444,6 +463,20 @@ void idGameLocal::SaveGame( idFile *f ) {
 	}
 
 	savegame.WriteBuildNumber( BUILD_NUMBER );
+
+	// DG: add some more information to savegame to make future quirks easier
+	savegame.WriteInt( INTERNAL_SAVEGAME_VERSION ); // to be independent of BUILD_NUMBER
+	savegame.WriteString( D3_OSTYPE ); // operating system - from CMake
+	savegame.WriteString( D3_ARCH ); // CPU architecture (e.g. "x86" or "x86_64") - from CMake
+	savegame.WriteString( ENGINE_VERSION );
+	savegame.WriteShort( (short)sizeof(void*) ); // tells us if it's from a 32bit (4) or 64bit system (8)
+#if D3_IS_BIG_ENDIAN
+	const short byteOrder = 4321; // SDL_BIG_ENDIAN
+#else
+	const short byteOrder = 1234; // SDL_LIL_ENDIAN
+#endif
+	savegame.WriteShort( byteOrder ) ;
+	// DG end
 
 	// go through all entities and threads and add them to the object list
 	for( i = 0; i < MAX_GENTITIES; i++ ) {
@@ -1091,7 +1124,7 @@ bool idGameLocal::NextMap( void ) {
 	int					i;
 
 	if ( !g_mapCycle.GetString()[0] ) {
-		Printf( common->GetLanguageDict()->GetString( "#str_04294" ) );
+		Printf( "%s", common->GetLanguageDict()->GetString( "#str_04294" ) );
 		return false;
 	}
 	if ( fileSystem->ReadFile( g_mapCycle.GetString(), NULL, NULL ) < 0 ) {
@@ -1179,7 +1212,7 @@ void idGameLocal::MapPopulate( void ) {
 idGameLocal::InitFromNewMap
 ===================
 */
-void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorld, idSoundWorld *soundWorld, bool isServer, bool isClient, int randseed ) {
+void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorld, idSoundWorld *soundWorld, bool isServer, bool isClient, int randseed) {
 
 	this->isServer = isServer;
 	this->isClient = isClient;
@@ -1237,6 +1270,36 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	idRestoreGame savegame( saveGameFile );
 
 	savegame.ReadBuildNumber();
+
+	// DG: I enhanced the information in savegames a bit for dhewm3 1.5.1
+	//     for which I bumped th BUILD_NUMBER to 1305
+	if( savegame.GetBuildNumber() >= 1305 )
+	{
+		savegame.ReadInternalSavegameVersion();
+		if( savegame.GetInternalSavegameVersion() > INTERNAL_SAVEGAME_VERSION ) {
+			Warning( "Savegame from newer dhewm3 version, don't know how to load! (its version is %d, only up to %d supported)",
+			         savegame.GetInternalSavegameVersion(), INTERNAL_SAVEGAME_VERSION );
+			return false;
+		}
+		idStr osType;
+		idStr cpuArch;
+		idStr engineVersion;
+		short ptrSize = 0;
+		short byteorder = 0;
+		savegame.ReadString( osType ); // operating system the savegame was crated on (written from D3_OSTYPE)
+		savegame.ReadString( cpuArch ); // written from D3_ARCH (which is set in CMake), like "x86" or "x86_64"
+		savegame.ReadString( engineVersion ); // written from ENGINE_VERSION
+		savegame.ReadShort( ptrSize ); // sizeof(void*) of system that created the savegame, 4 on 32bit systems, 8 on 64bit systems
+		savegame.ReadShort( byteorder ); // SDL_LIL_ENDIAN or SDL_BIG_ENDIAN
+
+		Printf( "Savegame was created by %s on %s %s. BuildNumber was %d, savegameversion %d\n",
+		        engineVersion.c_str(), osType.c_str(), cpuArch.c_str(), savegame.GetBuildNumber(),
+		        savegame.GetInternalSavegameVersion() );
+
+		// right now I have no further use for this information, but in the future
+		// it can be used for quirks for (then-) old savegames
+	}
+	// DG end
 
 	// Create the list of all objects in the game
 	savegame.CreateObjects();
@@ -2167,19 +2230,29 @@ void idGameLocal::SortActiveEntityList( void ) {
 	sortPushers = false;
 }
 
+// dezo2/DG: returns number of milliseconds for this frame, either 1000/gameHz or 1000/gameHz + 1,
+//   (16 or 17) so the frametimes of gameHz frames add up to 1000ms.
+//   This prevents animations or videos from running slightly to slow or running out of sync
+//   with audio in cutscenes (those only worked right at 62.5fps with exactly 16ms frames,
+//   but now even without vsync we're enforcing 16.666ms frames for proper 60fps)
+static int CalcMSec( long long framenum ) {
+	long long divisor = 100LL * USERCMD_HZ;
+	return int( (framenum * 100000LL) / divisor - ((framenum-1) * 100000LL) / divisor );
+}
+
 /*
 ================
 idGameLocal::RunFrame
 ================
 */
 gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds ) {
-	idEntity *	ent;
-	int			num;
-	float		ms;
-	idTimer		timer_think, timer_events, timer_singlethink;
-	gameReturn_t ret;
-	idPlayer	*player;
-	const renderView_t *view;
+	idEntity *			ent;
+	int					num;
+	float				ms;
+	idTimer				timer_think, timer_events, timer_singlethink;
+	gameReturn_t		ret;
+	idPlayer			*player;
+	const renderView_t	*view;
 
 #ifdef _DEBUG
 	if ( isMultiplayer ) {
@@ -2203,6 +2276,7 @@ gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds ) {
 		// update the game time
 		framenum++;
 		previousTime = time;
+		msec = CalcMSec( framenum ); // dezo2/DG: recalculate each frame, see comment at CalcMSec()
 		time += msec;
 		realClientTime = time;
 
@@ -2350,7 +2424,7 @@ gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds ) {
 
 		// see if a target_sessionCommand has forced a changelevel
 		if ( sessionCommand.Length() ) {
-			strncpy( ret.sessionCommand, sessionCommand, sizeof( ret.sessionCommand ) );
+			idStr::Copynz( ret.sessionCommand, sessionCommand, sizeof( ret.sessionCommand ) );
 			break;
 		}
 
@@ -3538,7 +3612,7 @@ idGameLocal::AlertAI
 void idGameLocal::AlertAI( idEntity *ent ) {
 	if ( ent && ent->IsType( idActor::Type ) ) {
 		// alert them for the next frame
-		lastAIAlertTime = time + msec;
+		lastAIAlertTime = time + msecPrecise;
 		lastAIAlertEntity = static_cast<idActor *>( ent );
 	}
 }
@@ -3943,7 +4017,7 @@ void idGameLocal::SetCamera( idCamera *cam ) {
 
 	} else {
 		inCinematic = false;
-		cinematicStopTime = time + msec;
+		cinematicStopTime = time + msecPrecise;
 
 		// restore r_znear
 		cvarSystem->SetCVarFloat( "r_znear", 3.0f );
@@ -4315,7 +4389,7 @@ idGameLocal::GetBestGameType
 ============
 */
 void idGameLocal::GetBestGameType( const char* map, const char* gametype, char buf[ MAX_STRING_CHARS ] ) {
-	strncpy( buf, gametype, MAX_STRING_CHARS );
+	idStr::Copynz( buf, gametype, MAX_STRING_CHARS );
 	buf[ MAX_STRING_CHARS - 1 ] = '\0';
 }
 

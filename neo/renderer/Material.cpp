@@ -1434,6 +1434,10 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			ss->drawStateBits |= GLS_DEPTHMASK;
 			continue;
 		}
+		if ( !token.Icmp( "ignoreDepth" ) ) { // Added in #3877.
+			ss->drawStateBits |= GLS_DEPTHFUNC_ALWAYS;
+			continue;
+		}
 		if ( !token.Icmp( "alphaTest" ) ) {
 			ss->hasAlphaTest = true;
 			ss->alphaTestRegister = ParseExpression( src );
@@ -2082,10 +2086,9 @@ void idMaterial::ParseMaterial( idLexer &src ) {
 	if ( cullType == CT_TWO_SIDED ) {
 		for ( i = 0 ; i < numStages ; i++ ) {
 			if ( pd->parseStages[i].lighting != SL_AMBIENT || pd->parseStages[i].texture.texgen != TG_EXPLICIT ) {
-				if ( cullType == CT_TWO_SIDED ) {
-					cullType = CT_FRONT_SIDED;
-					shouldCreateBackSides = true;
-				}
+				cullType = CT_FRONT_SIDED;
+				shouldCreateBackSides = true;
+
 				break;
 			}
 		}

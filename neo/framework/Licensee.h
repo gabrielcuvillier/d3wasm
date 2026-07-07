@@ -35,13 +35,24 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #if defined(__AROS__)
-#define GAME_NAME						"ADoom3"		// appears on window titles and errors
+#define GAME_NAME						"ADoom3"		// appears in errors
 #define CONFIG_FILE						"adoom3.cfg"
 #else
-#define GAME_NAME						"dhewm 3"		// appears on window titles and errors
+#define GAME_NAME						"dhewm 3"		// appears in errors
 #endif
 
-#define ENGINE_VERSION					"dhewm3 1.5.1pre"	// printed in console
+#define ENGINE_VERSION					"dhewm3 1.5.5"	// printed in console, used for window title
+
+#ifdef ID_REPRODUCIBLE_BUILD
+	// for reproducible builds we hardcode values that would otherwise come from __DATE__ and __TIME__
+	// NOTE: remember to update esp. the date for (pre-) releases and RCs and the like
+	#define ID__DATE__  "Jun 08 2026"
+	#define ID__TIME__  "13:37:42"
+
+#else // not reproducible build, use __DATE__ and __TIME__ macros
+	#define ID__DATE__  __DATE__
+	#define ID__TIME__  __TIME__
+#endif
 
 // paths
 #define	BASE_GAMEDIR					"base"
@@ -82,7 +93,8 @@ If you have questions concerning this license or the applicable additional terms
 // NOTE: a seperate core savegame version and game savegame version could be useful
 // 16: Doom v1.1
 // 17: Doom v1.2 / D3XP. Can still read old v16 with defaults for new data
-#define SAVEGAME_VERSION				17
+// 18: dhewm3 with CstDoom3 anchored window support - can still read v16 and v17, unless gamedata changed
+#define SAVEGAME_VERSION				18
 
 // <= Doom v1.1: 1. no DS_VERSION token ( default )
 // Doom v1.2: 2

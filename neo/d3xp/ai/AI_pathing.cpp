@@ -155,7 +155,7 @@ GetPointOutsideObstacles
 void GetPointOutsideObstacles( const obstacle_t *obstacles, const int numObstacles, idVec2 &point, int *obstacle, int *edgeNum ) {
 	int i, j, k, n, bestObstacle, bestEdgeNum, queueStart, queueEnd, edgeNums[2];
 	float d, bestd, scale[2];
-	idVec3 plane, bestPlane;
+	idVec3 plane, bestPlane(0.0f, 0.0f, 0.0f); // DG: init it to shut up compiler
 	idVec2 newPoint, dir, bestPoint;
 	int *queue;
 	bool *obstacleVisited;
@@ -904,7 +904,11 @@ bool FindOptimalPath( const pathNode_t *root, const obstacle_t *obstacles, int n
 	}
 
 	if ( !pathToGoalExists ) {
-		seekPos.ToVec2() = root->children[0]->pos;
+		if ( root->children[0] != NULL ) {
+			seekPos.ToVec2() = root->children[0]->pos;
+		} else {
+			seekPos.ToVec2() = root->pos;
+		}
 	} else if ( !optimizedPathCalculated ) {
 		OptimizePath( root, bestNode, obstacles, numObstacles, optimizedPath );
 		seekPos.ToVec2() = optimizedPath[1];
@@ -1128,7 +1132,8 @@ idAI::PredictPath
 */
 bool idAI::PredictPath( const idEntity *ent, const idAAS *aas, const idVec3 &start, const idVec3 &velocity, int totalTime, int frameTime, int stopEvent, predictedPath_t &path ) {
 	int i, j, step, numFrames, curFrameTime;
-	idVec3 delta, curStart, curEnd, curVelocity, lastEnd, stepUp, tmpStart;
+	idVec3 delta, curStart, curEnd, curVelocity, lastEnd, tmpStart;
+	idVec3 stepUp(0,0,0); // DG: init this to get rid of compiler warning
 	idVec3 gravity, gravityDir, invGravityDir;
 	float maxStepHeight, minFloorCos;
 	pathTrace_t trace;
@@ -1183,7 +1188,7 @@ bool idAI::PredictPath( const idEntity *ent, const idAAS *aas, const idVec3 &sta
 					return true;
 				}
 
-				if ( step ) {
+				if ( step != 0 ) {
 
 					// step down at end point
 					tmpStart = trace.endPos;
@@ -1338,7 +1343,7 @@ static int Ballistics( const idVec3 &start, const idVec3 &end, float speed, floa
 =====================
 HeightForTrajectory
 
-Returns the maximum hieght of a given trajectory
+Returns the maximum height of a given trajectory
 =====================
 */
 #if 0

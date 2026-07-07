@@ -17,8 +17,8 @@
 //	useful.
 
 //#include "stdafx.h"
-#include "../../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "PropTree.h"
 #include "../../../sys/win32/rc/proptree_Resource.h"
@@ -129,16 +129,18 @@ void CPropTreeList::UpdateResize()
 	LONG nHeight;
 	CRect rc;
 
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
+
 	ASSERT(m_pProp!=NULL);
 
 	GetClientRect(rc);
-	nHeight = rc.Height() + 1;
+	nHeight = rc.Height() + scaling_factor;
 
 	ZeroMemory(&si, sizeof(SCROLLINFO));
 	si.cbSize = sizeof(SCROLLINFO);
 	si.fMask = SIF_RANGE|SIF_PAGE;
 	si.nMin = 0;
-	si.nMax = m_pProp->GetRootItem()->GetTotalHeight();
+	si.nMax = m_pProp->GetRootItem()->GetTotalHeight() * scaling_factor;
 	si.nPage = nHeight;
 
 	if ((int)si.nPage>si.nMax)
@@ -166,6 +168,8 @@ void CPropTreeList::OnPaint()
 
 	CRect rc;
 	GetClientRect(rc);
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
+	rc.InflateRect(scaling_factor, scaling_factor);
 
 	// draw control background
 	memdc.SelectObject(GetSysColorBrush(COLOR_BTNFACE));
@@ -567,9 +571,9 @@ void CPropTreeList::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar*)
 	LONG nHeight;
 
 	SetFocus();
-
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
 	GetClientRect(rc);
-	nHeight = rc.Height() + 1;
+	nHeight = rc.Height();
 
 	ZeroMemory(&si, sizeof(SCROLLINFO));
 	si.cbSize = sizeof(SCROLLINFO);
@@ -582,11 +586,11 @@ void CPropTreeList::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar*)
 	switch (nSBCode)
 	{
 		case SB_LINEDOWN:
-			ny += PROPTREEITEM_DEFHEIGHT;
+			ny += PROPTREEITEM_DEFHEIGHT * scaling_factor;
 			break;
 
 		case SB_LINEUP:
-			ny -= PROPTREEITEM_DEFHEIGHT;
+			ny -= PROPTREEITEM_DEFHEIGHT * scaling_factor;
 			break;
 
 		case SB_PAGEDOWN:

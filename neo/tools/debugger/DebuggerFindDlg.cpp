@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/rc/debugger_resource.h"
 #include "DebuggerApp.h"
@@ -53,7 +53,7 @@ Launch the dialog
 */
 bool rvDebuggerFindDlg::DoModal ( rvDebuggerWindow* parent )
 {
-	if ( DialogBoxParam ( parent->GetInstance(), MAKEINTRESOURCE(IDD_DBG_FIND), parent->GetWindow(), DlgProc, (LONG)this ) )
+	if ( DialogBoxParam ( parent->GetInstance(), MAKEINTRESOURCE(IDD_DBG_FIND), parent->GetWindow(), DlgProc, (LPARAM)this ) )
 	{
 		return true;
 	}
@@ -70,7 +70,7 @@ Dialog Procedure for the find dialog
 */
 INT_PTR CALLBACK rvDebuggerFindDlg::DlgProc ( HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
-	rvDebuggerFindDlg* dlg = (rvDebuggerFindDlg*) GetWindowLong ( wnd, GWL_USERDATA );
+	rvDebuggerFindDlg* dlg = (rvDebuggerFindDlg*) GetWindowLongPtr ( wnd, GWLP_USERDATA);
 
 	switch ( msg )
 	{
@@ -80,7 +80,8 @@ INT_PTR CALLBACK rvDebuggerFindDlg::DlgProc ( HWND wnd, UINT msg, WPARAM wparam,
 
 		case WM_INITDIALOG:
 			dlg = (rvDebuggerFindDlg*) lparam;
-			SetWindowLong ( wnd, GWL_USERDATA, (LONG) dlg );
+
+			SetWindowLongPtr ( wnd, GWLP_USERDATA, (LONG_PTR) dlg );
 			dlg->mWnd = wnd;
 			SetWindowText ( GetDlgItem ( dlg->mWnd, IDC_DBG_FIND ), dlg->mFindText );
 			return TRUE;

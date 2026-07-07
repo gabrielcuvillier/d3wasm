@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/win_local.h"
 
@@ -72,7 +72,7 @@ void InitAfx( void ) {
 DefaultOnToolHitTest
 ================
 */
-int DefaultOnToolHitTest( const toolTip_t *toolTips, const CDialog *dialog, CPoint point, TOOLINFO* pTI ) {
+INT_PTR DefaultOnToolHitTest( const toolTip_t *toolTips, const CDialog *dialog, CPoint point, TOOLINFO* pTI ) {
 	CWnd *wnd;
 	RECT clientRect, rect;
 
@@ -108,7 +108,7 @@ BOOL DefaultOnToolTipNotify( const toolTip_t *toolTips, UINT id, NMHDR *pNMHDR, 
 
 	*pResult = 0;
 
-	UINT nID = pNMHDR->idFrom;
+	UINT_PTR nID = pNMHDR->idFrom;
 	if ( pTTTA->uFlags & TTF_IDISHWND ) {
 		// idFrom is actually the HWND of the tool
 		nID = ::GetDlgCtrlID((HWND)nID);

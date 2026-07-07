@@ -491,6 +491,9 @@ bool idRenderWorldLocal::InitFromMap( const char *name ) {
 		return true;
 	}
 
+	// DG: this must be set to false somewhere as a default, here feels safe
+	//     (it will be properly set in idRenderSystemLocal::EndLevelLoad())
+	tr.allowNoSpecular = false;
 
 	// load it
 	filename = name;
@@ -655,7 +658,7 @@ void idRenderWorldLocal::AddWorldModelEntities() {
 		for ( int j = 0; j < hModel->NumSurfaces(); j++ ) {
 			const modelSurface_t *surf = hModel->Surface( j );
 
-			if ( surf->shader->GetName() == idStr( "textures/smf/portal_sky" ) ) {
+			if ( ( surf->shader->GetName() ==  idStr( "textures/smf/portal_sky" ) ) || ( surf->shader->GetName() == idStr( "textures/editor/portal_sky" ) ) ) { 
 				def->needsPortalSky = true;
 			}
 		}

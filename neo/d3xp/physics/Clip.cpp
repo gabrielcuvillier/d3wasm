@@ -970,7 +970,7 @@ ID_INLINE bool TestHugeTranslation( trace_t &results, const idClipModel *mdl, co
 		// in the PVS of a player that has a flag that is spawning the idMoveableItem
 		// "nuggets".  The error seems benign and the assert was getting in the way
 		// of testing.
-		assert( 0 );
+		// assert( 0 ); DG: this was annoying and not really necessary, a Warning should suffice.
 #endif
 
 		results.fraction = 0.0f;
@@ -980,10 +980,12 @@ ID_INLINE bool TestHugeTranslation( trace_t &results, const idClipModel *mdl, co
 		results.c.point = start;
 
 		if ( mdl->GetEntity() ) {
-			gameLocal.Printf( "huge translation for clip model %d on entity %d '%s'\n", mdl->GetId(), mdl->GetEntity()->entityNumber, mdl->GetEntity()->GetName() );
+			gameLocal.Warning( "huge translation for clip model %d on entity %d '%s'\n", mdl->GetId(), mdl->GetEntity()->entityNumber, mdl->GetEntity()->GetName() );
 		} else {
-			gameLocal.Printf( "huge translation for clip model %d\n", mdl->GetId() );
+			gameLocal.Warning( "huge translation for clip model %d\n", mdl->GetId() );
 		}
+		gameLocal.Warning( "  from (%.2f %.2f %.2f) to (%.2f %.2f %.2f)\n", start.x, start.y, start.z, end.x, end.y, end.z);
+
 		return true;
 	}
 	return false;

@@ -31,9 +31,14 @@ Compared to the original _DOOM 3_, the changes of _dhewm 3_ worth mentioning are
 - SDL for low-level OS support, OpenGL and input handling
 - OpenAL for audio output, all OS-specific audio backends are gone
 - OpenAL EFX for EAX reverb effects (read: EAX-like sound effects on all platforms/hardware)
+- Gamepad support
+    - *Rumble* is currently **not** supported
 - Better support for widescreen (and arbitrary display resolutions)
 - A portable build system based on CMake
 - (Cross-)compilation with MinGW-w64
+- An **advanced**, mod-independent **settings menu** (opened with `F10` by default)
+
+See [Changelog.md](./Changelog.md) for a more complete changelog.
 
 
 # GENERAL NOTES
@@ -46,20 +51,17 @@ covered by the original EULA and must be obeyed as usual.
 You must patch the game to the latest version (1.3.1). See the FAQ for details, including
 how to get the game data from Steam on Linux or OSX.
 
-Note that _Doom 3_ and _Doom 3: Resurrection of Evil_ are available from the Steam Store at
+Note that the original _Doom 3_ and _Doom 3: Resurrection of Evil_ (together with
+_DOOM 3: BFG Edition_, which is *not* supported by dhewm3) are available from the Steam Store at
 
-http://store.steampowered.com/app/9050/
+https://store.steampowered.com/app/208200/DOOM_3/
 
-http://store.steampowered.com/app/9070/
+See https://dhewm3.org/#how-to-install for game data installation instructions.
 
-You can also buy Steam keys at the Humble Store:
+## Configuration
 
-https://www.humblebundle.com/store/p/doom3_storefront
-
-https://www.humblebundle.com/store/p/doom3_resofevil_storefront
-
-Note that neither Steam nor the Humble Store offer the *Resurrection of Evil* addon
-for German customers (or at least people with German IP adresses).
+See [Configuration.md](./Configuration.md) for dhewm3-specific configuration, especially for 
+using gamepads or the **new settings menu**.
 
 ## Compiling
 
@@ -67,34 +69,73 @@ The build system is based on CMake: http://cmake.org/
 
 Required libraries are not part of the tree. These are:
 
-- zlib
-- libjpeg (v8)
-- libogg
-- libvorbis
-- libvorbisfile (may be part of libvorbis)
 - OpenAL (OpenAL Soft required, Creative's and Apple's versions are made of fail)
 - SDL v1.2 or 2.0 (2.0 recommended)
 - libcurl (optional, required for server downloads)
+- Optionally, on non-Windows: libbacktrace (usually linked statically)
+  - sometimes (e.g. on debian-based distros like Ubuntu) it's part of libgcc (=> always available),
+    sometimes (e.g. Arch Linux, openSUSE) it's in a separate package
+  - If this is available, dhewm3 prints more useful backtraces if it crashes
 
-For UNIX-like systems, these libraries need to be installed (including the
+For **UNIX-like systems**, these libraries need to be installed (including the
 developer files). It is recommended to use the software management tools of
 your OS (apt, dnf, portage, BSD ports, [Homebrew for macOS](http://brew.sh), ...).
 
-For Windows, there are two options:
+For **Windows**, there are three options:
 
 - Use the provided binaries (recommended, see below)
 - Compile these libraries yourself
+- Use [vcpkg](https://vcpkg.io/) to install the dependencies
+    - Remember to set `CMAKE_TOOLCHAIN_FILE` as described in their [Getting Started Guide](https://vcpkg.io/en/getting-started.html)
 
 Create a distinct build folder outside of this source repository and issue
 the cmake command there, pointing it at the neo/ folder from this repository:
 
 `cmake /path/to/repository/neo`
 
-macOS users need to point CMake at OpenAL Soft (better solutions welcome):
+**macOS** users need to point CMake at OpenAL Soft (better solutions welcome):
 
 `cmake -DOPENAL_LIBRARY=/usr/local/opt/openal-soft/lib/libopenal.dylib -DOPENAL_INCLUDE_DIR=/usr/local/opt/openal-soft/include /path/to/repository/neo`
 
-## Using the provided Windows binaries
+Newer versions of Homebrew install openal-soft to another directory, so use this instead:
+
+`cmake -DOPENAL_LIBRARY="/opt/homebrew/opt/openal-soft/lib/libopenal.dylib" -DOPENAL_INCLUDE_DIR="/opt/homebrew/opt/openal-soft/include" /path/to/repo/neo`
+
+### Compiling example using Ubuntu
+
+Should be the same for Debian and other Debian-derivatives, but apart from the first step (installing
+build dependecies) it should be the same on other Linux distros and even other UNIX-likes in general.
+
+Open a terminal and follow these steps:
+
+* Install build dependencies:  
+  `sudo apt install git cmake build-essential libsdl2-dev libopenal-dev libcurl4-openssl-dev`  
+    - The build-essential package on Debian/Ubuntu/... installs some basics for compiling code
+      like GCC (incl. g++), GNU Make and the glibc development package
+    - Instead of libcurl4-openssl-dev, other libcurl*-dev packages should also work - or none at all, curl is optional.
+    - Not strictly necessary, but I recommend making libbacktrace available. On distributions not
+      based on Debian, you may have to manually install some kind of libbacktrace development package.
+* Use git to get the code from Github (alternatively you can also download the code as an archive and extract that):  
+  `git clone https://github.com/dhewm/dhewm3.git`
+* Change into the dhewm3 directory, create a directory to build in and change into the build directory:  
+  `cd dhewm3` then `mkdir build` then `cd build`
+* Create a Makefile with CMake: `cmake ../neo/`
+    - You can set different options for CMake with arguments like `-DDEDICATED=ON` (to enable the dedicated server).
+      You can show a list of supported options by running `cmake -LH ../neo/`. You can run CMake again
+      with another `-DFOO=BAR` option to change that option (previously set options are remembered,
+      unless you remove all contents of the build/ dir).
+    - You could also install the **cmake-qt-gui** package and run `cmake-gui ../neo/`, which will let
+      you configure the build in a GUI instead of using `-D` commandline-arguments.
+* Compile dhewm3: `make -j8`
+    - `-j8` specifies the number of compiler processes to run in parallel (8 in this example),
+      it makes sense to use the number of CPU threads (or cores) in your system.
+
+When all steps are done and no errors occurred, you should be able to run dhewm3 right there, like:  
+`./dhewm3 +set fs_basepath /path/to/your/doom3/`  
+*Replace `/path/to/your/doom3/` with the path to your Doom3 installation (that contains `base/` with
+`pak000.pk4` to `pak008.pk4`)*
+
+### Using the provided Windows binaries
 
 Get a clone of the latest binaries here: https://github.com/dhewm/dhewm3-libs
 
@@ -103,15 +144,19 @@ There are two subfolders:
 - 32-bit binaries are located in `i686-w64-mingw32`
 - 64-bit binaries are located in `x86_64-w64-mingw32`
 
-Issue the appropriate command from the build folder, for example:
+Issue the appropriate command from the build folder, for example (for VS2019 and 32bit):
 
-`cmake -G "Visual Studio 10" -DDHEWM3LIBS=/path/to/dhewm3-libs/i686-w64-mingw32 /path/to/repository/neo`
+`cmake -G "Visual Studio 16 2019" -A Win32 -DDHEWM3LIBS=/path/to/dhewm3-libs/i686-w64-mingw32 /path/to/repository/neo`
 
-`cmake -G "MinGW Makefiles" -DDHEWM3LIBS=/path/to/dhewm3-libs/x86_64-w64-mingw32 /path/to/repository/neo`
+For 64bit dhewm3 binaries, use `-A x64` and `/path/to/dhewm3-libs/x86_64-w64-mingw32` instead (note that the official dhewm3 binaries for Windows are 32bit).  
+For Visual Studio 2022 it's `"Visual Studio 17 2022"`.
+
+For 32bit MinGW use:
+`cmake -G "MinGW Makefiles" -DDHEWM3LIBS=/path/to/dhewm3-libs/i686-w64-mingw32 /path/to/repository/neo`
 
 The binaries are compatible with MinGW-w64 and all MSVC versions.
 
-## Cross-compiling
+### Cross-compiling
 
 For cross-compiling, a CMake Toolchain file is required.
 
@@ -135,16 +180,37 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 Then point CMake at your toolchain file:
 `cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/Toolchain.cmake -DDHEWM3LIBS=/path/to/dhewm3-libs/i686-w64-mingw32 /path/to/repository/neo`
 
+**NOTE:** The `DHEWM3LIBS` path must be an **absolute path**, i.e. it must start with `/`!
+
+If you want to build for x86_64 aka AMD64 aka x64, replace all instances of `i686`
+in the toolchain file with `x86_64`.
+
+## Contributing
+
+Contributions in the form of Pull Requests or by creating (meaningful) bugreports are welcome!
+
+But please note that **only human-written code** is accepted for dhewm3.
+
+#### Do not submit code developed with the assistance of generative "AI"!
+
+... like Microsoft Copilot, Anthropic Claude, ChatGPT, etc.
+
+Don't generate bugreports/issues or comments with "AI" either.
+
+Doing it anyway may get you banned from this project.
+
+This is not open for discussion.
+
 ## Back End Rendering of Stencil Shadows
 
-The Doom 3 GPL source code release does not include functionality enabling rendering
+The Doom 3 GPL source code release **did** not include functionality enabling rendering
 of stencil shadows via the "depth fail" method, a functionality commonly known as
-"Carmack's Reverse".
+"Carmack's Reverse".  
+It has been restored in dhewm3 1.5.1 after Creative Labs' [patent](https://patents.google.com/patent/US6384822B1/en)
+finally expired.
 
-***Note*** that this **does *not* change the visual appereance** of the game.
-The shadows look the same, they're just created in a slightly different way.
-In theory there might be a small performance impact, but on hardware less than
-ten years old it shouldn't make a difference.
+Note that this did not change the visual appearance of the game, and didn't seem to
+make a noticeable performance difference (on halfway-recent hardware) either.
 
 ## MayaImport
 
@@ -159,6 +225,32 @@ See COPYING.txt for the GNU GENERAL PUBLIC LICENSE
 ADDITIONAL TERMS:  The Doom 3 GPL Source Code is also subject to certain additional terms. You should have received a copy of these additional terms immediately following the terms and conditions of the GNU GPL which accompanied the Doom 3 Source Code.  If not, please request a copy in writing from id Software at id Software LLC, c/o ZeniMax Media Inc., Suite 120, Rockville, Maryland 20850 USA.
 
 EXCLUDED CODE:  The code described below and contained in the Doom 3 GPL Source Code release is not part of the Program covered by the GPL and is expressly excluded from its terms.  You are solely responsible for obtaining from the copyright holder a license for such code and complying with the applicable license terms.
+
+## Dear ImGui
+
+neo/libs/imgui/*
+
+The MIT License (MIT)
+
+Copyright (c) 2014-2024 Omar Cornut
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## PropTree
 
@@ -217,6 +309,34 @@ STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
+## miniz
+
+src/framework/miniz/*
+
+The MIT License (MIT)
+
+Copyright 2013-2014 RAD Game Tools and Valve Software
+Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
+
+All Rights Reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
 
 ## IO on .zip files using minizip
 
@@ -286,6 +406,19 @@ neo/idlib/hashing/CRC32.cpp
 
 Copyright (C) 1995-1998 Mark Adler
 
+## stb_image and stb_vorbis
+
+neo/renderer/stb_image.h
+neo/sound/stb_vorbis.h
+
+Used to decode JPEG and OGG Vorbis files.
+
+from https://github.com/nothings/stb/
+
+Copyright (c) 2017 Sean Barrett
+
+Released under MIT License and Unlicense (Public Domain)
+
 ## Brandelf utility
 
 neo/sys/linux/setup/brandelf.c
@@ -316,7 +449,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-$FreeBSD: src/usr.bin/brandelf/brandelf.c,v 1.16 2000/07/02 03:34:08 imp Exp $
+`$FreeBSD: src/usr.bin/brandelf/brandelf.c,v 1.16 2000/07/02 03:34:08 imp Exp $`
 
 ## makeself - Make self-extractable archives on Unix
 

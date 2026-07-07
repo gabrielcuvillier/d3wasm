@@ -41,11 +41,14 @@ If you have questions concerning this license or the applicable additional terms
 #include "renderer/tr_local.h"
 
 #include "framework/GameCallbacks_local.h"
+#include "framework/Game.h"
 
 // Vista OpenGL wrapper check
 #ifdef _WIN32
 #include "sys/win32/win_local.h"
 #endif
+
+#include "stb_image_write.h"
 
 // functions that are not called every frame
 
@@ -59,6 +62,7 @@ idCVar r_multiSamples( "r_multiSamples", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVA
 idCVar r_mode( "r_mode", "5", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_INTEGER, "video mode number" );
 idCVar r_displayRefresh( "r_displayRefresh", "0", CVAR_RENDERER | CVAR_INTEGER | CVAR_NOCHEAT, "optional display refresh rate option for vid mode", 0.0f, 200.0f );
 idCVar r_fullscreen( "r_fullscreen", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "0 = windowed, 1 = full screen" );
+idCVar r_fullscreenDesktop( "r_fullscreenDesktop", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "0: 'real' fullscreen mode 1: keep resolution 'desktop' fullscreen mode" );
 idCVar r_customWidth( "r_customWidth", "720", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "custom screen width. set r_mode to -1 to activate" );
 idCVar r_customHeight( "r_customHeight", "486", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "custom screen height. set r_mode to -1 to activate" );
 idCVar r_singleTriangle( "r_singleTriangle", "0", CVAR_RENDERER | CVAR_BOOL, "only draw a single triangle per primitive" );
@@ -90,6 +94,7 @@ idCVar r_swapInterval( "r_swapInterval", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVA
 
 idCVar r_gamma( "r_gamma", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT, "changes gamma tables", 0.5f, 3.0f );
 idCVar r_brightness( "r_brightness", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT, "changes gamma tables", 0.5f, 2.0f );
+idCVar r_gammaInShader( "r_gammaInShader", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Set gamma and brightness in shaders instead using hardware gamma" );
 
 idCVar r_renderer( "r_renderer", "best", CVAR_RENDERER | CVAR_ARCHIVE, "hardware specific renderer path to use", r_rendererArgs, idCmdSystem::ArgCompletion_String<r_rendererArgs> );
 
@@ -167,6 +172,13 @@ idCVar r_forceLoadImages( "r_forceLoadImages", "0", CVAR_RENDERER | CVAR_ARCHIVE
 idCVar r_orderIndexes( "r_orderIndexes", "1", CVAR_RENDERER | CVAR_BOOL, "perform index reorganization to optimize vertex use" );
 idCVar r_lightAllBackFaces( "r_lightAllBackFaces", "0", CVAR_RENDERER | CVAR_BOOL, "light all the back faces, even when they would be shadowed" );
 
+// DG: added this to support "nospecular" param of lights
+// NOTE: if you're developing a standalone game, you'll probably want to use "1" as default value
+idCVar r_supportNoSpecular( "r_supportNoSpecular", "-1", CVAR_RENDERER | CVAR_INTEGER | CVAR_ARCHIVE,
+		"Support 'nospecular' parm on lights. Vanilla Doom3 didn't, so the original maps are probably "
+		"expecting it to not do anything. -1: Only support in maps that have have \"allow_nospecular\" \"1\" set in worldspawn (default), "
+		"0: never respect 'nospecular' parm 1: support 'nospecular' in all maps", -1, 1 );
+
 // visual debugging info
 idCVar r_showPortals( "r_showPortals", "0", CVAR_RENDERER | CVAR_BOOL, "draw portal outlines in color based on passed / not passed" );
 idCVar r_showUnsmoothedTangents( "r_showUnsmoothedTangents", "0", CVAR_RENDERER | CVAR_BOOL, "if 1, put all nvidia register combiner programming in display lists" );
@@ -225,6 +237,22 @@ idCVar r_debugRenderToTexture( "r_debugRenderToTexture", "0", CVAR_RENDERER | CV
 
 // DG: let users disable the "scale menus to 4:3" hack
 idCVar r_scaleMenusTo43( "r_scaleMenusTo43", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Scale menus, fullscreen videos and PDA to 4:3 aspect ratio" );
+// DG: the fscking patent has finally expired
+idCVar r_useCarmacksReverse( "r_useCarmacksReverse", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Use Z-Fail (Carmack's Reverse) when rendering shadows" );
+idCVar r_useStencilOpSeparate( "r_useStencilOpSeparate", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Use glStencilOpSeparate() (if available) when rendering shadows" );
+idCVar r_screenshotFormat("r_screenshotFormat", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "Screenshot format. 0 = TGA (default), 1 = BMP, 2 = PNG, 3 = JPG");
+idCVar r_screenshotJpgQuality("r_screenshotJpgQuality", "75", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "Screenshot quality for JPG images (1-100). Lower value means smaller file but worse quality");
+idCVar r_screenshotPngCompression("r_screenshotPngCompression", "3", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "Compression level when using PNG screenshots (0-9). Higher levels generate smaller files, but take noticeably longer");
+// DG: allow freely resizing the window
+idCVar r_windowResizable("r_windowResizable", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Allow resizing (and maximizing) the window (needs SDL2; with 2.0.5 or newer it's applied immediately)" );
+idCVar r_vidRestartAlwaysFull( "r_vidRestartAlwaysFull", 0, CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Always do a full vid_restart (ignore 'partial' argument), e.g. when changing window size" );
+
+// DG: for soft particles (ported from TDM)
+idCVar r_enableDepthCapture( "r_enableDepthCapture", "-1", CVAR_RENDERER | CVAR_INTEGER,
+		"enable capturing depth buffer to texture. -1: enable automatically (if soft particles are enabled), 0: disable, 1: enable", -1, 1 ); // #3877
+idCVar r_useSoftParticles( "r_useSoftParticles", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Soften particle transitions when player walks through them or they cross solid geometry. Needs r_enableDepthCapture. Can slow down rendering!" ); // #3878
+
+idCVar r_glDebugContext( "r_glDebugContext", "0", CVAR_RENDERER | CVAR_BOOL, "Enable OpenGL Debug context - requires vid_restart, needs SDL2" );
 
 // define qgl functions
 #define QGLPROC(name, rettype, args) rettype (APIENTRYP q##name) args;
@@ -271,6 +299,74 @@ PFNGLPROGRAMLOCALPARAMETER4FVARBPROC	qglProgramLocalParameter4fvARB;
 
 // GL_EXT_depth_bounds_test
 PFNGLDEPTHBOUNDSEXTPROC                 qglDepthBoundsEXT;
+
+// DG: couldn't find any extension for this, it's supported in GL2.0 and newer, incl OpenGL ES2.0
+PFNGLSTENCILOPSEPARATEPROC qglStencilOpSeparate;
+
+// GL_ARB_debug_output
+PFNGLDEBUGMESSAGECALLBACKARBPROC        qglDebugMessageCallbackARB;
+
+// eez: This is a slight hack for letting us select the desired screenshot format in other functions
+//  This is a hack to avoid adding another function parameter to idRenderSystem::TakeScreenshot(),
+//  which would break the API of the dhewm3 SDK for mods.
+//  Note that this is reset to -1 (which means: use value of r_screenshotFormat) at the end of
+//  idRenderSystemLocal::TakeScreenshot(), so if your code wants to enforce a specific format,
+//  it must set g_screenshotFormat accordingly before each call to TakeScreenshot().
+int g_screenshotFormat = -1;
+
+enum {
+	// Not all GL.h header know about GL_DEBUG_SEVERITY_NOTIFICATION_*.
+	QGL_DEBUG_SEVERITY_NOTIFICATION = 0x826B
+};
+
+/*
+ * Callback function for debug output.
+ */
+static void APIENTRY
+DebugCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+              const GLchar *message, const void *userParam )
+{
+	const char* sourceStr = "Source: Unknown";
+	const char* typeStr = "Type: Unknown";
+	const char* severityStr = "Severity: Unknown";
+
+	switch (severity)
+	{
+#define SVRCASE(X, STR)  case GL_DEBUG_SEVERITY_ ## X ## _ARB : severityStr = STR; break;
+		case QGL_DEBUG_SEVERITY_NOTIFICATION: return;
+		SVRCASE(HIGH, "Severity: High")
+		SVRCASE(MEDIUM, "Severity: Medium")
+		SVRCASE(LOW, "Severity: Low")
+#undef SVRCASE
+	}
+
+	switch (source)
+	{
+#define SRCCASE(X)  case GL_DEBUG_SOURCE_ ## X ## _ARB: sourceStr = "Source: " #X; break;
+		SRCCASE(API);
+		SRCCASE(WINDOW_SYSTEM);
+		SRCCASE(SHADER_COMPILER);
+		SRCCASE(THIRD_PARTY);
+		SRCCASE(APPLICATION);
+		SRCCASE(OTHER);
+#undef SRCCASE
+	}
+
+	switch(type)
+	{
+#define TYPECASE(X)  case GL_DEBUG_TYPE_ ## X ## _ARB: typeStr = "Type: " #X; break;
+		TYPECASE(ERROR);
+		TYPECASE(DEPRECATED_BEHAVIOR);
+		TYPECASE(UNDEFINED_BEHAVIOR);
+		TYPECASE(PORTABILITY);
+		TYPECASE(PERFORMANCE);
+		TYPECASE(OTHER);
+#undef TYPECASE
+	}
+
+	common->Warning( "GLDBG %s %s %s: %s\n", sourceStr, typeStr, severityStr, message );
+
+}
 
 /*
 =================
@@ -335,15 +431,19 @@ static void R_CheckPortableExtensions( void ) {
 		glConfig.textureCompressionAvailable = true;
 		qglCompressedTexImage2DARB = (PFNGLCOMPRESSEDTEXIMAGE2DARBPROC)GLimp_ExtensionPointer( "glCompressedTexImage2DARB" );
 		qglGetCompressedTexImageARB = (PFNGLGETCOMPRESSEDTEXIMAGEARBPROC)GLimp_ExtensionPointer( "glGetCompressedTexImageARB" );
+		if ( R_CheckExtension( "GL_ARB_texture_compression_bptc" ) ) {
+			glConfig.bptcTextureCompressionAvailable = true;
+		}
 	} else {
 		glConfig.textureCompressionAvailable = false;
+		glConfig.bptcTextureCompressionAvailable = false;
 	}
 
 	// GL_EXT_texture_filter_anisotropic
 	glConfig.anisotropicAvailable = R_CheckExtension( "GL_EXT_texture_filter_anisotropic" );
 	if ( glConfig.anisotropicAvailable ) {
 		qglGetFloatv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glConfig.maxTextureAnisotropy );
-		common->Printf( "   maxTextureAnisotropy: %f\n", glConfig.maxTextureAnisotropy );
+		common->Printf( "   maxTextureAnisotropy: %g\n", glConfig.maxTextureAnisotropy );
 	} else {
 		glConfig.maxTextureAnisotropy = 1;
 	}
@@ -389,6 +489,19 @@ static void R_CheckPortableExtensions( void ) {
 	glConfig.twoSidedStencilAvailable = R_CheckExtension( "GL_EXT_stencil_two_side" );
 	if ( glConfig.twoSidedStencilAvailable )
 		qglActiveStencilFaceEXT = (PFNGLACTIVESTENCILFACEEXTPROC)GLimp_ExtensionPointer( "glActiveStencilFaceEXT" );
+
+	if( glConfig.glVersion >= 2.0) {
+		common->Printf( "...got GL2.0+ glStencilOpSeparate()\n" );
+		qglStencilOpSeparate = (PFNGLSTENCILOPSEPARATEPROC)GLimp_ExtensionPointer( "glStencilOpSeparate" );
+	} else if( R_CheckExtension( "GL_ATI_separate_stencil" ) ) {
+		common->Printf( "...got glStencilOpSeparateATI() (GL_ATI_separate_stencil)\n" );
+		// the ATI version of glStencilOpSeparate() has the same signature and should also
+		// behave identical to the GL2 version (in Mesa3D it's just an alias)
+		qglStencilOpSeparate = (PFNGLSTENCILOPSEPARATEPROC)GLimp_ExtensionPointer( "glStencilOpSeparateATI" );
+	} else {
+		common->Printf( "X..don't have glStencilOpSeparateATI() or (GL2.0+) glStencilOpSeparate()\n" );
+		qglStencilOpSeparate = NULL;
+	}
 
 	// ARB_vertex_buffer_object
 	glConfig.ARBVertexBufferObjectAvailable = R_CheckExtension( "GL_ARB_vertex_buffer_object" );
@@ -436,7 +549,7 @@ static void R_CheckPortableExtensions( void ) {
 	// check for minimum set
 	if ( !glConfig.multitextureAvailable || !glConfig.textureEnvCombineAvailable || !glConfig.cubeMapAvailable
 		|| !glConfig.envDot3Available ) {
-			common->Error( common->GetLanguageDict()->GetString( "#str_06780" ) );
+			common->Error( "%s", common->GetLanguageDict()->GetString( "#str_06780" ) );
 	}
 
 	// GL_EXT_depth_bounds_test
@@ -445,6 +558,37 @@ static void R_CheckPortableExtensions( void ) {
 		qglDepthBoundsEXT = (PFNGLDEPTHBOUNDSEXTPROC)GLimp_ExtensionPointer( "glDepthBoundsEXT" );
 	}
 
+	// GL_ARB_debug_output
+	glConfig.glDebugOutputAvailable = false;
+	if ( glConfig.haveDebugContext ) {
+		if ( strstr( glConfig.extensions_string, "GL_ARB_debug_output" ) ) {
+			glConfig.glDebugOutputAvailable = true;
+			qglDebugMessageCallbackARB = (PFNGLDEBUGMESSAGECALLBACKARBPROC)GLimp_ExtensionPointer( "glDebugMessageCallbackARB" );
+			if ( r_glDebugContext.GetBool() ) {
+				common->Printf( "...using GL_ARB_debug_output (r_glDebugContext is set)\n" );
+				qglDebugMessageCallbackARB(DebugCallback, NULL);
+				qglEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+			} else {
+				common->Printf( "...found GL_ARB_debug_output, but not using it (r_glDebugContext is not set)\n" );
+			}
+		} else {
+			common->Printf( "X..GL_ARB_debug_output not found\n" );
+			qglDebugMessageCallbackARB = NULL;
+			if ( r_glDebugContext.GetBool() ) {
+				common->Warning( "r_glDebugContext is set, but can't be used because GL_ARB_debug_output is not supported" );
+			}
+		}
+	} else {
+		if ( strstr( glConfig.extensions_string, "GL_ARB_debug_output" ) ) {
+			if ( r_glDebugContext.GetBool() ) {
+				common->Printf( "...found GL_ARB_debug_output, but not using it (no debug context)\n" );
+			} else {
+				common->Printf( "...found GL_ARB_debug_output, but not using it (r_glDebugContext is not set)\n" );
+			}
+		} else {
+			common->Printf( "X..GL_ARB_debug_output not found\n" );
+		}
+	}
 }
 
 
@@ -489,11 +633,22 @@ vidmode_t r_vidModes[] = {
 	{ "Mode 21: 4096x2304",		4096,   2304 },
 	{ "Mode 22: 2880x1800",		2880,   1800 },
 	{ "Mode 23: 2560x1440",		2560,   1440 },
+	{ "Mode 24: 1440x1080",		1440,   1080 },
+	{ "Mode 25: 1280x800",		1280,	800 },
+	// 21:9 resolutions
+	{ "Mode 26: 2560x1080",		2560,   1080 },
+	{ "Mode 27: 3440x1440",		3440,   1440 },
+	{ "Mode 28: 3840x1600",		3840,   1600 },
+	{ "Mode 29: 5120x2160",		5120,   2160 },
+	// 32:9 resolutions
+	{ "Mode 30: 3840x1080",		3840,   1080 },
+	{ "Mode 31: 5120x1440",		5120,   1440 },
+	{ "Mode 32: 7680x2160",		7680,   2160 },
 };
 // DG: made this an enum so even stupid compilers accept it as array length below
 enum {	s_numVidModes = sizeof( r_vidModes ) / sizeof( r_vidModes[0] ) };
 
-static bool R_GetModeInfo( int *width, int *height, int mode ) {
+bool R_GetModeInfo( int *width, int *height, int mode ) {
 	vidmode_t	*vm;
 
 	if ( mode < -1 ) {
@@ -642,6 +797,7 @@ void R_InitOpenGL( void ) {
 		parms.width = glConfig.vidWidth;
 		parms.height = glConfig.vidHeight;
 		parms.fullScreen = r_fullscreen.GetBool();
+		parms.fullScreenDesktop = r_fullscreenDesktop.GetBool();
 		parms.displayHz = r_displayRefresh.GetInteger();
 		parms.multiSamples = r_multiSamples.GetInteger();
 		parms.stereo = false;
@@ -658,7 +814,7 @@ void R_InitOpenGL( void ) {
 		// if we failed, set everything back to "safe mode"
 		// and try again
 		r_mode.SetInteger( 3 );
-		r_fullscreen.SetInteger( 1 );
+		r_fullscreen.SetInteger( 0 );
 		r_displayRefresh.SetInteger( 0 );
 		r_multiSamples.SetInteger( 0 );
 	}
@@ -717,7 +873,13 @@ void R_InitOpenGL( void ) {
 	R_InitFrameData();
 
 	// Reset our gamma
-	R_SetColorMappings();
+	r_gammaInShader.ClearModified();
+	if ( r_gammaInShader.GetBool() ) {
+		common->Printf( "Will apply r_gamma and r_brightness in shaders (r_gammaInShader 1)\n" );
+	} else {
+		common->Printf( "Will apply r_gamma and r_brightness in hardware (possibly on all screens; r_gammaInShader 0)\n" );
+		R_SetColorMappings();
+	}
 
 #ifdef _WIN32
 	static bool glCheck = false;
@@ -1197,8 +1359,22 @@ void R_ReadTiledPixels( int width, int height, byte *buffer, renderView_t *ref =
 				h = height - yo;
 			}
 
-			qglReadBuffer( GL_FRONT );
-			qglReadPixels( 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, temp );
+			if ( glConfig.isWayland ) {
+				// DG: Native Wayland (=> not XWayland) doesn't seem to support reading
+				//     from the front buffer - screenshot is black then..
+				//     So just read from the default (probably back-) buffer
+				qglReadPixels( 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, temp );
+			} else {
+				// DG: It's probably better to restore the glReadBuffer mode after reading the pixels..
+				//     (at least with XWayland on GNOME changing resolutions is wonky when not doing this)
+				GLint oldReadBuf = GL_BACK;
+				qglGetIntegerv( GL_READ_BUFFER, &oldReadBuf );
+				qglReadBuffer( GL_FRONT );
+
+				qglReadPixels( 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, temp );
+
+				qglReadBuffer( oldReadBuf );
+			}
 
 			int	row = ( w * 3 + 3 ) & ~3;		// OpenGL pads to dword boundaries
 
@@ -1222,6 +1398,18 @@ void R_ReadTiledPixels( int width, int height, byte *buffer, renderView_t *ref =
 	glConfig.vidHeight = oldHeight;
 }
 
+/*
+==================
+WriteScreenshotForSTBIW
+
+Callback to each stbi_write_* function
+==================
+*/
+static void WriteScreenshotForSTBIW(void* context, void* data, int size)
+{
+	idFile* f = (idFile*)context;
+	f->Write(data, size);
+}
 
 /*
 ==================
@@ -1235,66 +1423,87 @@ If ref == NULL, session->updateScreen will be used
 ==================
 */
 void idRenderSystemLocal::TakeScreenshot( int width, int height, const char *fileName, int blends, renderView_t *ref ) {
-	byte		*buffer;
-	int			i, j, c, temp;
+	byte		*buffer, *swapBuffer;
+	int			i, j;
 
 	takingScreenshot = true;
 
 	int	pix = width * height;
+	int lineSize = width * 3;
 
-	buffer = (byte *)R_StaticAlloc(pix*3 + 18);
-	memset (buffer, 0, 18);
+	buffer = (byte *)R_StaticAlloc(pix*3);
+	swapBuffer = (byte*)R_StaticAlloc(lineSize);
 
 	if ( blends <= 1 ) {
-		R_ReadTiledPixels( width, height, buffer + 18, ref );
+		R_ReadTiledPixels( width, height, buffer, ref );
 	} else {
 		unsigned short *shortBuffer = (unsigned short *)R_StaticAlloc(pix*2*3);
-		memset (shortBuffer, 0, pix*2*3);
+		memset( shortBuffer, 0, pix*2*3 );
 
 		// enable anti-aliasing jitter
 		r_jitter.SetBool( true );
 
 		for ( i = 0 ; i < blends ; i++ ) {
-			R_ReadTiledPixels( width, height, buffer + 18, ref );
+			R_ReadTiledPixels( width, height, buffer, ref );
 
 			for ( j = 0 ; j < pix*3 ; j++ ) {
-				shortBuffer[j] += buffer[18+j];
+				shortBuffer[j] += buffer[j];
 			}
 		}
 
 		// divide back to bytes
 		for ( i = 0 ; i < pix*3 ; i++ ) {
-			buffer[18+i] = shortBuffer[i] / blends;
+			buffer[i] = shortBuffer[i] / blends;
 		}
 
 		R_StaticFree( shortBuffer );
 		r_jitter.SetBool( false );
 	}
 
-	// fill in the header (this is vertically flipped, which qglReadPixels emits)
-	buffer[2] = 2;		// uncompressed type
-	buffer[12] = width & 255;
-	buffer[13] = width >> 8;
-	buffer[14] = height & 255;
-	buffer[15] = height >> 8;
-	buffer[16] = 24;	// pixel size
-
-	// swap rgb to bgr
-	c = 18 + width * height * 3;
-	for (i=18 ; i<c ; i+=3) {
-		temp = buffer[i];
-		buffer[i] = buffer[i+2];
-		buffer[i+2] = temp;
+	// The buffer is upside down, we need to flip it the right way.
+	for (i = 0; i < height / 2; ++i) {
+		byte* line1 = &buffer[i * lineSize];
+		byte* line2 = &buffer[(height - i - 1) * lineSize];
+		memcpy(swapBuffer, line1, lineSize);
+		memcpy(line1, line2, lineSize);
+		memcpy(line2, swapBuffer, lineSize);
+	}
+	
+	idFile* f;
+	if (strstr(fileName, "viewnote")) {
+		f = fileSystem->OpenFileWrite( fileName, "fs_cdpath" );
+	}
+	else {
+		f = fileSystem->OpenFileWrite( fileName );
 	}
 
-	// _D3XP adds viewnote screenie save to cdpath
-	if ( strstr( fileName, "viewnote" ) ) {
-		fileSystem->WriteFile( fileName, buffer, c, "fs_cdpath" );
-	} else {
-		fileSystem->WriteFile( fileName, buffer, c );
+	// If no specific format is requested, default to using the CVar value.
+	if (g_screenshotFormat == -1) {
+		g_screenshotFormat = cvarSystem->GetCVarInteger( "r_screenshotFormat" );
 	}
+
+	switch (g_screenshotFormat) {
+		default:
+			stbi_write_tga_to_func( WriteScreenshotForSTBIW, f, width, height, 3, buffer );
+			break;
+		case 1:
+			stbi_write_bmp_to_func( WriteScreenshotForSTBIW, f, width, height, 3, buffer);
+			break;
+		case 2:
+			stbi_write_png_compression_level = idMath::ClampInt( 0, 9, r_screenshotPngCompression.GetInteger() );
+			stbi_write_png_to_func( WriteScreenshotForSTBIW, f, width, height, 3, buffer, 3 * width );
+			break;
+		case 3:
+			stbi_write_jpg_to_func( WriteScreenshotForSTBIW, f, width, height, 3, buffer, idMath::ClampInt( 1, 100, r_screenshotJpgQuality.GetInteger() ) );
+			break;
+	}
+
+	g_screenshotFormat = -1;
+
+	fileSystem->CloseFile(f);
 
 	R_StaticFree( buffer );
+	R_StaticFree( swapBuffer );
 
 	takingScreenshot = false;
 
@@ -1317,6 +1526,8 @@ void R_ScreenshotFilename( int &lastNumber, const char *base, idStr &fileName ) 
 	bool fsrestrict = cvarSystem->GetCVarBool( "fs_restrict" );
 	cvarSystem->SetCVarBool( "fs_restrict", false );
 
+	int format = cvarSystem->GetCVarInteger("r_screenshotFormat");
+
 	lastNumber++;
 	if ( lastNumber > 99999 ) {
 		lastNumber = 99999;
@@ -1334,7 +1545,21 @@ void R_ScreenshotFilename( int &lastNumber, const char *base, idStr &fileName ) 
 		frac -= d*10;
 		e = frac;
 
-		sprintf( fileName, "%s%i%i%i%i%i.tga", base, a, b, c, d, e );
+		switch (format) {
+			default:
+				sprintf(fileName, "%s%i%i%i%i%i.tga", base, a, b, c, d, e);
+				break;
+			case 1:
+				sprintf(fileName, "%s%i%i%i%i%i.bmp", base, a, b, c, d, e);
+				break;
+			case 2:
+				sprintf(fileName, "%s%i%i%i%i%i.png", base, a, b, c, d, e);
+				break;
+			case 3:
+				sprintf(fileName, "%s%i%i%i%i%i.jpg", base, a, b, c, d, e);
+				break;
+		}
+		
 		if ( lastNumber == 99999 ) {
 			break;
 		}
@@ -1533,6 +1758,7 @@ void R_EnvShot_f( const idCmdArgs &args ) {
 		ref.height = glConfig.vidHeight;
 		ref.viewaxis = axis[i];
 		sprintf( fullname, "env/%s%s", baseName, extensions[i] );
+		g_screenshotFormat = 0;
 		tr.TakeScreenshot( size, size, fullname, blends, &ref );
 	}
 
@@ -1741,6 +1967,12 @@ R_SetColorMappings
 ===============
 */
 void R_SetColorMappings( void ) {
+
+	if ( r_gammaInShader.GetBool() ) {
+		// nothing to do here
+		return;
+	}
+
 	int		i, j;
 	float	g, b;
 	int		inf;
@@ -1786,6 +2018,10 @@ static void GfxInfo_f( const idCmdArgs &args ) {
 		"fullscreen"
 	};
 
+	const char* fsmode = fsstrings[r_fullscreen.GetBool()];
+	if ( r_fullscreen.GetBool() && r_fullscreenDesktop.GetBool() )
+		fsmode = "desktop-fullscreen";
+
 	common->Printf( "\nGL_VENDOR: %s\n", glConfig.vendor_string );
 	common->Printf( "GL_RENDERER: %s\n", glConfig.renderer_string );
 	common->Printf( "GL_VERSION: %s\n", glConfig.version_string );
@@ -1795,13 +2031,14 @@ static void GfxInfo_f( const idCmdArgs &args ) {
 	common->Printf( "GL_MAX_TEXTURE_COORDS_ARB: %d\n", glConfig.maxTextureCoords );
 	common->Printf( "GL_MAX_TEXTURE_IMAGE_UNITS_ARB: %d\n", glConfig.maxTextureImageUnits );
 	common->Printf( "\nPIXELFORMAT: color(%d-bits) Z(%d-bit) stencil(%d-bits)\n", glConfig.colorBits, glConfig.depthBits, glConfig.stencilBits );
-	common->Printf( "MODE: %d, %d x %d %s hz:", r_mode.GetInteger(), glConfig.vidWidth, glConfig.vidHeight, fsstrings[r_fullscreen.GetBool()] );
+	common->Printf( "MODE: %d, %d x %d %s hz:", r_mode.GetInteger(), glConfig.vidWidth, glConfig.vidHeight, fsmode );
 
 	if ( glConfig.displayFrequency ) {
 		common->Printf( "%d\n", glConfig.displayFrequency );
 	} else {
 		common->Printf( "N/A\n" );
 	}
+	common->Printf( "Logical Window size: %g x %g\n", glConfig.winWidth, glConfig.winHeight );
 
 	const char *active[2] = { "", " (ACTIVE)" };
 
@@ -1847,12 +2084,6 @@ void R_VidRestart_f( const idCmdArgs &args ) {
 		return;
 	}
 
-	// DG: notify the game DLL about the reloadImages and vid_restart commands
-	if(gameCallbacks.reloadImagesCB != NULL)
-	{
-		gameCallbacks.reloadImagesCB(gameCallbacks.reloadImagesUserArg, args);
-	}
-
 	bool full = true;
 	bool forceWindow = false;
 	for ( int i = 1 ; i < args.Argc() ; i++ ) {
@@ -1864,6 +2095,46 @@ void R_VidRestart_f( const idCmdArgs &args ) {
 			forceWindow = true;
 			continue;
 		}
+	}
+
+	// DG: allow enforcing full vid restarts (when vid_restart is called from the menu or whatever)
+	//     to let users work around driver bugs or whatever, like
+	//     https://github.com/dhewm/dhewm3/issues/587#issuecomment-2206937752
+	if ( r_vidRestartAlwaysFull.GetBool() ) {
+		full = true;
+	}
+
+	// DG: in partial mode, try to just resize the window (and make it fullscreen or windowed)
+	//     instead of doing a full vid_restart. Still falls back to a full vid_restart
+	//     in case this doesn't work (for example because MSAA settings have changed)
+	if ( !full ) {
+		int wantedWidth=0, wantedHeight=0;
+		if ( !R_GetModeInfo( &wantedWidth, &wantedHeight, r_mode.GetInteger() ) ) {
+			common->Warning( "vid_restart: R_GetModeInfo() failed?!\n" );
+		} else {
+			glimpParms_t	parms;
+			parms.width = wantedWidth;
+			parms.height = wantedHeight;
+
+			parms.fullScreen = ( forceWindow ) ? false : r_fullscreen.GetBool();
+			parms.fullScreenDesktop = r_fullscreenDesktop.GetBool();
+			parms.displayHz = r_displayRefresh.GetInteger();
+			// "vid_restart partial windowed" is used in case of errors to return to windowed mode
+			// before things explode more. in that case just keep whatever MSAA setting is active
+			parms.multiSamples = forceWindow ? -1 : r_multiSamples.GetInteger();
+			parms.stereo = false;
+
+			if ( GLimp_SetScreenParms( parms ) ) {
+				common->Printf( "'vid_restart partial' succeeded in changing resolution and/or fullscreen mode\n" );
+				return;
+			}
+		}
+	}
+
+	// DG: notify the game DLL about the reloadImages and (non-partial) vid_restart commands
+	if(gameCallbacks.reloadImagesCB != NULL)
+	{
+		gameCallbacks.reloadImagesCB(gameCallbacks.reloadImagesUserArg, args);
 	}
 
 	// this could take a while, so give them the cursor back ASAP
@@ -1884,37 +2155,24 @@ void R_VidRestart_f( const idCmdArgs &args ) {
 
 	// sound and input are tied to the window we are about to destroy
 
-	if ( full ) {
-		// free all of our texture numbers
-		soundSystem->ShutdownHW();
-		Sys_ShutdownInput();
-		globalImages->PurgeAllImages();
-		// free the context and close the window
-		GLimp_Shutdown();
-		glConfig.isInitialized = false;
+	// free all of our texture numbers
+	soundSystem->ShutdownHW();
+	Sys_ShutdownInput();
+	globalImages->PurgeAllImages();
+	// free the context and close the window
+	GLimp_Shutdown();
+	glConfig.isInitialized = false;
 
-		// create the new context and vertex cache
-		bool latch = cvarSystem->GetCVarBool( "r_fullscreen" );
-		if ( forceWindow ) {
-			cvarSystem->SetCVarBool( "r_fullscreen", false );
-		}
-		R_InitOpenGL();
-		cvarSystem->SetCVarBool( "r_fullscreen", latch );
-
-		// regenerate all images
-		globalImages->ReloadAllImages();
-	} else {
-		glimpParms_t	parms;
-		parms.width = glConfig.vidWidth;
-		parms.height = glConfig.vidHeight;
-		parms.fullScreen = ( forceWindow ) ? false : r_fullscreen.GetBool();
-		parms.displayHz = r_displayRefresh.GetInteger();
-		parms.multiSamples = r_multiSamples.GetInteger();
-		parms.stereo = false;
-		GLimp_SetScreenParms( parms );
+	// create the new context and vertex cache
+	bool latch = cvarSystem->GetCVarBool( "r_fullscreen" );
+	if ( forceWindow ) {
+		cvarSystem->SetCVarBool( "r_fullscreen", false );
 	}
+	R_InitOpenGL();
+	cvarSystem->SetCVarBool( "r_fullscreen", latch );
 
-
+	// regenerate all images
+	globalImages->ReloadAllImages();
 
 	// make sure the regeneration doesn't use anything no longer valid
 	tr.viewCount++;
@@ -2084,6 +2342,7 @@ void idRenderSystemLocal::Clear( void ) {
 	guiModel = NULL;
 	demoGuiModel = NULL;
 	takingScreenshot = false;
+	allowNoSpecular = false;
 }
 
 /*
@@ -2128,6 +2387,8 @@ void idRenderSystemLocal::Init( void ) {
 	identitySpace.modelMatrix[0*4+0] = 1.0f;
 	identitySpace.modelMatrix[1*4+1] = 1.0f;
 	identitySpace.modelMatrix[2*4+2] = 1.0f;
+
+	origWidth = origHeight = 0; // DG: for resetting width/height in EndFrame()
 }
 
 /*
@@ -2137,6 +2398,8 @@ idRenderSystemLocal::Shutdown
 */
 void idRenderSystemLocal::Shutdown( void ) {
 	common->Printf( "idRenderSystem::Shutdown()\n" );
+
+	common->SetRefreshOnPrint( false ); // without a renderer there's nothing to refresh
 
 	R_DoneFreeType( );
 
@@ -2189,6 +2452,23 @@ void idRenderSystemLocal::EndLevelLoad( void ) {
 	if ( r_forceLoadImages.GetBool() ) {
 		RB_ShowImages();
 	}
+	// DG: check if the levels worldspawn has "allow_nospecular" set, which tells us that
+	//     the map author wants "nospecular" parms of lights to be respected by the renderer
+	//     (Vanilla Doom3 didn't, even though some official levels have it set, so to not
+	//      change the look of the original game it must be enabled in the worldspawn of new maps)
+	//     See also the r_supportNoSpecular CVar (the allowNoSpecular set here only makes
+	//     a difference if r_supportNoSpecular is -1, which is the default)
+	allowNoSpecular = false;
+	if ( gameEdit != NULL ) {
+		idEntity* ent = gameEdit->FindEntity( "world" ); // the worldspawn always called "world"
+		const idDict* ws = gameEdit->EntityGetSpawnArgs( ent );
+		if ( ws != NULL ) {
+			allowNoSpecular = ws->GetBool( "allow_nospecular", "0" );
+			if ( allowNoSpecular ) {
+				common->Printf( "This map allows lights to use the 'nospecular' parm on lights\n" );
+			}
+		}
+	}
 }
 
 /*
@@ -2218,9 +2498,16 @@ idRenderSystemLocal::ShutdownOpenGL
 ========================
 */
 void idRenderSystemLocal::ShutdownOpenGL( void ) {
-	// free the context and close the window
+
 	R_ShutdownFrameData();
+
+	// as the input is tied to the window, it should be shut down when the window
+	// is destroyed (relevant when starting a mod which also recreates window)
+	Sys_ShutdownInput();
+
+	// free the context and close the window
 	GLimp_Shutdown();
+
 	glConfig.isInitialized = false;
 }
 

@@ -51,13 +51,80 @@ If you have questions concerning this license or the applicable additional terms
 #include <sys/stat.h>
 #endif
 
-#include <SDL_main.h>
+#include "tools/edit_public.h"
+
+#undef strcmp // get rid of "#define strcmp idStr::Cmp", it conflicts with SDL headers
+
+#include "sys/sys_sdl.h"
+
+#ifdef D3_SDL3
+  #define SDL_MAIN_HANDLED // dhewm3 implements WinMain() itself
+  #include <SDL3/SDL_main.h>
+#else // SDL1.2 or SDL2
+  #include <SDL_main.h>
+#endif
+
 
 idCVar Win32Vars_t::win_outputDebugString( "win_outputDebugString", "0", CVAR_SYSTEM | CVAR_BOOL, "" );
 idCVar Win32Vars_t::win_outputEditString( "win_outputEditString", "1", CVAR_SYSTEM | CVAR_BOOL, "" );
 idCVar Win32Vars_t::win_viewlog( "win_viewlog", "0", CVAR_SYSTEM | CVAR_INTEGER, "" );
 
 Win32Vars_t	win32;
+
+#ifdef ID_ALLOW_TOOLS
+/* These are required for tools (DG: taken from SteelStorm2) */
+
+static HMODULE hOpenGL_DLL;
+
+typedef BOOL(WINAPI * PWGLSWAPBUFFERS)(HDC);
+
+PWGLSWAPBUFFERS			qwglSwapBuffers;
+
+typedef BOOL(WINAPI * PWGLCOPYCONTEXT)(HGLRC, HGLRC, UINT);
+typedef HGLRC(WINAPI * PWGLCREATECONTEXT)(HDC);
+typedef HGLRC(WINAPI * PWGLCREATELAYERCONTEXT)(HDC, int);
+typedef BOOL(WINAPI * PWGLDELETECONTEXT)(HGLRC);
+typedef HGLRC(WINAPI * PWGLGETCURRENTCONTEXT)(VOID);
+typedef HDC(WINAPI * PWGLGETCURRENTDC)(VOID);
+typedef PROC(WINAPI * PWGLGETPROCADDRESS)(LPCSTR);
+typedef BOOL(WINAPI * PWGLMAKECURRENT)(HDC, HGLRC);
+typedef BOOL(WINAPI * PWGLSHARELISTS)(HGLRC, HGLRC);
+typedef BOOL(WINAPI * PWGLUSEFONTBITMAPS)(HDC, DWORD, DWORD, DWORD);
+
+
+PWGLCOPYCONTEXT			qwglCopyContext;
+PWGLCREATECONTEXT		qwglCreateContext;
+PWGLCREATELAYERCONTEXT	qwglCreateLayerContext;
+PWGLDELETECONTEXT		qwglDeleteContext;
+PWGLGETCURRENTCONTEXT	qwglGetCurrentContext;
+PWGLGETCURRENTDC		qwglGetCurrentDC;
+PWGLGETPROCADDRESS		qwglGetProcAddress;
+PWGLMAKECURRENT			qwglMakeCurrent;
+PWGLSHARELISTS			qwglShareLists;
+PWGLUSEFONTBITMAPS		qwglUseFontBitmaps;
+
+typedef BOOL(WINAPI * PWGLUSEFONTOUTLINES)(HDC, DWORD, DWORD, DWORD, FLOAT,
+	FLOAT, int, LPGLYPHMETRICSFLOAT);
+typedef BOOL(WINAPI * PWGLDESCRIBELAYERPLANE)(HDC, int, int, UINT,
+	LPLAYERPLANEDESCRIPTOR);
+typedef int  (WINAPI * PWGLSETLAYERPALETTEENTRIES)(HDC, int, int, int,
+	CONST COLORREF *);
+typedef int  (WINAPI * PWGLGETLAYERPALETTEENTRIES)(HDC, int, int, int,
+	COLORREF *);
+typedef BOOL(WINAPI * PWGLREALIZELAYERPALETTE)(HDC, int, BOOL);
+typedef BOOL(WINAPI * PWGLSWAPLAYERBUFFERS)(HDC, UINT);
+
+PWGLUSEFONTOUTLINES			qwglUseFontOutlines;
+PWGLDESCRIBELAYERPLANE		qwglDescribeLayerPlane;
+PWGLSETLAYERPALETTEENTRIES	qwglSetLayerPaletteEntries;
+PWGLGETLAYERPALETTEENTRIES	qwglGetLayerPaletteEntries;
+PWGLREALIZELAYERPALETTE		qwglRealizeLayerPalette;
+PWGLSWAPLAYERBUFFERS		qwglSwapLayerBuffers;
+
+#endif /* End stuff required for tools */
+
+static bool hadError = false;
+static char errorText[4096];
 
 /*
 =============
@@ -71,11 +138,28 @@ void Sys_Error( const char *error, ... ) {
 	char		text[4096];
 	MSG        msg;
 
+	if ( !Sys_IsMainThread() ) {
+		// to avoid deadlocks we mustn't call Conbuf_AppendText() etc if not in main thread!
+		va_start(argptr, error);
+		vsprintf(errorText, error, argptr);
+		va_end(argptr);
+
+		printf("%s", errorText);
+		OutputDebugString( errorText );
+
+		hadError = true;
+		return;
+	}
+
 	va_start( argptr, error );
 	vsprintf( text, error, argptr );
 	va_end( argptr);
 
-	printf("%s", text);
+	if ( !hadError ) {
+		// if we had an error in another thread, printf() and OutputDebugString() has already been called for this
+		printf( "%s", text );
+		OutputDebugString( text );
+	}
 
 	Conbuf_AppendText( text );
 	Conbuf_AppendText( "\n" );
@@ -109,6 +193,14 @@ Sys_Quit
 ==============
 */
 void Sys_Quit( void ) {
+#ifdef ID_ALLOW_TOOLS
+	// Free OpenGL DLL.
+	if (hOpenGL_DLL)
+	{
+		FreeLibrary(hOpenGL_DLL);
+	}
+#endif
+
 	timeEndPeriod( 1 );
 	Sys_ShutdownInput();
 	Sys_DestroyConsole();
@@ -121,13 +213,22 @@ void Sys_Quit( void ) {
 Sys_Printf
 ==============
 */
-#define MAXPRINTMSG 4096
+
+enum {
+	MAXPRINTMSG = 4096,
+	MAXNUMBUFFEREDLINES = 16
+};
+
+static char bufferedPrintfLines[MAXNUMBUFFEREDLINES][MAXPRINTMSG];
+static int curNumBufferedPrintfLines = 0;
+static CRITICAL_SECTION printfCritSect;
+
 void Sys_Printf( const char *fmt, ... ) {
 	char		msg[MAXPRINTMSG];
 
 	va_list argptr;
 	va_start(argptr, fmt);
-	idStr::vsnPrintf( msg, MAXPRINTMSG-1, fmt, argptr );
+	int len = idStr::vsnPrintf( msg, MAXPRINTMSG-1, fmt, argptr );
 	va_end(argptr);
 	msg[sizeof(msg)-1] = '\0';
 
@@ -137,7 +238,18 @@ void Sys_Printf( const char *fmt, ... ) {
 		OutputDebugString( msg );
 	}
 	if ( win32.win_outputEditString.GetBool() ) {
-		Conbuf_AppendText( msg );
+		if ( Sys_IsMainThread() ) {
+			Conbuf_AppendText( msg );
+		} else {
+			EnterCriticalSection( &printfCritSect );
+			int idx = curNumBufferedPrintfLines++;
+			if ( idx < MAXNUMBUFFEREDLINES ) {
+				if ( len >= MAXPRINTMSG )
+					len = MAXPRINTMSG - 1;
+				memcpy( bufferedPrintfLines[idx], msg, len + 1 );
+			}
+			LeaveCriticalSection( &printfCritSect );
+		}
 	}
 }
 
@@ -275,7 +387,7 @@ static int WPath2A(char *dst, size_t size, const WCHAR *src) {
 /*
 ==============
 Returns "My Documents"/My Games/dhewm3 directory (or equivalent - "CSIDL_PERSONAL").
-To be used with Sys_DefaultSavePath(), so savegames, screenshots etc will be
+To be used with Sys_GetPath(PATH_SAVE), so savegames, screenshots etc will be
 saved to the users files instead of systemwide.
 
 Based on (with kind permission) Yamagi Quake II's Sys_GetHomeDir()
@@ -284,7 +396,7 @@ Returns the number of characters written to dst
 ==============
  */
 extern "C" { // DG: I need this in SDL_win32_main.c
-	int Sys_GetHomeDir(char *dst, size_t size)
+	int Win_GetHomeDir(char *dst, size_t size)
 	{
 		int len;
 		WCHAR profile[MAX_OSPATH];
@@ -379,7 +491,7 @@ bool Sys_GetPath(sysPath_t type, idStr &path) {
 
 	case PATH_CONFIG:
 	case PATH_SAVE:
-		if (Sys_GetHomeDir(buf, sizeof(buf)) < 1) {
+		if (Win_GetHomeDir(buf, sizeof(buf)) < 1) {
 			Sys_Error("ERROR: Couldn't get dir to home path");
 			return false;
 		}
@@ -468,6 +580,10 @@ char *Sys_GetClipboardData( void ) {
 	return data;
 }
 
+void Sys_FreeClipboardData( char* data ) {
+	Mem_Free( data );
+}
+
 /*
 ================
 Sys_SetClipboardData
@@ -530,6 +646,41 @@ uintptr_t Sys_DLL_Load( const char *dllName ) {
 			Sys_DLL_Unload( (uintptr_t)libHandle );
 			return 0;
 		}
+	} else {
+		DWORD e = GetLastError();
+
+		if ( e ==  0x7E ) {
+			// 0x7E is "The specified module could not be found."
+			// don't print a warning for that error, it's expected
+			// when trying different possible paths for a DLL
+			return 0;
+		}
+
+		if ( e == 0xC1) {
+			// "[193 (0xC1)] is not a valid Win32 application"
+			// probably going to be common. Lets try to be less cryptic.
+			common->Warning( "LoadLibrary( \"%s\" ) Failed ! [%i (0x%X)]\tprobably the DLL is of the wrong architecture, "
+			                 "like x64 instead of x86 (this build of dhewm3 expects %s)",
+			                 dllName, e, e, D3_ARCH );
+			return 0;
+		}
+
+		// for all other errors, print whatever FormatMessage() gives us
+		LPVOID msgBuf = NULL;
+
+		FormatMessage(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			e,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&msgBuf,
+			0, NULL);
+
+		common->Warning( "LoadLibrary( \"%s\" ) Failed ! [%i (0x%X)]\t%s", dllName, e, e, msgBuf );
+
+		::LocalFree( msgBuf );
 	}
 	return (uintptr_t)libHandle;
 }
@@ -540,7 +691,30 @@ Sys_DLL_GetProcAddress
 =====================
 */
 void *Sys_DLL_GetProcAddress( uintptr_t dllHandle, const char *procName ) {
-	return (void *)GetProcAddress( (HINSTANCE)dllHandle, procName );
+	void * adr = (void*)GetProcAddress((HINSTANCE)dllHandle, procName);
+	if (!adr)
+	{
+		DWORD e = GetLastError();
+		LPVOID msgBuf = NULL;
+
+		FormatMessage(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			e,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&msgBuf,
+			0, NULL);
+
+		idStr errorStr = va("[%i (0x%X)]\t%s", e, e, msgBuf);
+
+		if (errorStr.Length())
+			common->Warning("GetProcAddress( %i %s) Failed ! %s", dllHandle, procName, errorStr.c_str());
+
+		::LocalFree(msgBuf);
+	}
+	return adr;
 }
 
 /*
@@ -592,6 +766,11 @@ void Sys_Init( void ) {
 #if 0
 	cmdSystem->AddCommand( "setAsyncSound", Sys_SetAsyncSound_f, CMD_FL_SYSTEM, "set the async sound option" );
 #endif
+	{
+		idStr savepath;
+		Sys_GetPath( PATH_SAVE, savepath );
+		common->Printf( "Logging console output to %s/dhewm3log.txt\n", savepath.c_str() );
+	}
 
 	//
 	// Windows version
@@ -617,6 +796,26 @@ Sys_Shutdown
 ================
 */
 void Sys_Shutdown( void ) {
+#ifdef ID_ALLOW_TOOLS
+	qwglCopyContext = NULL;
+	qwglCreateContext = NULL;
+	qwglCreateLayerContext = NULL;
+	qwglDeleteContext = NULL;
+	qwglDescribeLayerPlane = NULL;
+	qwglGetCurrentContext = NULL;
+	qwglGetCurrentDC = NULL;
+	qwglGetLayerPaletteEntries = NULL;
+	qwglGetProcAddress = NULL;
+	qwglMakeCurrent = NULL;
+	qwglRealizeLayerPalette = NULL;
+	qwglSetLayerPaletteEntries = NULL;
+	qwglShareLists = NULL;
+	qwglSwapLayerBuffers = NULL;
+	qwglUseFontBitmaps = NULL;
+	qwglUseFontOutlines = NULL;
+	qwglSwapBuffers = NULL;
+#endif // ID_ALLOW_TOOLS
+
 	CoUninitialize();
 }
 
@@ -638,7 +837,74 @@ void Win_Frame( void ) {
 		}
 		win32.win_viewlog.ClearModified();
 	}
+
+	if ( curNumBufferedPrintfLines > 0 ) {
+		// if Sys_Printf() had been called in another thread, add those lines to the windows console now
+		EnterCriticalSection( &printfCritSect );
+		int n = Min( curNumBufferedPrintfLines, (int)MAXNUMBUFFEREDLINES );
+		for ( int i = 0; i < n; ++i ) {
+			Conbuf_AppendText( bufferedPrintfLines[i] );
+		}
+		curNumBufferedPrintfLines = 0;
+		LeaveCriticalSection( &printfCritSect );
+	}
+
+	if ( hadError ) {
+		// if Sys_Error() had been called in another thread, handle it now
+		Sys_Error( "%s", errorText );
+	}
 }
+
+// the MFC tools use Win_GetWindowScalingFactor() for High-DPI support
+#ifdef ID_ALLOW_TOOLS
+
+typedef enum D3_MONITOR_DPI_TYPE {
+	D3_MDT_EFFECTIVE_DPI = 0,
+	D3_MDT_ANGULAR_DPI = 1,
+	D3_MDT_RAW_DPI = 2,
+	D3_MDT_DEFAULT = D3_MDT_EFFECTIVE_DPI
+} D3_MONITOR_DPI_TYPE;
+
+// https://docs.microsoft.com/en-us/windows/win32/api/shellscalingapi/nf-shellscalingapi-getdpiformonitor
+// GetDpiForMonitor() - Win8.1+, shellscalingapi.h, Shcore.dll
+static HRESULT (STDAPICALLTYPE *D3_GetDpiForMonitor)(HMONITOR hmonitor, D3_MONITOR_DPI_TYPE dpiType, UINT *dpiX, UINT *dpiY) = NULL;
+
+// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdpiforwindow
+// GetDpiForWindow() - Win10 1607+, winuser.h/Windows.h, User32.dll
+static UINT(WINAPI *D3_GetDpiForWindow)(HWND hwnd) = NULL;
+
+float Win_GetWindowScalingFactor(HWND window)
+{
+	// the best way - supported by Win10 1607 and newer
+	if ( D3_GetDpiForWindow != NULL ) {
+		UINT dpi = D3_GetDpiForWindow(window);
+		return static_cast<float>(dpi) / 96.0f;
+	}
+
+	// probably second best, supported by Win8.1 and newer
+	if ( D3_GetDpiForMonitor != NULL ) {
+		HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTOPRIMARY);
+		UINT dpiX = 96, dpiY;
+		D3_GetDpiForMonitor(monitor, D3_MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+		return static_cast<float>(dpiX) / 96.0f;
+	}
+
+	// on older versions of windows, DPI was system-wide (not per monitor)
+	// and changing DPI required logging out and in again (AFAIK), so we only need to get it once
+	static float scaling_factor = -1.0f;
+	if ( scaling_factor == -1.0f ) {
+		HDC hdc = GetDC(window);
+		if (hdc == NULL) {
+			return 1.0f;
+		}
+		// "Number of pixels per logical inch along the screen width. In a system with multiple display monitors, this value is the same for all monitors."
+		int ppi = GetDeviceCaps(hdc, LOGPIXELSX);
+		scaling_factor = static_cast<float>(ppi) / 96.0f;
+	}
+	return scaling_factor;
+}
+
+#endif // ID_ALLOW_TOOLS
 
 // code that tells windows we're High DPI aware so it doesn't scale our windows
 // taken from Yamagi Quake II
@@ -647,7 +913,7 @@ typedef enum D3_PROCESS_DPI_AWARENESS {
 	D3_PROCESS_DPI_UNAWARE = 0,
 	D3_PROCESS_SYSTEM_DPI_AWARE = 1,
 	D3_PROCESS_PER_MONITOR_DPI_AWARE = 2
-} YQ2_PROCESS_DPI_AWARENESS;
+} D3_PROCESS_DPI_AWARENESS;
 
 static void setHighDPIMode(void)
 {
@@ -657,7 +923,6 @@ static void setHighDPIMode(void)
 	/* Win8.1 and later */
 	HRESULT(WINAPI *SetProcessDpiAwareness)(D3_PROCESS_DPI_AWARENESS dpiAwareness) = NULL;
 
-
 	HINSTANCE userDLL = LoadLibrary("USER32.DLL");
 
 	if (userDLL)
@@ -665,15 +930,13 @@ static void setHighDPIMode(void)
 		SetProcessDPIAware = (BOOL(WINAPI *)(void)) GetProcAddress(userDLL, "SetProcessDPIAware");
 	}
 
-
 	HINSTANCE shcoreDLL = LoadLibrary("SHCORE.DLL");
 
 	if (shcoreDLL)
 	{
-		SetProcessDpiAwareness = (HRESULT(WINAPI *)(YQ2_PROCESS_DPI_AWARENESS))
+		SetProcessDpiAwareness = (HRESULT(WINAPI *)(D3_PROCESS_DPI_AWARENESS))
 									GetProcAddress(shcoreDLL, "SetProcessDpiAwareness");
 	}
-
 
 	if (SetProcessDpiAwareness) {
 		SetProcessDpiAwareness(D3_PROCESS_PER_MONITOR_DPI_AWARE);
@@ -681,15 +944,390 @@ static void setHighDPIMode(void)
 	else if (SetProcessDPIAware) {
 		SetProcessDPIAware();
 	}
+
+#ifdef ID_ALLOW_TOOLS // also init function pointers for Win_GetWindowScalingFactor() here
+	if (userDLL) {
+		D3_GetDpiForWindow = (UINT(WINAPI *)(HWND))GetProcAddress(userDLL, "GetDpiForWindow");
+	}
+	if (shcoreDLL) {
+		D3_GetDpiForMonitor = (HRESULT (STDAPICALLTYPE *)(HMONITOR, D3_MONITOR_DPI_TYPE, UINT *, UINT *))
+		                          GetProcAddress(shcoreDLL, "GetDpiForMonitor");
+	}
+#endif // ID_ALLOW_TOOLS
+}
+
+#ifdef ID_ALLOW_TOOLS
+static void loadWGLpointers() {
+	if (hOpenGL_DLL == NULL)
+	{
+		// Load OpenGL DLL.
+		hOpenGL_DLL = LoadLibrary("opengl32.dll");
+		if (hOpenGL_DLL == NULL) {
+			Sys_Error(GAME_NAME " Cannot Load opengl32.dll - Disabling TOOLS");
+			return;
+		}
+	}
+	// opengl32.dll found... grab the addresses.
+
+	qwglGetProcAddress = (PWGLGETPROCADDRESS)GetProcAddress(hOpenGL_DLL, "wglGetProcAddress");
+
+	// Context controls
+	qwglCopyContext = (PWGLCOPYCONTEXT)GetProcAddress(hOpenGL_DLL, "wglCopyContext");
+	qwglCreateContext = (PWGLCREATECONTEXT)GetProcAddress(hOpenGL_DLL, "wglCreateContext");
+	qwglCreateLayerContext = (PWGLCREATELAYERCONTEXT)GetProcAddress(hOpenGL_DLL, "wglCreateLayerContext");
+	qwglDeleteContext = (PWGLDELETECONTEXT)GetProcAddress(hOpenGL_DLL, "wglDeleteContext");
+	qwglGetCurrentContext = (PWGLGETCURRENTCONTEXT)GetProcAddress(hOpenGL_DLL, "wglGetCurrentContext");
+	qwglGetCurrentDC = (PWGLGETCURRENTDC)GetProcAddress(hOpenGL_DLL, "wglGetCurrentDC");
+	qwglMakeCurrent = (PWGLMAKECURRENT)GetProcAddress(hOpenGL_DLL, "wglMakeCurrent");
+	qwglShareLists = (PWGLSHARELISTS)GetProcAddress(hOpenGL_DLL, "wglShareLists");
+
+	// Fonts
+	qwglUseFontBitmaps = (PWGLUSEFONTBITMAPS)GetProcAddress(hOpenGL_DLL, "wglUseFontBitmapsA");
+	qwglUseFontOutlines = (PWGLUSEFONTOUTLINES)GetProcAddress(hOpenGL_DLL, "wglUseFontOutlinesA");
+
+	// Layers.
+	qwglDescribeLayerPlane = (PWGLDESCRIBELAYERPLANE)GetProcAddress(hOpenGL_DLL, "wglDescribeLayerPlane");
+	qwglSwapLayerBuffers = (PWGLSWAPLAYERBUFFERS)GetProcAddress(hOpenGL_DLL, "wglSwapLayerBuffers");
+
+	// Palette controls
+	qwglGetLayerPaletteEntries = (PWGLGETLAYERPALETTEENTRIES)GetProcAddress(hOpenGL_DLL, "wglGetLayerPaletteEntries");
+	qwglRealizeLayerPalette = (PWGLREALIZELAYERPALETTE)GetProcAddress(hOpenGL_DLL, "wglRealizeLayerPalette");
+	qwglSetLayerPaletteEntries = (PWGLSETLAYERPALETTEENTRIES)GetProcAddress(hOpenGL_DLL, "wglSetLayerPaletteEntries");
+
+
+	// These by default exist in windows
+	qwglSwapBuffers = SwapBuffers;
+}
+
+// calls wglChoosePixelFormatARB() or ChoosePixelFormat() matching the main window from SDL
+int Win_ChoosePixelFormat(HDC hdc)
+{
+	if (win32.wglChoosePixelFormatARB != NULL && win32.piAttribIList != NULL) {
+		int formats[4];
+		UINT numFormats = 0;
+		if (win32.wglChoosePixelFormatARB(hdc, win32.piAttribIList, NULL, 4, formats, &numFormats) && numFormats > 0) {
+			return formats[0];
+		}
+		static bool haveWarned = false;
+		if(!haveWarned) {
+			common->Warning("wglChoosePixelFormatARB() failed, falling back to ChoosePixelFormat()!\n");
+			haveWarned = true;
+		}
+	}
+	// fallback to normal ChoosePixelFormats() - doesn't support MSAA!
+	return ChoosePixelFormat(hdc, &win32.pfd);
+}
+#endif
+
+
+// ---------- Time Stuff -------------
+
+// D3_CpuPause() abstracts a CPU pause instruction, to make busy waits a bit less power-hungry
+// (code taken from Yamagi Quake II)
+#ifdef SDL_CPUPauseInstruction
+  #define D3_CpuPause() SDL_CPUPauseInstruction()
+#elif defined(__GNUC__)
+  #if (__i386 || __x86_64__)
+    #define D3_CpuPause() asm volatile("pause")
+  #elif defined(__aarch64__) || (defined(__ARM_ARCH) && __ARM_ARCH >= 7) || defined(__ARM_ARCH_6K__)
+    #define D3_CpuPause() asm volatile("yield")
+  #elif defined(__powerpc__) || defined(__powerpc64__)
+    #define D3_CpuPause() asm volatile("or 27,27,27")
+  #elif defined(__riscv) && __riscv_xlen == 64
+    #define D3_CpuPause() asm volatile(".insn i 0x0F, 0, x0, x0, 0x010");
+  #endif
+#elif defined(_MSC_VER)
+  #if defined(_M_IX86) || defined(_M_X64)
+    #define D3_CpuPause() _mm_pause()
+  #elif defined(_M_ARM) || defined(_M_ARM64)
+    #define D3_CpuPause() __yield()
+  #endif
+#endif
+
+#ifndef D3_CpuPause
+  #warning "No D3_CpuPause implementation for this platform/architecture! Will busy-wait sometimes!"
+  // TODO: something that prevents the loop from being optimized away?
+  //#define D3_CpuPause()
+#endif
+
+static double perfCountToMS = 0.0; // set in initTime()
+static LARGE_INTEGER firstCount = { 0 };
+
+static size_t pauseLoopsPer5usec = 100; // set in initTime()
+
+static void Win_InitTime() {
+	LARGE_INTEGER freq = { 0 };
+	QueryPerformanceFrequency(&freq); // in Hz
+	perfCountToMS = 1000.0 / (double)freq.QuadPart; // 1/freq would be factor for seconds, we want milliseconds
+	QueryPerformanceCounter(&firstCount);
+	firstCount.QuadPart -= 1.5 / perfCountToMS; // make sure Sys_MillisecondsPrecise() always returns value >= 1
+
+	double before = Sys_MillisecondsPrecise();
+	for ( int i=0; i < 1000; ++i ) {
+		// volatile so the call isn't optimized away
+		volatile double x = Sys_MillisecondsPrecise();
+		(void)x;
+	}
+	double after = Sys_MillisecondsPrecise();
+	double callDiff = after - before;
+
+#ifdef D3_CpuPause
+	// figure out how long D3_CpuPause() instructions take
+	before = Sys_MillisecondsPrecise();
+	for( int i=0; i < 1000000; ++i ) {
+		// call it 4 times per loop, so the ratio between pause and loop-instructions is better
+		D3_CpuPause(); D3_CpuPause(); D3_CpuPause(); D3_CpuPause();
+	}
+	after = Sys_MillisecondsPrecise();
+	double diff = after - before;
+	double onePauseIterTime = diff / 1000000;
+	if ( onePauseIterTime > 0.00000001 ) {
+		double loopsPer10usec = 0.005 / onePauseIterTime;
+		pauseLoopsPer5usec = loopsPer10usec;
+		printf( "Win_InitTime(): A call to Sys_MillisecondsPrecise() takes about %g nsec; 1mio pause loops took %g ms => pauseLoopsPer5usec = %zd\n",
+		        callDiff*1000.0, diff, pauseLoopsPer5usec );
+		if ( pauseLoopsPer5usec == 0 )
+			pauseLoopsPer5usec = 1;
+	} else {
+		assert( 0 && "apparently 1mio pause loops are so fast we can't even measure it?!" );
+		pauseLoopsPer5usec = 1000000;
+	}
+	// Note: Due to CPU frequency scaling this is not super precise, but it should be within
+	//   an order of magnitude of the real current value, I think, which should suffice for our purposes
+#else
+	printf( "Win_InitTime(): A call to Sys_MillisecondsPrecise() takes about %g nsecs\n", callDiff*1000.0 );
+#endif
 }
 
 /*
+=======================
+Sys_MillisecondsPrecise
+=======================
+*/
+double Sys_MillisecondsPrecise() {
+	LARGE_INTEGER cur;
+	QueryPerformanceCounter(&cur);
+
+	double ret = cur.QuadPart - firstCount.QuadPart;
+	ret *= perfCountToMS;
+	return ret;
+}
+
+/*
+=====================
+Sys_SleepUntilPrecise
+=====================
+*/
+void Sys_SleepUntilPrecise( double targetTimeMS ) {
+	double msec = targetTimeMS - Sys_MillisecondsPrecise();
+	if ( msec < 0.01 ) // don't bother for less than 10usec
+		return;
+
+	if ( msec > 2.0 ) {
+		// Note: Theoretically one could use SetWaitableTimer() and WaitForSingleObject()
+		//   for higher precision, but last time I tested (on Win10),
+		//   in practice that also only had millisecond-precision
+		dword sleepMS = msec - 1.0; // wait for last MS or so in busy(-ish) loop below
+		Sleep( sleepMS );
+	}
+
+	// wait for the remaining time with a busy loop, as that has higher precision
+	do {
+#ifdef D3_CpuPause
+		for ( size_t i=0; i < pauseLoopsPer5usec; ++i ) {
+			// call it 4 times per loop, so the ratio between pause and loop-instructions is better
+			D3_CpuPause(); D3_CpuPause(); D3_CpuPause(); D3_CpuPause();
+		}
+#endif
+
+		msec = targetTimeMS - Sys_MillisecondsPrecise();
+	} while ( msec >= 0.01 );
+}
+
+
+// stdout/stderr redirection, originally from SDL_win32_main.c
+
+/* The standard output files */
+#define STDOUT_FILE	TEXT("dhewm3log.txt") /* DG: renamed this */
+#define STDERR_FILE	TEXT("stderr.txt")
+
+/* Set a variable to tell if the stdio redirect has been enabled. */
+static int stdioRedirectEnabled = 0;
+static char stdoutPath[MAX_PATH];
+static char stderrPath[MAX_PATH];
+#define DIR_SEPERATOR TEXT("/")
+
+
+/* Remove the output files if there was no output written */
+static void cleanup_output(void) {
+	FILE *file;
+	int empty;
+
+	/* Flush the output in case anything is queued */
+	fclose(stdout);
+	fclose(stderr);
+
+	/* Without redirection we're done */
+	if (!stdioRedirectEnabled) {
+		return;
+	}
+
+	/* See if the files have any output in them */
+	if ( stdoutPath[0] ) {
+		file = fopen(stdoutPath, TEXT("rb"));
+		if ( file ) {
+			empty = (fgetc(file) == EOF) ? 1 : 0;
+			fclose(file);
+			if ( empty ) {
+				remove(stdoutPath);
+			}
+		}
+	}
+	if ( stderrPath[0] ) {
+		file = fopen(stderrPath, TEXT("rb"));
+		if ( file ) {
+			empty = (fgetc(file) == EOF) ? 1 : 0;
+			fclose(file);
+			if ( empty ) {
+				remove(stderrPath);
+			}
+		}
+	}
+}
+
+/* Redirect the output (stdout and stderr) to a file */
+static void redirect_output(void)
+{
+	char path[MAX_PATH];
+	struct _stat st;
+
+	/* DG: use "My Documents/My Games/dhewm3" to write stdout.txt and stderr.txt
+	*     instead of the binary, which might not be writable */
+	Win_GetHomeDir(path, sizeof(path));
+
+	if (_stat(path, &st) == -1) {
+		/* oops, "My Documents/My Games/dhewm3" doesn't exist - does My Games/ at least exist? */
+		char myGamesPath[MAX_PATH];
+		char* lastslash;
+		memcpy(myGamesPath, path, MAX_PATH);
+		lastslash = strrchr(myGamesPath, '/');
+		if (lastslash != NULL) {
+			*lastslash = '\0';
+		}
+		if (_stat(myGamesPath, &st) == -1) {
+			/* if My Documents/My Games/ doesn't exist, create it */
+			if( _mkdir(myGamesPath) != 0 && errno != EEXIST ) {
+				char msg[2048];
+				D3_snprintfC99( msg, sizeof(msg), "Failed to create '%s',\n error number is %d (%s).\nPermission problem?",
+				                myGamesPath, errno, strerror(errno) );
+				MessageBox( NULL, msg, "Can't create 'My Games' directory!", MB_OK | MB_ICONERROR );
+				exit(1);
+			}
+		}
+		/* create My Documents/My Games/dhewm3/ */
+		if( _mkdir(path) != 0 && errno != EEXIST ) {
+			char msg[2048];
+			D3_snprintfC99( msg, sizeof(msg), "Failed to create '%s'\n(for savegames, configs and logs),\n error number is %d (%s)\nIs Documents/My Games/ write protected?",
+			                path, errno, strerror(errno) );
+			MessageBox( NULL, msg, "Can't create 'My Games/dhewm3' directory!", MB_OK | MB_ICONERROR );
+			exit(1);
+		}
+	}
+
+	FILE *newfp;
+
+#if 0 /* DG: don't do this anymore. */
+	DWORD pathlen;
+	pathlen = GetModuleFileName(NULL, path, SDL_arraysize(path));
+	while ( pathlen > 0 && path[pathlen] != '\\' ) {
+		--pathlen;
+	}
+	path[pathlen] = '\0';
+#endif
+
+	SDL_strlcpy( stdoutPath, path, SDL_arraysize(stdoutPath) );
+	SDL_strlcat( stdoutPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
+
+	{ /* DG: rename old stdout log */
+		char stdoutPathBK[MAX_PATH];
+		SDL_strlcpy( stdoutPathBK, path, SDL_arraysize(stdoutPath) );
+		SDL_strlcat( stdoutPathBK, DIR_SEPERATOR TEXT("dhewm3log-old.txt"), SDL_arraysize(stdoutPath) );
+		rename( stdoutPath, stdoutPathBK );
+	} /* DG end */
+
+	  /* Redirect standard input and standard output */
+	newfp = freopen(stdoutPath, TEXT("w"), stdout);
+
+	if ( newfp == NULL ) {	/* This happens on NT */
+#if !defined(stdout)
+		stdout = fopen(stdoutPath, TEXT("w"));
+#else
+		newfp = fopen(stdoutPath, TEXT("w"));
+		if ( newfp ) {
+			*stdout = *newfp;
+		} else {
+			char msg[2048];
+			D3_snprintfC99( msg, sizeof(msg), "Failed to create '%s',\n error number is %d (%s)\nIs Documents/My Games/dhewm3/\n or dhewm3log.txt write protected?",
+			                stdoutPath, errno, strerror(errno) );
+			MessageBox( NULL, msg, "Can't create dhewm3log.txt!", MB_OK | MB_ICONERROR );
+			exit(1);
+		}
+#endif
+	}
+
+	SDL_strlcpy( stderrPath, path, SDL_arraysize(stderrPath) );
+	SDL_strlcat( stderrPath, DIR_SEPERATOR STDERR_FILE, SDL_arraysize(stderrPath) );
+
+	newfp = freopen(stderrPath, TEXT("w"), stderr);
+	if ( newfp == NULL ) {	/* This happens on NT */
+#if !defined(stderr)
+		stderr = fopen(stderrPath, TEXT("w"));
+#else
+		newfp = fopen(stderrPath, TEXT("w"));
+		if ( newfp ) {
+			*stderr = *newfp;
+		} else {
+			char msg[2048];
+			D3_snprintfC99( msg, sizeof(msg), "Failed to create '%s',\n error number is %d (%s)\nIs Documents/My Games/dhewm3/ write protected?",
+			                stderrPath, errno, strerror(errno) );
+			MessageBox( NULL, msg, "Can't create stderr.txt!", MB_OK | MB_ICONERROR );
+			exit(1);
+		}
+#endif
+	}
+
+	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
+	setbuf(stderr, NULL);			/* No buffering */
+	stdioRedirectEnabled = 1;
+}
+
+// end of stdout/stderr redirection code from old SDL
+
+/*
 ==================
-WinMain
+The pseudo-main function called from real main (either in SDL_win32_main.c or WinMain() below)
+NOTE: Currently argv[] are ANSI strings, not UTF-8 strings as usual in SDL2 and SDL3!
 ==================
 */
-int main(int argc, char *argv[]) {
-	const HCURSOR hcurSave = ::SetCursor( LoadCursor( 0, IDC_WAIT ) );
+int SDL_main(int argc, char *argv[]) {
+	// as the very first thing, redirect stdout to dhewm3log.txt (and stderr to stderr.txt)
+	// so we can log
+	redirect_output();
+	atexit(cleanup_output);
+
+	// now that stdout is redirected to dhewm3log.txt,
+	// log its (approx.) creation time before anything else is logged:
+	{
+		time_t tt = time(NULL);
+		const struct tm* tms = localtime(&tt);
+		char timeStr[64] = {};
+		strftime(timeStr, sizeof(timeStr), "%F %H:%M:%S", tms);
+		printf("Opened this log at %s\n", timeStr);
+	}
+
+	InitializeCriticalSection( &printfCritSect );
+
+	Win_InitTime();
 
 #ifdef ID_DEDICATED
 	MSG msg;
@@ -713,6 +1351,10 @@ int main(int argc, char *argv[]) {
 	_CrtSetDbgFlag( 0 );
 #endif
 
+#ifdef ID_ALLOW_TOOLS
+	loadWGLpointers();
+#endif
+
 	if ( argc > 1 ) {
 		common->Init( argc-1, &argv[1] );
 	} else {
@@ -731,11 +1373,12 @@ int main(int argc, char *argv[]) {
 	SetThreadAffinityMask( GetCurrentThread(), 1 );
 #endif
 
-	// ::SetCursor( hcurSave ); // DG: I think SDL handles the cursor fine..
-
 	// Launch the script debugger
 	if ( strstr( GetCommandLine(), "+debugger" ) ) {
-		// DebuggerClientInit( lpCmdLine );
+
+#ifdef ID_ALLOW_TOOLS
+		DebuggerClientInit(GetCommandLine());
+#endif
 		return 0;
 	}
 
@@ -856,6 +1499,7 @@ void idSysLocal::StartProcess( const char *exePath, bool doexit ) {
 	si.cb = sizeof(si);
 
 	strncpy( szPathOrig, exePath, _MAX_PATH );
+	szPathOrig[_MAX_PATH-1] = 0;
 
 	if( !CreateProcess( NULL, szPathOrig, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi ) ) {
 		common->Error( "Could not start process: '%s' ", szPathOrig );
@@ -866,3 +1510,80 @@ void idSysLocal::StartProcess( const char *exePath, bool doexit ) {
 		cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "quit\n" );
 	}
 }
+
+// the actual WinMain(), based on SDL2_main and SDL3's SDL_main_impl.h + SDL_RunApp()
+// but modified to pass ANSI strings to SDL_main() instead of UTF-8,
+// because dhewm3 doesn't use Unicode internally (except for Dear ImGui,
+// which doesn't use commandline arguments)
+// for SDL1.2, SDL_win32_main.c is still used instead
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+
+/* Pop up an out of memory message, returns to Windows */
+static BOOL OutOfMemory(void)
+{
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", "Out of memory - aborting", NULL);
+	return -1;
+}
+
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
+{
+	(void)hInst;
+	(void)hPrev;
+	(void)szCmdLine;
+	(void)sw;
+
+	LPWSTR *argvw;
+	char **argv;
+	int i, argc, result;
+
+	argvw = CommandLineToArgvW(GetCommandLineW(), &argc);
+	if (!argvw) {
+		return OutOfMemory();
+	}
+
+	/* Note that we need to be careful about how we allocate/free memory here.
+	* If the application calls SDL_SetMemoryFunctions(), we can't rely on
+	* SDL_free() to use the same allocator after SDL_main() returns.
+	*/
+
+	/* Parse it into argv and argc */
+	argv = (char **)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (argc + 1) * sizeof(*argv));
+	if (!argv) {
+		return OutOfMemory();
+	}
+	for (i = 0; i < argc; ++i) {
+		// NOTE: SDL2+ uses CP_UTF8 instead of CP_ACP here (and in the other call below)
+		//       but Doom3 needs ANSI strings on Windows (so paths work with the Windows ANSI APIs)
+		const int ansiSize = WideCharToMultiByte(CP_ACP, 0, argvw[i], -1, NULL, 0, NULL, NULL);
+		if (!ansiSize) {  // uhoh?
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", "Error processing command line arguments", NULL);
+			return -1;
+		}
+
+		argv[i] = (char *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, ansiSize);  // this size includes the null-terminator character.
+		if (!argv[i]) {
+			return OutOfMemory();
+		}
+
+		if (WideCharToMultiByte(CP_ACP, 0, argvw[i], -1, argv[i], ansiSize, NULL, NULL) == 0) {  // failed? uhoh!
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", "Error processing command line arguments", NULL);
+			return -1;
+		}
+	}
+	argv[i] = NULL;
+	LocalFree(argvw);
+
+	SDL_SetMainReady();
+
+	// Run the application main() code
+	result = SDL_main(argc, argv);
+
+	// Free argv, to avoid memory leak
+	for (i = 0; i < argc; ++i) {
+		HeapFree(GetProcessHeap(), 0, argv[i]);
+	}
+	HeapFree(GetProcessHeap(), 0, argv);
+
+	return result;
+}
+#endif

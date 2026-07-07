@@ -817,7 +817,7 @@ void idThread::Error( const char *fmt, ... ) const {
 	vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
-	interpreter.Error( text );
+	interpreter.Error( "%s", text );
 }
 
 /*
@@ -833,7 +833,7 @@ void idThread::Warning( const char *fmt, ... ) const {
 	vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
-	interpreter.Warning( text );
+	interpreter.Warning( "%s", text );
 }
 
 /*
@@ -932,7 +932,7 @@ void idThread::WaitFrame( void ) {
 	// manual control threads don't set waitingUntil so that they can be run again
 	// that frame if necessary.
 	if ( !manualControl ) {
-		waitingUntil = gameLocal.time + gameLocal.msec;
+		waitingUntil = gameLocal.time + gameLocal.msecPrecise;
 	}
 }
 
@@ -1921,3 +1921,50 @@ void idThread::Event_InfluenceActive( void ) {
 		idThread::ReturnInt( false );
 	}
 }
+
+int idGameEditExt::ThreadGetNum(const idThread* thread) const
+{
+	return const_cast<idThread*>(thread)->GetThreadNum();
+}
+
+const char* idGameEditExt::ThreadGetName(const idThread* thread) const
+{
+	return const_cast<idThread*>(thread)->GetThreadName();
+}
+
+int	idGameEditExt::GetTotalScriptThreads() const
+{
+	return idThread::GetThreads().Num();
+}
+
+const idThread* idGameEditExt::GetThreadByIndex(int index) const
+{
+	return idThread::GetThreads()[index];
+}
+
+bool idGameEditExt::ThreadIsDoneProcessing(const idThread* thread) const
+{
+	return const_cast<idThread*>(thread)->IsDoneProcessing();
+}
+
+bool idGameEditExt::ThreadIsWaiting(const idThread* thread) const
+{
+	return const_cast<idThread*>(thread)->IsWaiting();
+}
+
+bool idGameEditExt::ThreadIsDying(const idThread* thread) const
+{
+	return const_cast<idThread*>(thread)->IsDying();
+}
+
+void idGameEditExt::MSG_WriteThreadInfo(idBitMsg* msg, const idThread* thread, const idInterpreter* interpreter)
+{
+	msg->WriteString(const_cast<idThread*>(thread)->GetThreadName());
+	msg->WriteInt(const_cast<idThread*>(thread)->GetThreadNum());
+
+	msg->WriteBits((int)(thread == interpreter->GetThread()), 1);
+	msg->WriteBits((int)const_cast<idThread*>(thread)->IsDoneProcessing(), 1);
+	msg->WriteBits((int)const_cast<idThread*>(thread)->IsWaiting(), 1);
+	msg->WriteBits((int)const_cast<idThread*>(thread)->IsDying(), 1);
+}
+

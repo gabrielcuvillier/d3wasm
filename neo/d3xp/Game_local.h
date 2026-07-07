@@ -89,6 +89,9 @@ extern idRenderWorld *				gameRenderWorld;
 extern idSoundWorld *				gameSoundWorld;
 
 extern const int NUM_RENDER_PORTAL_BITS;
+
+// DG: USERCMD_MSEC is 16, USERCMD_MSEC_PRECISE is a float and 16.6666..
+extern const float USERCMD_MSEC_PRECISE;
 /*
 ===============================================================================
 
@@ -226,14 +229,32 @@ struct timeState_t {
 	int					time;
 	int					previousTime;
 	int					msec;
+	float				msecPrecise; // DG: added for smoother timing
 	int					framenum;
 	int					realClientTime;
 
-	void				Set( int t, int pt, int ms, int f, int rct )		{ time = t; previousTime = pt; msec = ms; framenum = f; realClientTime = rct; };
-	void				Get( int& t, int& pt, int& ms, int& f, int& rct )	{ t = time; pt = previousTime; ms = msec; f = framenum; rct = realClientTime; };
+	void				Set( int t, int pt, int ms, int f, int rct, float msp )		{ time = t; previousTime = pt; msec = ms; framenum = f; realClientTime = rct; msecPrecise = msp; };
+	void				Get( int& t, int& pt, int& ms, int& f, int& rct, float& msp )	{ t = time; pt = previousTime; ms = msec; f = framenum; rct = realClientTime; msp = msecPrecise; };
 	void				Save( idSaveGame *savefile ) const	{ savefile->WriteInt( time ); savefile->WriteInt( previousTime ); savefile->WriteInt( msec ); savefile->WriteInt( framenum ); savefile->WriteInt( realClientTime ); }
-	void				Restore( idRestoreGame *savefile )	{ savefile->ReadInt( time ); savefile->ReadInt( previousTime ); savefile->ReadInt( msec ); savefile->ReadInt( framenum ); savefile->ReadInt( realClientTime ); }
-	void				Increment()											{ framenum++; previousTime = time; time += msec; realClientTime = time; };
+	void				Restore( idRestoreGame *savefile )	{ // DG: only functional change to Restore(): setting msecPrecise
+		savefile->ReadInt( time ); savefile->ReadInt( previousTime );
+		savefile->ReadInt( msec ); savefile->ReadInt( framenum );
+		savefile->ReadInt( realClientTime );
+		if ( msec == 16 || msec == 17 ) {
+			msecPrecise = USERCMD_MSEC_PRECISE;
+		} else {
+			// if we're in some slowmo state, the approximate msec has to suffice,
+			// it'll be set to the proper value again soon anyway.
+			msecPrecise = msec;
+		}
+	}
+	void				Increment(int _msec) { // dezo2/DG: update msec (sometimes it's 16, sometimes 17)
+		framenum++;
+		previousTime = time;
+		msec = _msec;
+		time += msec;
+		realClientTime = time;
+	}
 };
 
 enum slowmoState_t {
@@ -300,6 +321,12 @@ public:
 	int						time;					// in msec
 	int						msec;					// time since last update in milliseconds
 
+	// DG: unlike msec (which is varies by +/-1 each frame, see CalcMSec()),
+	//     msecPrecise remains constant (unless scaled for slowmo) and is not rounded down to an integer,
+	//     so it can be used when the correct time for multiple frames must be calculated,
+	//     or when setting an int-timer for next frame (where it rounds down which is safe for that case)
+	float					msecPrecise;
+
 	int						vacuumAreaNum;			// -1 if level doesn't have any outside areas
 
 	gameType_t				gameType;
@@ -341,7 +368,7 @@ public:
 	virtual void			GetBestGameType( const char* map, const char* gametype, char buf[ MAX_STRING_CHARS ] );
 
 	void					ComputeSlowMsec();
-	void					RunTimeGroup2();
+	void					RunTimeGroup2( int msec_fast ); // dezo2/DG: added argument for 16 vs 17ms
 
 	void					ResetSlowTimeVars();
 	void					QuickSlowmoReset();
@@ -365,13 +392,13 @@ public:
 
 	virtual const idDict &	GetPersistentPlayerInfo( int clientNum );
 	virtual void			SetPersistentPlayerInfo( int clientNum, const idDict &playerInfo );
-	virtual void			InitFromNewMap( const char *mapName, idRenderWorld *renderWorld, idSoundWorld *soundWorld, bool isServer, bool isClient, int randSeed );
-	virtual bool			InitFromSaveGame( const char *mapName, idRenderWorld *renderWorld, idSoundWorld *soundWorld, idFile *saveGameFile );
+	virtual void			InitFromNewMap(const char* mapName, idRenderWorld* renderWorld, idSoundWorld* soundWorld, bool isServer, bool isClient, int randSeed );
+	virtual bool			InitFromSaveGame(const char* mapName, idRenderWorld* renderWorld, idSoundWorld* soundWorld, idFile* saveGameFile );
 	virtual void			SaveGame( idFile *saveGameFile );
 	virtual void			MapShutdown( void );
 	virtual void			CacheDictionaryMedia( const idDict *dict );
 	virtual void			SpawnPlayer( int clientNum );
-	virtual gameReturn_t	RunFrame( const usercmd_t *clientCmds );
+	virtual gameReturn_t	RunFrame(const usercmd_t* clientCmds );
 	virtual bool			Draw( int clientNum );
 	virtual escReply_t		HandleESC( idUserInterface **gui );
 	virtual idUserInterface	*StartMenu( void );
@@ -512,6 +539,7 @@ public:
 
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;
+	const static int		INTERNAL_SAVEGAME_VERSION = 1; // DG: added this for >= 1305 savegames
 
 	idStr					mapFileName;			// name of the map, empty string if no map loaded
 	idMapFile *				mapFile;				// will be NULL during the game unless in-game editing is used

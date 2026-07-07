@@ -319,7 +319,10 @@ void idCollisionModelManagerLocal::TranslateTrmEdgeThroughPolygon( cm_traceWork_
 			dist = normal * trmEdge->start;
 			d1 = normal * start - dist;
 			d2 = normal * end - dist;
-			f1 = d1 / ( d1 - d2 );
+			float d1d2diff = d1 - d2;
+			// DG: d1 - d2 was 0 in some weird case, which caused f1 to be INF,
+			//     which caused NaN mayhem all over the place
+			f1 = ( fabsf(d1d2diff) > idMath::FLT_EPSILON ) ? d1 / d1d2diff : 0.0f;
 			//assert( f1 >= 0.0f && f1 <= 1.0f );
 			tw->trace.c.point = start + f1 * ( end - start );
 			// if retrieving contacts
@@ -887,7 +890,8 @@ void idCollisionModelManagerLocal::Translation( trace_t *results, const idVec3 &
 		if ( session->rw ) {
 			session->rw->DebugArrow( colorRed, start, end, 1 );
 		}
-		common->Printf( "idCollisionModelManagerLocal::Translation: huge translation\n" );
+		common->Printf( "idCollisionModelManagerLocal::Translation: huge translation from (%.2f %.2f %.2f) to (%.2f %.2f %.2f)\n",
+				start.x, start.y, start.z, end.x, end.y, end.z);
 		return;
 	}
 

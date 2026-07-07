@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -135,6 +135,7 @@ SCommandInfo	g_Commands[] = {
 	{ "Camera_Down",             'C', 0, ID_CAMERA_DOWN },
 	{ "Camera_AngleUp",          'A', 0, ID_CAMERA_ANGLEUP },
 	{ "Camera_AngleDown",        'Z', 0, ID_CAMERA_ANGLEDOWN },
+	// FIXME: DG: SteelStorm2 has bindings for Camera_Left and Camera_StrafeLeft switched (same for Right)
 	{ "Camera_StrafeRight",      VK_PERIOD, 0, ID_CAMERA_STRAFERIGHT },
 	{ "Camera_StrafeLeft",       VK_COMMA, 0, ID_CAMERA_STRAFELEFT },
 	{ "Camera_UpFloor",          VK_PRIOR, 0, ID_VIEW_UPFLOOR },
@@ -158,13 +159,19 @@ SCommandInfo	g_Commands[] = {
 	{ "Grid_Set16",              '5', 0, ID_GRID_16 },
 	{ "Grid_Set32",              '6', 0, ID_GRID_32 },
 	{ "Grid_Set64",              '7', 0, ID_GRID_64 },
-	{ "Grid_Down",               219, 0, ID_GRID_PREV },
-	{ "Grid_Up",                 221, 0, ID_GRID_NEXT },
+	{ "Grid_Down",               VK_OEM_4, 0, ID_GRID_PREV }, /* [{ in us layout */
+	{ "Grid_Up",                 VK_OEM_6, 0, ID_GRID_NEXT }, /* ]} in US layouts */
 
 	{ "Grid_Toggle",             '0', 0, ID_GRID_TOGGLE },
 	{ "Grid_ToggleSizePaint",    'Q', RAD_PRESS, ID_SELECTION_TOGGLESIZEPAINT },
 
 	{ "Grid_PrecisionCursorMode",VK_F11, 0 , ID_PRECISION_CURSOR_CYCLE},
+
+	/* Begin SS2 Changes */
+	{ "Grid_SetViewTop",         VK_NUMPAD7, 0, ID_SET_VIEW_TOP },
+	{ "Grid_SetViewSide",        VK_NUMPAD3, 0, ID_SET_VIEW_SIDE },
+	{ "Grid_SetViewFront",       VK_NUMPAD1, 0, ID_SET_VIEW_FRONT },
+	/* End SS2 Changes */
 
 	{ "Grid_NextView",           VK_TAB, RAD_CONTROL, ID_VIEW_NEXTVIEW },
 	{ "Grid_ToggleCrosshairs",   'X', RAD_SHIFT, ID_VIEW_CROSSHAIR },
@@ -214,9 +221,9 @@ SCommandInfo	g_Commands[] = {
 	{ "Clipper_SplitSelected",   VK_RETURN, RAD_SHIFT, ID_SPLIT_SELECTED },
 	{ "Clipper_FlipClip",        VK_RETURN, RAD_CONTROL, ID_FLIP_CLIP },
 
-	{ "CameraClip_ZoomOut",       219, RAD_CONTROL, ID_VIEW_CUBEOUT },
-	{ "CameraClip_ZoomIn",        221, RAD_CONTROL, ID_VIEW_CUBEIN },
-	{ "CameraClip_Toggle",        220, RAD_CONTROL, ID_VIEW_CUBICCLIPPING },
+	{ "CameraClip_ZoomOut",       VK_OEM_4, RAD_CONTROL, ID_VIEW_CUBEOUT },
+	{ "CameraClip_ZoomIn",        VK_OEM_5, RAD_CONTROL, ID_VIEW_CUBEIN },
+	{ "CameraClip_Toggle",        VK_OEM_6, RAD_CONTROL, ID_VIEW_CUBICCLIPPING },
 
 	{ "ViewTab_EntityInfo",     'N', 0, ID_VIEW_ENTITY },
 	{ "ViewTab_Console",        'O', 0, ID_VIEW_CONSOLE },
@@ -289,6 +296,9 @@ SCommandInfo	g_Commands[] = {
 int				g_nCommandCount = sizeof(g_Commands) / sizeof(SCommandInfo);
 
 SKeyInfo		g_Keys[] = {
+	/* To understand the VK_* information, please read the MSDN:
+		http://msdn.microsoft.com/en-us/library/ms927178.aspx
+	*/
 	{ "Space", VK_SPACE },
 	{ "Backspace", VK_BACK },
 	{ "Escape", VK_ESCAPE },
@@ -330,9 +340,9 @@ SKeyInfo		g_Keys[] = {
 	{ "NumPad7", VK_NUMPAD7 },
 	{ "NumPad8", VK_NUMPAD8 },
 	{ "NumPad9", VK_NUMPAD9 },
-	{ "[", 219 },
-	{ "]", 221 },
-	{ "\\", 220 }
+	{ "[", VK_OEM_4 }, /* Was 219, 0xDB */
+	{ "\\", VK_OEM_5 },  /* Was 220, 0xDC */
+	{ "]", VK_OEM_6 },  /* Was 221, 0xDD */
 };
 
 int				g_nKeyCount = sizeof(g_Keys) / sizeof(SKeyInfo);
@@ -475,6 +485,9 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_EDIT_MAPINFO, OnEditMapinfo)
 	ON_COMMAND(ID_EDIT_ENTITYINFO, OnEditEntityinfo)
 	ON_COMMAND(ID_VIEW_NEXTVIEW, OnViewNextview)
+	ON_COMMAND(ID_SET_VIEW_TOP, OnSetViewTop)
+	ON_COMMAND(ID_SET_VIEW_SIDE, OnSetViewSide)
+	ON_COMMAND(ID_SET_VIEW_FRONT, OnSetViewFront)
 	ON_COMMAND(ID_HELP_COMMANDLIST, OnHelpCommandlist)
 	ON_COMMAND(ID_FILE_NEWPROJECT, OnFileNewproject)
 	ON_COMMAND(ID_FLIP_CLIP, OnFlipClip)
@@ -714,8 +727,8 @@ static UINT indicators[] = {
  =======================================================================================================================
  =======================================================================================================================
  */
-void CMainFrame::OnDisplayChange(UINT wParam, long lParam) {
-	int n = wParam;
+void CMainFrame::OnDisplayChange( WPARAM wp, LPARAM lp ) {
+//	int n = wp;
 }
 
 /*
@@ -1012,7 +1025,6 @@ MFCCreate
 */
 void MFCCreate( HINSTANCE hInstance )
 {
-	HMENU hMenu = NULL;
 	int i = sizeof(g_qeglobals.d_savedinfo);
 	long l = i;
 
@@ -1066,8 +1078,8 @@ void MFCCreate( HINSTANCE hInstance )
 
 		// old size was smaller, reload original prefs
 		if (nOldSize > 0 && nOldSize < sizeof(g_qeglobals.d_savedinfo)) {
-			long l = nOldSize;
-			LoadRegistryInfo("radiant_SavedInfo", &g_qeglobals.d_savedinfo, &l);
+			long lOldSize = nOldSize;
+			LoadRegistryInfo("radiant_SavedInfo", &g_qeglobals.d_savedinfo, &lOldSize);
 		}
 	}
 }
@@ -1101,7 +1113,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct) {
 		TRACE0("Failed to create toolbar\n");
 		return -1;	// fail to create
 	}
-
 	if (!m_wndStatusBar.Create(this) || !m_wndStatusBar.SetIndicators(indicators, sizeof(indicators) / sizeof(UINT))) {
 		TRACE0("Failed to create status bar\n");
 		return -1;	// fail to create
@@ -1399,7 +1410,7 @@ bool MouseDown() {
  =======================================================================================================================
  */
 
-void CMainFrame::OnTimer(UINT nIDEvent) {
+void CMainFrame::OnTimer(UINT_PTR nIDEvent) {
 	static bool autoSavePending = false;
 
 	if ( nIDEvent == QE_TIMER0 && !MouseDown() ) {
@@ -1786,23 +1797,24 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy) {
 
 	CRect	rctParent;
 	GetClientRect(rctParent);
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
 
 	UINT	nID;
 	UINT	nStyle;
 	int		nWidth;
 	if (m_wndStatusBar.GetSafeHwnd()) {
 		m_wndStatusBar.GetPaneInfo( 0, nID, nStyle, nWidth);
-		m_wndStatusBar.SetPaneInfo( 0, nID, nStyle, rctParent.Width() * 0.15f );
+		m_wndStatusBar.SetPaneInfo( 0, nID, nStyle, rctParent.Width() * 0.15f * scaling_factor);
 		m_wndStatusBar.GetPaneInfo( 1, nID, nStyle, nWidth);
-		m_wndStatusBar.SetPaneInfo( 1, nID, nStyle, rctParent.Width() * 0.15f);
+		m_wndStatusBar.SetPaneInfo( 1, nID, nStyle, rctParent.Width() * 0.15f * scaling_factor);
 		m_wndStatusBar.GetPaneInfo( 2, nID, nStyle, nWidth);
-		m_wndStatusBar.SetPaneInfo( 2, nID, nStyle, rctParent.Width() * 0.15f );
+		m_wndStatusBar.SetPaneInfo( 2, nID, nStyle, rctParent.Width() * 0.15f * scaling_factor);
 		m_wndStatusBar.GetPaneInfo( 3, nID, nStyle, nWidth);
-		m_wndStatusBar.SetPaneInfo( 3, nID, nStyle, rctParent.Width() * 0.39f );
+		m_wndStatusBar.SetPaneInfo( 3, nID, nStyle, rctParent.Width() * 0.39f * scaling_factor);
 		m_wndStatusBar.GetPaneInfo( 4, nID, nStyle, nWidth);
-		m_wndStatusBar.SetPaneInfo( 4, nID, nStyle, rctParent.Width() * 0.15f );
+		m_wndStatusBar.SetPaneInfo( 4, nID, nStyle, rctParent.Width() * 0.15f * scaling_factor);
 		m_wndStatusBar.GetPaneInfo( 5, nID, nStyle, nWidth);
-		m_wndStatusBar.SetPaneInfo( 5, nID, nStyle, rctParent.Width() * 0.01f );
+		m_wndStatusBar.SetPaneInfo( 5, nID, nStyle, rctParent.Width() * 0.01f * scaling_factor);
 	}
 }
 
@@ -1936,7 +1948,7 @@ void CMainFrame::OnFileSaveCopy() {
 	AddSlash(strPath);
 	strPath += "maps";
 	if (g_PrefsDlg.m_strMaps.GetLength() > 0) {
-		strPath += va("\\%s", g_PrefsDlg.m_strMaps);
+		strPath += va("\\%s", g_PrefsDlg.m_strMaps.GetString());
 	}
 
 	/* Place the terminating null character in the szFile. */
@@ -2121,7 +2133,7 @@ This is the new all-internal bsp
 ============
 */
 void RunBsp (const char *command) {
-	char	sys[2048];
+	char	system[2048];
 	char	name[2048];
 	char	*in;
 
@@ -2169,28 +2181,28 @@ void RunBsp (const char *command) {
 
 		::GetModuleFileName(AfxGetApp()->m_hInstance, buff, sizeof(buff));
 		if (strlen(command) > strlen("bspext")) {
-			idStr::snPrintf( sys, sizeof(sys), "%s %s +set r_fullscreen 0 +dmap editorOutput %s %s +quit", buff, paths.c_str(), command + strlen("bspext"), in );
+			idStr::snPrintf( system, sizeof(system), "%s %s +set r_fullscreen 0 +dmap editorOutput %s %s +quit", buff, paths.c_str(), command + strlen("bspext"), in );
 		} else {
-			idStr::snPrintf( sys, sizeof(sys), "%s %s +set r_fullscreen 0 +dmap editorOutput %s +quit", buff, paths.c_str(), in );
+			idStr::snPrintf( system, sizeof(system), "%s %s +set r_fullscreen 0 +dmap editorOutput %s +quit", buff, paths.c_str(), in );
 		}
 
 		::GetStartupInfo (&startupinfo);
-		if (!CreateProcess(NULL, sys, NULL, NULL, FALSE, 0, NULL, NULL, &startupinfo, &ProcessInformation)) {
+		if (!CreateProcess(NULL, system, NULL, NULL, FALSE, 0, NULL, NULL, &startupinfo, &ProcessInformation)) {
 			common->Printf("Could not start bsp process %s %s/n", buff, sys);
 		}
 		g_pParentWnd->SetFocus();
 
 	} else { // assumes bsp is the command
 		if (strlen(command) > strlen("bsp")) {
-			idStr::snPrintf( sys, sizeof(sys), "dmap %s %s", command + strlen("bsp"), in );
+			idStr::snPrintf( system, sizeof(system), "dmap %s %s", command + strlen("bsp"), in );
 		} else {
-			idStr::snPrintf( sys, sizeof(sys), "dmap %s", in );
+			idStr::snPrintf( system, sizeof(system), "dmap %s", in );
 		}
 
 		cmdSystem->BufferCommandText( CMD_EXEC_NOW, "disconnect\n" );
 
 		// issue the bsp command
-		Dmap_f( idCmdArgs( sys, false ) );
+		Dmap_f( idCmdArgs( system, false ) );
 	}
 }
 
@@ -2730,8 +2742,8 @@ LPCSTR String_ToLower(LPCSTR psString)
 bool FindNextBrush(brush_t* pPrevFoundBrush)	// can be NULL for fresh search
 {
 	bool bFoundSomething = false;
-	entity_t *pLastFoundEnt;
-	brush_t  *pLastFoundBrush;
+	entity_t *pLastFoundEnt = NULL;
+	brush_t  *pLastFoundBrush = NULL;
 
 	CWaitCursor waitcursor;
 
@@ -2994,8 +3006,7 @@ void CMainFrame::OnMiscSetViewPos()
 		if (iArgsFound == 3)
 		{
 			// try for an optional 4th (note how this wasn't part of the sscanf() above, so I can check 1st-3, not just any 3)
-			//
-			int iArgsFound = sscanf(psNewCoords,"%f %f %f %f", &v3Viewpos[0], &v3Viewpos[1], &v3Viewpos[2], &fYaw);
+			iArgsFound = sscanf(psNewCoords,"%f %f %f %f", &v3Viewpos[0], &v3Viewpos[1], &v3Viewpos[2], &fYaw);
 			if (iArgsFound != 4)
 			{
 				fYaw = 0;	// jic
@@ -3008,7 +3019,7 @@ void CMainFrame::OnMiscSetViewPos()
 		}
 		else
 		{
-			ErrorBox(va("\"%s\" wasn't 3 valid floats with spaces",psNewCoords));
+			ErrorBox(va("\"%s\" wasn't 3 valid floats with spaces",psNewCoords.GetString()));
 		}
 	}
 }
@@ -3877,6 +3888,42 @@ void CMainFrame::OnViewNextview() {
 	}
 	Sys_UpdateWindows(W_XY | W_CAMERA);
 }
+
+/* Begin SS2 Changes */
+void CMainFrame::OnSetViewTop() {
+	if (m_pXYWnd->GetViewType() != XY) {
+		m_pXYWnd->SetViewType(XY);
+		m_pXYWnd->PositionView();
+		if (g_qeglobals.flatRotation) {
+			g_qeglobals.rotateAxis = 2;
+		}
+		Sys_UpdateWindows(W_XY | W_CAMERA);
+	}
+}
+
+void CMainFrame::OnSetViewSide() {
+	if (m_pXYWnd->GetViewType() != YZ) {
+		m_pXYWnd->SetViewType(YZ);
+		m_pXYWnd->PositionView();
+		if (g_qeglobals.flatRotation) {
+			g_qeglobals.rotateAxis = 0;
+		}
+		Sys_UpdateWindows(W_XY | W_CAMERA);
+	}
+}
+
+void CMainFrame::OnSetViewFront() {
+	if (m_pXYWnd->GetViewType() != XZ) {
+		m_pXYWnd->SetViewType(XZ);
+		m_pXYWnd->PositionView();
+		if (g_qeglobals.flatRotation) {
+			g_qeglobals.rotateAxis = 1;
+		}
+		Sys_UpdateWindows(W_XY | W_CAMERA);
+	}
+}
+/* End SS2 Changes */
+
 
 /*
  =======================================================================================================================
@@ -6312,10 +6359,9 @@ void CMainFrame::OnShowLightvolumes() {
  =======================================================================================================================
  */
 void CMainFrame::OnActivate(UINT nState, CWnd *pWndOther, BOOL bMinimized) {
-	CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
-
+	CFrameWnd::OnActivate(nState, pWndOther, bMinimized);	
 	if ( nState != WA_INACTIVE ) {
-		common->ActivateTool( true );
+		common->ActivateTool(true);
 		if (::IsWindowVisible(win32.hWnd)) {
 			::ShowWindow(win32.hWnd, SW_HIDE);
 		}
@@ -6324,7 +6370,9 @@ void CMainFrame::OnActivate(UINT nState, CWnd *pWndOther, BOOL bMinimized) {
 		soundSystem->SetPlayingSoundWorld( g_qeglobals.sw );
 	}
 	else {
-		 //com_editorActive = false;
+		// DG: if the Radiant loses focus, tell the engine about it
+		//     so the game window can get mouse focus (if it's running)
+		common->ActivateTool( false );
 	}
 }
 

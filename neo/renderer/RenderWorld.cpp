@@ -675,6 +675,8 @@ Rendering a scene may require multiple views to be rendered
 to handle mirrors,
 ====================
 */
+extern void R_SetupViewFrustum( viewDef_t* viewDef );
+extern void R_SetupProjection( viewDef_t * viewDef );
 void idRenderWorldLocal::RenderScene( const renderView_t *renderView ) {
 #ifndef	ID_DEDICATED
 	renderView_t	copy;
@@ -742,9 +744,31 @@ void idRenderWorldLocal::RenderScene( const renderView_t *renderView ) {
 	}
 
 	if ( r_lockSurfaces.GetBool() ) {
-		R_LockSurfaceScene( parms );
-		return;
+		tr.lockSurfacesRealViewDef = *parms;
+
+		// usually the following are called later in R_RenderView(), but we pass
+		// the locked viewDef to that function so do these calculations here
+		// (the results are needed for some special cases like in-world GUIs and mirrors)
+		R_SetViewMatrix( &tr.lockSurfacesRealViewDef );
+		R_SetupViewFrustum( &tr.lockSurfacesRealViewDef);
+		R_SetupProjection( &tr.lockSurfacesRealViewDef );
+
+		const viewDef_t* origParms = &tr.lockSurfacesRealViewDef;
+		*parms = tr.lockSurfacesViewDef;
+		parms->renderWorld = origParms->renderWorld;
+		parms->floatTime = origParms->floatTime;
+		parms->drawSurfs = origParms->drawSurfs; // should be NULL I think
+		parms->numDrawSurfs = origParms->numDrawSurfs;
+		parms->maxDrawSurfs = origParms->maxDrawSurfs;
+		parms->viewLights = origParms->viewLights;
+		parms->viewEntitys = origParms->viewEntitys;
+		parms->connectedAreas = origParms->connectedAreas;
+
+	} else {
+		// save current viewDef so it can be used if we enable r_lockSurfaces in the next frame
+		tr.lockSurfacesViewDef = *parms;
 	}
+
 
 	// save this world for use by some console commands
 	tr.primaryWorld = this;
@@ -951,7 +975,14 @@ int idRenderWorldLocal::BoundsInAreas( const idBounds &bounds, int *areas, int m
 	int numAreas = 0;
 
 	assert( areas );
-	assert( bounds[0][0] <= bounds[1][0] && bounds[0][1] <= bounds[1][1] && bounds[0][2] <= bounds[1][2] );
+	//assert( bounds[0][0] <= bounds[1][0] && bounds[0][1] <= bounds[1][1] && bounds[0][2] <= bounds[1][2] );
+	// DG: apparently this happens sometimes.. handle it more gracefully than an assertion.
+	if ( bounds[0][0] > bounds[1][0] || bounds[0][1] > bounds[1][1] || bounds[0][2] > bounds[1][2] ) {
+		common->Warning( "idRenderWorld::BoundsInAreas() called with invalid bounds: { { %f %f %f }, { %f %f %f } } !",
+		                 bounds[0][0], bounds[0][1], bounds[0][2], bounds[1][0], bounds[1][1], bounds[1][2] );
+		return numAreas;
+	}
+
 	assert( bounds[1][0] - bounds[0][0] < 1e4f && bounds[1][1] - bounds[0][1] < 1e4f && bounds[1][2] - bounds[0][2] < 1e4f );
 
 	if ( !areaNodes ) {

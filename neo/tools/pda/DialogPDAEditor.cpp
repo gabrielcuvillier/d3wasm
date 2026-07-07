@@ -26,10 +26,9 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
 
-#include "../../game/game.h"
+
 #include "../../sys/win32/win_local.h"
 #include "../../sys/win32/rc/common_resource.h"
 #include "../../sys/win32/rc/PDAEditor_resource.h"
@@ -126,12 +125,14 @@ void PDAEditorInit( const idDict *spawnArgs ) {
 	g_PDAEditorDialog->ShowWindow( SW_SHOW );
 	g_PDAEditorDialog->SetFocus();
 
+#if 0
 	if ( spawnArgs ) {
 		// select PDA based on spawn args
 		const char *name = spawnArgs->GetString( "pda" );
 		idDeclPDA *decl = static_cast<idDeclPDA *>( const_cast<idDecl *>( declManager->FindType( DECL_PDA, name ) ) );
 		// FIXME: select this PDA
 	}
+#endif
 }
 
 void PDAEditorRun( void ) {

@@ -180,7 +180,7 @@ public:
 	afx_msg void OnBSPDone(UINT wParam, long lParam);
 	afx_msg void OnParentNotify(UINT message, LPARAM lParam);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg void OnDestroy();
 	afx_msg void OnClose();
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -198,6 +198,13 @@ public:
 	afx_msg void OnFileSave();
 	afx_msg void OnFileSaveas();
 	afx_msg void OnFileSaveCopy();
+
+	/* Begin SS2 Changes */
+	afx_msg void OnSetViewTop();
+	afx_msg void OnSetViewSide();
+	afx_msg void OnSetViewFront();
+	/* end SS2 Changes */
+	
 	afx_msg void OnViewShowModels();
 	afx_msg void OnView100();
 	afx_msg void OnViewCenter();

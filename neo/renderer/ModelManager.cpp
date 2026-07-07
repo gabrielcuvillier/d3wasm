@@ -303,6 +303,12 @@ idRenderModel *idRenderModelManagerLocal::GetModel( const char *modelName, bool 
 	} else if ( extension.Icmp( "md3" ) == 0 ) {
 		model = new idRenderModelMD3;
 		model->InitFromFile( modelName );
+		// DG: no idea why this needs special treatment, but otherwise
+		//     idRenderModelMD3::InstantiateDynamicModel() is called all the time
+		if ( model->IsDefaultModel() ) {
+			delete model;
+			return NULL;
+		}
 	} else if ( extension.Icmp( "prt" ) == 0  ) {
 		model = new idRenderModelPrt;
 		model->InitFromFile( modelName );
@@ -615,7 +621,7 @@ void idRenderModelManagerLocal::PrintMemInfo( MemInfo_t *mi ) {
 		f->Printf( "%s %s\n", idStr::FormatNumber( mem ).c_str(), model->Name() );
 	}
 
-	delete sortIndex;
+	delete[] sortIndex;
 	mi->modelAssetsTotal = totalMem;
 
 	f->Printf( "\nTotal model bytes allocated: %s\n", idStr::FormatNumber( totalMem ).c_str() );

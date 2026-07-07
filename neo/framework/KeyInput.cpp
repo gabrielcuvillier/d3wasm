@@ -63,7 +63,7 @@ static const keyname_t keynames[] =
 	{"RIGHTARROW",		K_RIGHTARROW,		"#str_07026"},
 
 	{"ALT",				K_ALT,				"#str_07027"},
-	{"RIGHTALT",		K_RIGHT_ALT,		"#str_07027"},
+	//{"RIGHTALT",		K_RIGHT_ALT,		"#str_07027"}, // DG: renamed this, see below
 	{"CTRL",			K_CTRL,				"#str_07028"},
 	{"SHIFT",			K_SHIFT,			"#str_07029"},
 
@@ -109,38 +109,41 @@ static const keyname_t keynames[] =
 	{"MWHEELUP",		K_MWHEELUP,			"#str_07131"},
 	{"MWHEELDOWN",		K_MWHEELDOWN,		"#str_07132"},
 
-	{"JOY1",			K_JOY1,				"#str_07062"},
-	{"JOY2",			K_JOY2,				"#str_07063"},
-	{"JOY3",			K_JOY3,				"#str_07064"},
-	{"JOY4",			K_JOY4,				"#str_07065"},
-	{"JOY5",			K_JOY5,				"#str_07066"},
-	{"JOY6",			K_JOY6,				"#str_07067"},
-	{"JOY7",			K_JOY7,				"#str_07068"},
-	{"JOY8",			K_JOY8,				"#str_07069"},
-	{"JOY9",			K_JOY9,				"#str_07070"},
-	{"JOY10",			K_JOY10,			"#str_07071"},
-	{"JOY11",			K_JOY11,			"#str_07072"},
-	{"JOY12",			K_JOY12,			"#str_07073"},
-	{"JOY13",			K_JOY13,			"#str_07074"},
-	{"JOY14",			K_JOY14,			"#str_07075"},
-	{"JOY15",			K_JOY15,			"#str_07076"},
-	{"JOY16",			K_JOY16,			"#str_07077"},
-	{"JOY17",			K_JOY17,			"#str_07078"},
-	{"JOY18",			K_JOY18,			"#str_07079"},
-	{"JOY19",			K_JOY19,			"#str_07080"},
-	{"JOY20",			K_JOY20,			"#str_07081"},
-	{"JOY21",			K_JOY21,			"#str_07082"},
-	{"JOY22",			K_JOY22,			"#str_07083"},
-	{"JOY23",			K_JOY23,			"#str_07084"},
-	{"JOY24",			K_JOY24,			"#str_07085"},
-	{"JOY25",			K_JOY25,			"#str_07086"},
-	{"JOY26",			K_JOY26,			"#str_07087"},
-	{"JOY27",			K_JOY27,			"#str_07088"},
-	{"JOY28",			K_JOY28,			"#str_07089"},
-	{"JOY29",			K_JOY29,			"#str_07090"},
-	{"JOY30",			K_JOY30,			"#str_07091"},
-	{"JOY31",			K_JOY31,			"#str_07092"},
-	{"JOY32",			K_JOY32,			"#str_07093"},
+	// Note: for localized gamepad key names, we use Sys_GetLocalizedJoyKeyName()
+	//       so the last column is just NULL
+	{"JOY_BTN_SOUTH",		K_JOY_BTN_SOUTH,		NULL},
+	{"JOY_BTN_EAST",		K_JOY_BTN_EAST,			NULL},
+	{"JOY_BTN_WEST",		K_JOY_BTN_WEST,			NULL},
+	{"JOY_BTN_NORTH",		K_JOY_BTN_NORTH,		NULL},
+	{"JOY_BTN_BACK",		K_JOY_BTN_BACK,			NULL},
+	// leaving out K_JOY_BTN_GUIDE, as I think it shouldn't be used (might open Steam or similar)
+	{"JOY_BTN_START",		K_JOY_BTN_START,		NULL},
+	{"JOY_BTN_LSTICK",		K_JOY_BTN_LSTICK,		NULL},
+	{"JOY_BTN_RSTICK",		K_JOY_BTN_RSTICK,		NULL},
+	{"JOY_BTN_LSHOULDER",	K_JOY_BTN_LSHOULDER,	NULL},
+	{"JOY_BTN_RSHOULDER",	K_JOY_BTN_RSHOULDER,	NULL},
+	{"JOY_DPAD_UP", 		K_JOY_DPAD_UP, 			NULL},
+	{"JOY_DPAD_DOWN", 		K_JOY_DPAD_DOWN, 		NULL},
+	{"JOY_DPAD_LEFT", 		K_JOY_DPAD_LEFT, 		NULL},
+	{"JOY_DPAD_RIGHT", 		K_JOY_DPAD_RIGHT, 		NULL},
+	{"JOY_BTN_MISC1",		K_JOY_BTN_MISC1,		NULL},
+	{"JOY_BTN_RPADDLE1",	K_JOY_BTN_RPADDLE1,		NULL},
+	{"JOY_BTN_LPADDLE1",	K_JOY_BTN_LPADDLE1,		NULL},
+	{"JOY_BTN_RPADDLE2",	K_JOY_BTN_RPADDLE2,		NULL},
+	{"JOY_BTN_LPADDLE2",	K_JOY_BTN_LPADDLE2,		NULL},
+
+	{"JOY_STICK1_UP", 		K_JOY_STICK1_UP, 		NULL},
+	{"JOY_STICK1_DOWN", 	K_JOY_STICK1_DOWN, 		NULL},
+	{"JOY_STICK1_LEFT", 	K_JOY_STICK1_LEFT, 		NULL},
+	{"JOY_STICK1_RIGHT", 	K_JOY_STICK1_RIGHT, 	NULL},
+
+	{"JOY_STICK2_UP", 		K_JOY_STICK2_UP, 		NULL},
+	{"JOY_STICK2_DOWN", 	K_JOY_STICK2_DOWN, 		NULL},
+	{"JOY_STICK2_LEFT", 	K_JOY_STICK2_LEFT, 		NULL},
+	{"JOY_STICK2_RIGHT", 	K_JOY_STICK2_RIGHT, 	NULL},
+
+	{"JOY_TRIGGER1", 		K_JOY_TRIGGER1, 		NULL},
+	{"JOY_TRIGGER2", 		K_JOY_TRIGGER2, 		NULL},
 
 	{"AUX1",			K_AUX1,				"#str_07094"},
 	{"AUX2",			K_AUX2,				"#str_07095"},
@@ -182,13 +185,20 @@ static const keyname_t keynames[] =
 
 	{"SEMICOLON",		';',				"#str_07129"},	// because a raw semicolon separates commands
 	{"APOSTROPHE",		'\'',				"#str_07130"},	// because a raw apostrophe messes with parsing
+	{"QUOTE",			'"',				""}, // DG: raw quote can't be good either
+
+	{"R_ALT",			K_RIGHT_ALT,		""}, // DG: renamed this from RIGHTALT so it's shorter (but discernible) in the menu
+	{"R_CTRL",			K_RIGHT_CTRL, 		""}, // DG: added this one
+	{"R_SHIFT",			K_RIGHT_SHIFT,		""}, // DG: added this one
+
+	// TODO: controller stuff
 
 	{NULL,				0,					NULL}
 };
 
+idCVar in_namePressed( "in_namePressed", "0", CVAR_BOOL|CVAR_SYSTEM, "print the name of the key/button pressed" );
 
-
-static const int	MAX_KEYS = 256;
+static const int	MAX_KEYS = K_LAST_KEY+1; // DG: was 256, made it more flexible
 
 class idKey {
 public:
@@ -250,6 +260,13 @@ void idKeyInput::ArgCompletion_KeyName( const idCmdArgs &args, void(*callback)( 
 	for ( kn = keynames; kn->name; kn++ ) {
 		callback( va( "%s %s", args.Argv( 0 ), kn->name ) );
 	}
+
+	for( int scKey = K_FIRST_SCANCODE; scKey <= K_LAST_SCANCODE; ++scKey ) {
+		const char* scName = Sys_GetScancodeName( scKey );
+		if ( scName != NULL ) {
+			callback( va( "%s %s", args.Argv( 0 ), scName ) );
+		}
+	}
 }
 
 /*
@@ -278,6 +295,15 @@ idKeyInput::IsDown
 bool idKeyInput::IsDown( int keynum ) {
 	if ( keynum == -1 ) {
 		return false;
+	}
+
+	// DG: K_RIGHT_CTRL/SHIFT should be handled as different keys for bindings
+	//     but the same for keyboard shortcuts in the console and such
+	//     (this function is used for the latter)
+	if ( keynum == K_CTRL ) {
+		return keys[K_CTRL].down || keys[K_RIGHT_CTRL].down;
+	} else if ( keynum == K_SHIFT ) {
+		return keys[K_SHIFT].down || keys[K_RIGHT_SHIFT].down;
 	}
 
 	return keys[keynum].down;
@@ -330,6 +356,11 @@ int idKeyInput::StringToKeyNum( const char *str ) {
 		return n1 * 16 + n2;
 	}
 
+	// DG: scancode names start with "SC_"
+	if ( idStr::Icmpn( str, "SC_", 3 ) == 0 ) {
+		return Sys_GetKeynumForScancodeName( str );
+	}
+
 	// scan for a text match
 	for ( kn = keynames; kn->name; kn++ ) {
 		if ( !idStr::Icmp( str, kn->name ) ) {
@@ -346,6 +377,9 @@ idKeyInput::KeyNumToString
 
 Returns a string (either a single ascii char, a K_* name, or a 0x11 hex string) for the
 given keynum.
+
+NOTE: with localized = true, the returned string is only valid until the next call (at least for K_SC_*)!
+      (currently this is no problem)
 ===================
 */
 const char *idKeyInput::KeyNumToString( int keynum, bool localized ) {
@@ -357,7 +391,7 @@ const char *idKeyInput::KeyNumToString( int keynum, bool localized ) {
 		return "<KEY NOT FOUND>";
 	}
 
-	if ( keynum < 0 || keynum > 255 ) {
+	if ( keynum < 0 || keynum >= MAX_KEYS ) {
 		return "<OUT OF RANGE>";
 	}
 
@@ -368,10 +402,28 @@ const char *idKeyInput::KeyNumToString( int keynum, bool localized ) {
 		return tinystr;
 	}
 
+	if ( keynum >= K_FIRST_SCANCODE && keynum <= K_LAST_SCANCODE ) {
+		const char* scName = NULL;
+		if ( localized ) {
+			scName = Sys_GetLocalizedScancodeName( keynum );
+		} else {
+			scName = Sys_GetScancodeName( keynum );
+		}
+		if ( scName != NULL ) {
+			return scName;
+		}
+	}
+
+	if ( localized && keynum >= K_FIRST_JOY && keynum <= K_LAST_JOY ) {
+		const char* jname = Sys_GetLocalizedJoyKeyName(keynum);
+		if(jname != NULL)
+			return jname;
+	}
+
 	// check for a key string
 	for ( kn = keynames; kn->name; kn++ ) {
 		if ( keynum == kn->keynum ) {
-			if ( !localized || kn->strId[0] != '#' ) {
+			if ( !localized || (kn->strId && kn->strId[0] != '#') ) {
 				return kn->name;
 			} else {
 #if MACOS_X
@@ -615,18 +667,25 @@ const char *idKeyInput::KeysFromBinding( const char *bind ) {
 	int i;
 	static char keyName[MAX_STRING_CHARS];
 
+	const char* orstr = common->GetLanguageDict()->GetString( "#str_07183" );
+	if ( orstr == NULL || orstr[0] == '\0' || orstr[0] == '#' ) {
+		// fallback for windows demo where this string is missing
+		orstr = " or ";
+	}
+
 	keyName[0] = '\0';
 	if ( bind && *bind ) {
 		for ( i = 0; i < MAX_KEYS; i++ ) {
 			if ( keys[i].binding.Icmp( bind ) == 0 ) {
 				if ( keyName[0] != '\0' ) {
-					idStr::Append( keyName, sizeof( keyName ), common->GetLanguageDict()->GetString( "#str_07183" ) );
+					idStr::Append( keyName, sizeof( keyName ), orstr );
 				}
 				idStr::Append( keyName, sizeof( keyName ), KeyNumToString( i, true ) );
 			}
 		}
 	}
 	if ( keyName[0] == '\0' ) {
+		// "<empty>"
 		idStr::Copynz( keyName, common->GetLanguageDict()->GetString( "#str_07133" ), sizeof( keyName ) );
 	}
 	idStr::ToLower( keyName );
@@ -708,8 +767,12 @@ Called by the system for both key up and key down events
 void idKeyInput::PreliminaryKeyEvent( int keynum, bool down ) {
 	keys[keynum].down = down;
 
+	if( down && in_namePressed.GetBool() ) {
+		KeyReveal( keynum );
+	}
+
 #ifdef ID_DOOM_LEGACY
-	if ( down ) {
+	if ( down && keynum < 127 ) { // DG: only ASCII keys are of interest here
 		lastKeys[ 0 + ( lastKeyIndex & 15 )] = keynum;
 		lastKeys[16 + ( lastKeyIndex & 15 )] = keynum;
 		lastKeyIndex = ( lastKeyIndex + 1 ) & 15;
@@ -723,6 +786,18 @@ void idKeyInput::PreliminaryKeyEvent( int keynum, bool down ) {
 		}
 	}
 #endif
+}
+
+/*
+===================
+idKeyInput::KeyReveal
+
+simple print in the console the name of the key pressed
+===================
+*/
+void idKeyInput::KeyReveal( int keyNum ) {
+	const char* keyName = KeyNumToString( keyNum, false );
+	common->Printf( "pressed the \"%s\" key.\n", keyName );
 }
 
 /*

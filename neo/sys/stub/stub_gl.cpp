@@ -29,6 +29,13 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "renderer/tr_local.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+// for each gl function we get an inconsistent dll linkage warning, because SDL_OpenGL.h says they're dllimport
+// showing one warning is enough and it doesn't matter anyway (these stubs are for the dedicated server)
+#pragma warning( once : 4273 )
+#endif
+
 void APIENTRY glAccum(GLenum op, GLfloat value){};
 void APIENTRY glAlphaFunc(GLenum func, GLclampf ref){};
 GLboolean APIENTRY glAreTexturesResident(GLsizei n, const GLuint *textures, GLboolean *residences){ return false; };
@@ -37,6 +44,7 @@ void APIENTRY glBegin(GLenum mode){};
 void APIENTRY glBindTexture(GLenum target, GLuint texture){};
 void APIENTRY glBitmap(GLsizei width, GLsizei height, GLfloat xorig, GLfloat yorig, GLfloat xmove, GLfloat ymove, const GLubyte *bitmap){};
 void APIENTRY glBlendFunc(GLenum sfactor, GLenum dfactor){};
+void APIENTRY glBlendEquation(GLenum mode){};
 void APIENTRY glCallList(GLuint list){};
 void APIENTRY glCallLists(GLsizei n, GLenum type, const GLvoid *lists){};
 void APIENTRY glClear(GLbitfield mask){};
@@ -382,9 +390,20 @@ GLExtension_t GLimp_ExtensionPointer( const char *a) { return StubFunction; };
 
 bool GLimp_Init(glimpParms_t a) {return true;};
 void GLimp_SetGamma(unsigned short*a, unsigned short*b, unsigned short*c) {};
+void GLimp_ResetGamma() {}
 bool GLimp_SetScreenParms(glimpParms_t parms) { return true; };
 void GLimp_Shutdown() {};
 void GLimp_SwapBuffers() {};
 void GLimp_ActivateContext() {};
 void GLimp_DeactivateContext() {};
 void GLimp_GrabInput(int flags) {};
+bool GLimp_SetSwapInterval( int swapInterval ) { return false; }
+int GLimp_GetSwapInterval() { return 0; }
+void GLimp_UpdateWindowSize() {}
+bool GLimp_SetWindowResizable( bool enableResizable ) { return false; }
+glimpParms_t GLimp_GetCurState() { glimpParms_t ret = {}; return ret; }
+float GLimp_GetDisplayRefresh() { return 0.0f; }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

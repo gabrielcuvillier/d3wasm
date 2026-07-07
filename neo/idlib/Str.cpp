@@ -30,10 +30,15 @@ If you have questions concerning this license or the applicable additional terms
 #include "idlib/math/Vector.h"
 #include "idlib/Heap.h"
 #include "framework/Common.h"
+#include <limits.h>
 
 #include "idlib/Str.h"
 
-#if !defined( ID_REDIRECT_NEWDELETE ) && !defined( MACOS_X )
+// DG: idDynamicBlockAlloc isn't thread-safe and idStr is used both in the main thread
+//     and the async thread! For some reason this seems to cause lots of problems on
+//     newer Linux distros if dhewm3 is built with GCC9 or newer (see #391).
+//     No idea why it apparently didn't cause that (noticeable) issues before..
+#if 0 // !defined( ID_REDIRECT_NEWDELETE ) && !defined( MACOS_X )
 	#define USE_STRING_DATA_ALLOCATOR
 #endif
 
@@ -100,23 +105,30 @@ void idStr::ReAllocate( int amount, bool keepold ) {
 
 #ifdef USE_STRING_DATA_ALLOCATOR
 	newbuffer = stringDataAllocator.Alloc( alloced );
-#else
-	newbuffer = new char[ alloced ];
-#endif
 	if ( keepold && data ) {
 		data[ len ] = '\0';
 		strcpy( newbuffer, data );
 	}
 
 	if ( data && data != baseBuffer ) {
-#ifdef USE_STRING_DATA_ALLOCATOR
 		stringDataAllocator.Free( data );
-#else
-		delete [] data;
-#endif
 	}
 
 	data = newbuffer;
+#else
+	if ( data && data != baseBuffer ) {
+		data = (char *)realloc( data, newsize );
+	} else {
+		newbuffer = (char *)malloc( newsize );
+		if ( data && keepold ) {
+			memcpy( newbuffer, data, len );
+			newbuffer[ len ] = '\0';
+		} else {
+			newbuffer[ 0 ] = '\0';
+		}
+		data = newbuffer;
+	}
+#endif
 }
 
 /*
@@ -129,7 +141,7 @@ void idStr::FreeData( void ) {
 #ifdef USE_STRING_DATA_ALLOCATOR
 		stringDataAllocator.Free( data );
 #else
-		delete[] data;
+		free( data );
 #endif
 		data = baseBuffer;
 	}
@@ -753,6 +765,26 @@ idStr &idStr::SetFileExtension( const char *extension ) {
 	return *this;
 }
 
+// DG: helper-function that returns true if the character c is a directory separator
+//     on the current platform
+static ID_INLINE bool isDirSeparator( int c )
+{
+	if ( c == '/' ) {
+		return true;
+	}
+#ifdef _WIN32
+	if ( c == '\\' ) {
+		return true;
+	}
+#elif defined(__AROS__)
+	if ( c == ':' ) {
+		return true;
+	}
+#endif
+	return false;
+}
+// DG end
+
 /*
 ============
 idStr::StripFileExtension
@@ -762,6 +794,10 @@ idStr &idStr::StripFileExtension( void ) {
 	int i;
 
 	for ( i = len-1; i >= 0; i-- ) {
+		// DG: we're at a directory separator, nothing to strip at filename
+		if ( isDirSeparator( data[i] ) ) {
+			break;
+		} // DG end
 		if ( data[i] == '.' ) {
 			data[i] = '\0';
 			len = i;
@@ -778,7 +814,9 @@ idStr::StripAbsoluteFileExtension
 */
 idStr &idStr::StripAbsoluteFileExtension( void ) {
 	int i;
-
+	// FIXME DG: seems like this is unused, but it probably doesn't do what's expected
+	//           (if you wanna strip .tar.gz this will fail with dots in path,
+	//            if you indeed wanna strip the first dot in *path* (even in some directory) this is right)
 	for ( i = 0; i < len; i++ ) {
 		if ( data[i] == '.' ) {
 			data[i] = '\0';
@@ -800,6 +838,10 @@ idStr &idStr::DefaultFileExtension( const char *extension ) {
 
 	// do nothing if the string already has an extension
 	for ( i = len-1; i >= 0; i-- ) {
+		// DG: we're at a directory separator, there was no file extension
+		if ( isDirSeparator( data[i] ) ) {
+			break;
+		} // DG end
 		if ( data[i] == '.' ) {
 			return *this;
 		}
@@ -817,11 +859,7 @@ idStr::DefaultPath
 ==================
 */
 idStr &idStr::DefaultPath( const char *basepath ) {
-#if defined(__AROS__)
-	if ( ( ( *this )[ 0 ] == '/' ) || ( ( *this )[ 0 ] == '\\' ) || ( ( *this )[ 0 ] == ':' ) ) {
-#else
-	if ( ( ( *this )[ 0 ] == '/' ) || ( ( *this )[ 0 ] == '\\' ) ) {
-#endif
+	if ( isDirSeparator( ( *this )[ 0 ] ) ) {
 		// absolute path location
 		return *this;
 	}
@@ -844,19 +882,12 @@ void idStr::AppendPath( const char *text ) {
 		EnsureAlloced( len + strlen( text ) + 2 );
 
 		if ( pos ) {
-#if defined(__AROS__)
-			if (( data[ pos-1 ] != '/' ) || ( data[ pos-1 ] != ':' )) {
-#else
-			if ( data[ pos-1 ] != '/' ) {
-#endif
+			if ( !isDirSeparator( data[ pos-1 ] ) ) {
 				data[ pos++ ] = '/';
 			}
 		}
-#if defined(__AROS__)
-		if (( text[i] == '/' ) || ( text[i] == ':' )) {
-#else
-		if ( text[i] == '/' ) {
-#endif
+
+		if ( isDirSeparator( text[ i ] ) ) {
 			i++;
 		}
 
@@ -881,11 +912,7 @@ idStr &idStr::StripFilename( void ) {
 	int pos;
 
 	pos = Length() - 1;
-#if defined(__AROS__)
-	while( ( pos > 0 ) && ( ( *this )[ pos ] != '/' ) && ( ( *this )[ pos ] != '\\' ) && ( ( *this )[ pos ] != ':' ) ) {
-#else
-	while( ( pos > 0 ) && ( ( *this )[ pos ] != '/' ) && ( ( *this )[ pos ] != '\\' ) ) {
-#endif
+	while( ( pos > 0 ) && !isDirSeparator( ( *this )[ pos ] ) ) {
 		pos--;
 	}
 
@@ -906,11 +933,7 @@ idStr &idStr::StripPath( void ) {
 	int pos;
 
 	pos = Length();
-#if defined(__AROS__)
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' )  && ( ( *this )[ pos - 1 ] != ':' ) ) {
-#else
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' ) ) {
-#endif
+	while( ( pos > 0 ) && !isDirSeparator( ( *this )[ pos - 1 ] ) ) {
 		pos--;
 	}
 
@@ -930,11 +953,7 @@ void idStr::ExtractFilePath( idStr &dest ) const {
 	// back up until a \ or the start
 	//
 	pos = Length();
-#if defined(__AROS__)
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' ) && ( ( *this )[ pos - 1 ] != ':' ) ) {
-#else
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' ) ) {
-#endif
+	while( ( pos > 0 ) &&  !isDirSeparator( ( *this )[ pos - 1 ] ) ) {
 		pos--;
 	}
 
@@ -953,11 +972,7 @@ void idStr::ExtractFileName( idStr &dest ) const {
 	// back up until a \ or the start
 	//
 	pos = Length() - 1;
-#if defined(__AROS__)
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' ) && ( ( *this )[ pos - 1 ] != ':' ) ) {
-#else
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' ) ) {
-#endif
+	while( ( pos > 0 ) && !isDirSeparator( ( *this )[ pos - 1 ] ) ) {
 		pos--;
 	}
 
@@ -977,11 +992,7 @@ void idStr::ExtractFileBase( idStr &dest ) const {
 	// back up until a \ or the start
 	//
 	pos = Length() - 1;
-#if defined(__AROS__)
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' ) && ( ( *this )[ pos - 1 ] != ':' ) ) {
-#else
-	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '/' ) && ( ( *this )[ pos - 1 ] != '\\' ) ) {
-#endif
+	while( ( pos > 0 ) && !isDirSeparator( ( *this )[ pos - 1 ] ) ) {
 		pos--;
 	}
 
@@ -1007,6 +1018,10 @@ void idStr::ExtractFileExtension( idStr &dest ) const {
 	pos = Length() - 1;
 	while( ( pos > 0 ) && ( ( *this )[ pos - 1 ] != '.' ) ) {
 		pos--;
+		if( isDirSeparator( ( *this )[ pos ] ) ) { // DG: check for directory separator
+			// no extension in the whole filename
+			dest.Empty();
+		} // DG end
 	}
 
 	if ( !pos ) {
@@ -1499,21 +1514,25 @@ idStr::snPrintf
 ================
 */
 int idStr::snPrintf( char *dest, int size, const char *fmt, ...) {
-	int len;
 	va_list argptr;
-	char buffer[32000];	// big, but small enough to fit in PPC stack
-
+	int len;
 	va_start( argptr, fmt );
-	len = vsprintf( buffer, fmt, argptr );
+	len = D3_vsnprintfC99(dest, size, fmt, argptr);
 	va_end( argptr );
-	if ( len >= sizeof( buffer ) ) {
+	if ( len >= 32000 ) {
+		// TODO: Previously this function used a 32000 byte buffer to write into
+		//       with vsprintf(), and raised this error if that was overflowed
+		//       (more likely that'd have lead to a crash..).
+		//       Technically we don't have that restriction anymore, so I'm unsure
+		//       if this error should really still be raised to preserve
+		//       the old intended behavior, maybe for compat with mod DLLs using
+		//       the old version of the function or something?
 		idLib::common->Error( "idStr::snPrintf: overflowed buffer" );
 	}
 	if ( len >= size ) {
 		idLib::common->Warning( "idStr::snPrintf: overflow of %i in %i\n", len, size );
 		len = size;
 	}
-	idStr::Copynz( dest, buffer, size );
 	return len;
 }
 
@@ -1536,18 +1555,7 @@ or returns -1 on failure or if the buffer would be overflowed.
 ============
 */
 int idStr::vsnPrintf( char *dest, int size, const char *fmt, va_list argptr ) {
-	int ret;
-
-#ifdef _WIN32
-#undef _vsnprintf
-	ret = _vsnprintf( dest, size-1, fmt, argptr );
-#define _vsnprintf	use_idStr_vsnPrintf
-#else
-#undef vsnprintf
-	ret = vsnprintf( dest, size, fmt, argptr );
-#define vsnprintf	use_idStr_vsnPrintf
-#endif
-	dest[size-1] = '\0';
+	int ret = D3_vsnprintfC99(dest, size, fmt, argptr);
 	if ( ret < 0 || ret >= size ) {
 		return -1;
 	}
@@ -1775,4 +1783,274 @@ idStr idStr::FormatNumber( int number ) {
 	}
 
 	return string;
+}
+
+idStr idStr::Format( const char* format, ... )
+{
+	va_list argptr;
+	va_start( argptr, format );
+	idStr ret = VFormat( format, argptr );
+	va_end( argptr );
+	return ret;
+}
+
+idStr idStr::VFormat( const char* format, va_list argptr )
+{
+	idStr ret;
+	int len;
+	va_list argptrcopy;
+	char buffer[16000];
+
+	// make a copy of argptr in case we need to call D3_vsnprintf() again after truncation
+#ifdef va_copy // IIRC older VS versions didn't have this?
+	va_copy( argptrcopy, argptr );
+#else
+	argptrcopy = argptr;
+#endif
+
+	len = D3_vsnprintfC99( buffer, sizeof(buffer), format, argptr );
+
+	ret.EnsureAlloced( len + 1 );
+	if ( len < sizeof(buffer) ) {
+		strcpy( ret.data, buffer );
+		ret.len = len;
+	} else {
+		// string was truncated, because buffer wasn't big enough.
+		// ret.EnsureAlloced( len + 1 ) already made sure that ret
+		// has a big enough buffer, so print into that directly
+		D3_vsnprintfC99( ret.data, len+1, format, argptrcopy );
+		ret.len = len;
+	}
+	va_end( argptrcopy );
+
+	return ret;
+
+}
+
+// behaves like C99's vsnprintf() by returning the amount of bytes that
+// *would* have been written into a big enough buffer, even if that's > size
+// unlike idStr::vsnPrintf() which returns -1 in that case
+int D3_vsnprintfC99(char *dst, size_t size, const char *format, va_list ap)
+{
+	// before VS2015, it didn't have a standards-conforming (v)snprintf()-implementation
+	// same might be true for other windows compilers if they use old CRT versions, like MinGW does
+#if defined(_WIN32) && (!defined(_MSC_VER) || _MSC_VER < 1900)
+  #undef _vsnprintf
+	// based on DG_vsnprintf() from https://github.com/DanielGibson/Snippets/blob/master/DG_misc.h
+	int ret = -1;
+	if(dst != NULL && size > 0)
+	{
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+		// I think MSVC2005 introduced _vsnprintf_s().
+		// this shuts up _vsnprintf() security/deprecation warnings.
+		ret = _vsnprintf_s(dst, size, _TRUNCATE, format, ap);
+#else
+		ret = _vsnprintf(dst, size, format, ap);
+		dst[size-1] = '\0'; // ensure '\0'-termination
+#endif
+	}
+
+	if(ret == -1)
+	{
+		// _vsnprintf() returns -1 if the output is truncated
+		// it's also -1 if dst or size were NULL/0, so the user didn't want to write
+		// we want to return the number of characters that would've been
+		// needed, though.. fortunately _vscprintf() calculates that.
+		ret = _vscprintf(format, ap);
+	}
+	return ret;
+  #define _vsnprintf	use_idStr_vsnPrintf
+#else // other operating systems and VisualC++ >= 2015 should have a proper vsnprintf()
+  #undef vsnprintf
+	return vsnprintf(dst, size, format, ap);
+  #define vsnprintf	use_idStr_vsnPrintf
+#endif
+}
+
+// behaves like C99's snprintf() by returning the amount of bytes that
+// *would* have been written into a big enough buffer, even if that's > size
+// unlike idStr::snPrintf() which returns the written bytes in that case
+// and also calls common->Warning() in case of overflows
+int D3_snprintfC99(char *dst, size_t size, const char *format, ...)
+{
+	int ret = 0;
+	va_list argptr;
+	va_start( argptr, format );
+	ret = D3_vsnprintfC99(dst, size, format, argptr);
+	va_end( argptr );
+	return ret;
+}
+
+
+// convert UTF-8 to ISU8859-1 (the "High ASCII" 8-bit encoding Doom3 uses)
+// invalidChar is inserted into the output buffer for unicode characters that can't be
+// represented by ISO8859-1; if it's 0, those will just be skipped
+// returns NULL on error (need more than n chars in isobuf or invalid encoding in utf8str)
+// based on stb_from_utf8 from https://github.com/nothings/stb/blob/master/deprecated/stb.h#L1010
+char * D3_UTF8toISO8859_1( const char *utf8str, char *isobuf, int isobufLen, char invalidChar )
+{
+	const unsigned char *str = (const unsigned char *) utf8str;
+	unsigned char* buffer = (unsigned char *)isobuf;
+	unsigned c;
+	int i=0;
+	int n = isobufLen - 1;
+	while (*str) {
+		if (i >= n)
+			return NULL;
+		if (!(*str & 0x80)) // ASCII char => copy directly
+			buffer[i++] = *str++;
+		else if ((*str & 0xe0) == 0xc0) {
+			// Unicode character between 0x0080 and 0x07FF
+			// => might be representable by ISO8859-1
+			if (*str < 0xc2) return NULL;
+			c = (*str++ & 0x1f) << 6;
+			if ((*str & 0xc0) != 0x80) return NULL;
+			c += (*str++ & 0x3f);
+			if ( c < 0xFF )
+				buffer[i++] = c;
+			else if ( invalidChar != 0 )
+				buffer[i++] = invalidChar;
+		} else if ((*str & 0xf0) == 0xe0) {
+			// Unicode character between 0x0800 and 0xFFFF => way out of range for ISO8859-1
+			// so just validate and skip the input bytes
+			if (*str == 0xe0 && (str[1] < 0xa0 || str[1] > 0xbf)) return NULL;
+			if (*str == 0xed && str[1] > 0x9f) return NULL; // str[1] < 0x80 is checked below
+			//c = (*str++ & 0x0f) << 12;
+			++str;
+			if ((*str & 0xc0) != 0x80) return NULL;
+			//c += (*str++ & 0x3f) << 6;
+			++str;
+			if ((*str & 0xc0) != 0x80) return NULL;
+			//buffer[i++] = c + (*str++ & 0x3f);
+			++str;
+			if ( invalidChar != 0 )
+				buffer[i++] = invalidChar;
+		} else if ((*str & 0xf8) == 0xf0) {
+			// Unicode character between 0x010000 and 0x10FFFF => even more out of range
+			// again, validate and skip
+			if (*str > 0xf4) return NULL;
+			if (*str == 0xf0 && (str[1] < 0x90 || str[1] > 0xbf)) return NULL;
+			if (*str == 0xf4 && str[1] > 0x8f) return NULL; // str[1] < 0x80 is checked below
+			c = (*str++ & 0x07) << 18;
+			if ((*str & 0xc0) != 0x80) return NULL;
+			c += (*str++ & 0x3f) << 12;
+			if ((*str & 0xc0) != 0x80) return NULL;
+			c += (*str++ & 0x3f) << 6;
+			if ((*str & 0xc0) != 0x80) return NULL;
+			c += (*str++ & 0x3f);
+			// utf-8 encodings of values used in surrogate pairs are invalid
+			if ((c & 0xFFFFF800) == 0xD800) return NULL;
+			if ( invalidChar != 0 )
+				buffer[i++] = invalidChar;
+		} else
+			return NULL;
+	}
+	buffer[i] = '\0';
+	return isobuf;
+}
+
+// convert ISO8859-1 (the "High ASCII" 8-bit encoding Doom3 uses) to UTF-8
+// returns NULL on error (need more than utf8bufLen chars in utf8buf)
+// based on stb_to_utf8 from https://github.com/nothings/stb/blob/master/deprecated/stb.h#L1060
+char * D3_ISO8859_1toUTF8( const char* isoStr, char *utf8buf, int utf8bufLen )
+{
+	const unsigned char *str = (const unsigned char *)isoStr;
+	unsigned char *buffer = (unsigned char *)utf8buf;
+	int i=0;
+	int n = utf8bufLen - 1;
+	while (*str) {
+		if (i >= n)
+			return NULL;
+		if (*str < 0x80) {
+			buffer[i++] = *str++;
+		} else {
+			buffer[i++] = 0xc0 + (*str >> 6);
+			buffer[i++] = 0x80 + (*str & 0x3f);
+			++str;
+		}
+	}
+	if(i > n) {
+		// last written codepoint used two chars
+		// => would be out of bounds with terminating \0
+		// => utf8buf was too short, return NULL
+		return NULL;
+	}
+	buffer[i] = '\0';
+	return utf8buf;
+}
+
+// returns number of Unicode codepoints (UTF32 char) in given UTF-8 string.
+// if n >= 0, it only looks at the first n bytes of str (but still stops at the first \0)
+// that's not necessarily the number of printed characters (as unicode allows graphemes that
+// consist of multiple codepoints), but for our purposes (limiting to Latin1 subset) it is..
+// based on utf8nlen from https://github.com/sheredom/utf8.h/blob/master/utf8.h
+size_t D3_UTF8CountCodepoints( const char *str, size_t n )
+{
+	const char *t = str;
+	size_t length = 0;
+	if ( n == (size_t)-1 ) {
+		n = strlen( str );
+	}
+
+	while ((size_t)(str - t) < n && '\0' != *str) {
+		if (0xf0 == (0xf8 & *str)) {
+			/* 4-byte utf8 code point (began with 0b11110xxx) */
+			str += 4;
+		} else if (0xe0 == (0xf0 & *str)) {
+			/* 3-byte utf8 code point (began with 0b1110xxxx) */
+			str += 3;
+		} else if (0xc0 == (0xe0 & *str)) {
+			/* 2-byte utf8 code point (began with 0b110xxxxx) */
+			str += 2;
+		} else { /* if (0x00 == (0x80 & *s)) { */
+			/* 1-byte ascii (began with 0b0xxxxxxx) */
+			str += 1;
+		}
+
+		/* no matter the bytes we marched s forward by, it was
+		 * only 1 utf8 codepoint */
+		length++;
+	}
+
+	if ((size_t)(str - t) > n) {
+		length--;
+	}
+	return length;
+}
+
+// cuts off str (by writing \0 char) after n Unicode codepoints
+// returns number of bytes that remain in string => returns strlen(str) (after cutting off)
+// if str contains <= n codepoints, it's not modified and the number of bytes in it
+// is still returned (excluding terminating \0)
+// based on utf8nlen from https://github.com/sheredom/utf8.h/blob/master/utf8.h
+size_t D3_UTF8CutOffAfterNCodepoints( char *str, size_t n )
+{
+	const char *t = str;
+	size_t length = 0;
+
+	while ('\0' != *str) {
+		if (0xf0 == (0xf8 & *str)) {
+			/* 4-byte utf8 code point (began with 0b11110xxx) */
+			str += 4;
+		} else if (0xe0 == (0xf0 & *str)) {
+			/* 3-byte utf8 code point (began with 0b1110xxxx) */
+			str += 3;
+		} else if (0xc0 == (0xe0 & *str)) {
+			/* 2-byte utf8 code point (began with 0b110xxxxx) */
+			str += 2;
+		} else { /* if (0x00 == (0x80 & *s)) { */
+			/* 1-byte ascii (began with 0b0xxxxxxx) */
+			str += 1;
+		}
+
+		/* no matter the bytes we marched s forward by, it was
+		 * only 1 utf8 codepoint */
+		length++;
+		/* if we have reached the desired amount of codepoints, cut the rest off */
+		if ( length == n ) {
+			*str = '\0';
+			break;
+		}
+	}
+	return (size_t)(str - t);
 }

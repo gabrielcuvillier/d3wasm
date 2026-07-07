@@ -60,7 +60,6 @@ typedef enum {
 
 extern idCVar		com_version;
 extern idCVar		com_skipRenderer;
-extern idCVar		com_asyncInput;
 extern idCVar		com_asyncSound;
 extern idCVar		com_machineSpec;
 extern idCVar		com_purgeAll;
@@ -73,6 +72,9 @@ extern idCVar		com_showAsyncStats;
 extern idCVar		com_showSoundDecoders;
 extern idCVar		com_makingBuild;
 extern idCVar		com_updateLoadSize;
+extern idCVar		com_enableDebuggerServer;
+extern idCVar		com_dbgClientAdr;
+extern idCVar		com_dbgServerAdr;
 
 extern int			time_gameFrame;			// game logic time
 extern int			time_gameDraw;			// game present time
@@ -83,6 +85,8 @@ extern int			com_frameTime;			// time for the current frame in milliseconds
 extern volatile int	com_ticNumber;			// 60 hz tics, incremented by async function
 extern int			com_editors;			// current active editor(s)
 extern bool			com_editorActive;		// true if an editor has focus
+
+extern bool			com_debuggerSupported;	// only set to true when the updateDebugger function is set. see GetAdditionalFunction()
 
 #ifdef _WIN32
 const char			DMAP_MSGID[] = "DMAPOutput";
@@ -111,6 +115,8 @@ struct MemInfo_t {
 };
 
 class idLangDict;
+class idInterpreter;
+class idProgram;
 
 class idCommon {
 public:
@@ -136,8 +142,8 @@ public:
 								// Called repeatedly by blocking function calls with GUI interactivity.
 	virtual void				GUIFrame( bool execCmd, bool network ) = 0;
 
-								// Called 60 times a second from a background thread for sound mixing,
-								// and input generation. Not called until idCommon::Init() has completed.
+								// Called 60 times a second from a background thread for sound mixing.
+								// Not called until idCommon::Init() has completed.
 	virtual void				Async( void ) = 0;
 
 								// Checks for and removes command line "+set var arg" constructs.
@@ -157,6 +163,7 @@ public:
 
 								// Writes cvars with the given flags to a file.
 	virtual void				WriteFlaggedCVarsToFile( const char *filename, int flags, const char *setCmd ) = 0;
+
 
 								// Begins redirection of console output to the given buffer.
 	virtual void				BeginRedirect( char *buffer, int buffersize, void (*flush)( const char * ) ) = 0;
@@ -265,6 +272,11 @@ public:
 		// it returns true if we're currently running the doom3 demo
 		// not relevant for mods, only for game/ aka base.dll/base.so/...
 		FT_IsDemo = 1,
+		// the function's signature is bool fn(idInterpreter*, idProgram*, int) with arguments:
+		// idInterpreter *interpreter, idProgram *program, int instructionPointer
+		// it returns true if the game debugger is active.
+		// relevant for mods.
+		FT_UpdateDebugger,
 	};
 
 	// returns true if that function is available in this version of dhewm3

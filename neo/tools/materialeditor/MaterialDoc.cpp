@@ -25,8 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "MaterialDoc.h"
 #include "MaterialView.h"
@@ -768,7 +768,6 @@ void MaterialDoc::ParseStage(idLexer* src) {
 */
 void MaterialDoc::AddSpecialMapStage(const char* stageName, const char* map) {
 	MEStage_t* newStage = new MEStage_t();
-	int index = editMaterial.stages.Append(newStage);
 	newStage->stageData.Set("name", stageName);
 	newStage->stageData.Set("map", map);
 	newStage->stageData.SetInt("stagetype", STAGE_TYPE_SPECIALMAP);

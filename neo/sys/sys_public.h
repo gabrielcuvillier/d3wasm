@@ -44,21 +44,22 @@ typedef enum {
 } cpuidSimd_t;
 
 typedef enum {
-	AXIS_SIDE,
-	AXIS_FORWARD,
-	AXIS_UP,
-	AXIS_ROLL,
-	AXIS_YAW,
-	AXIS_PITCH,
+	AXIS_LEFT_X,
+	AXIS_LEFT_Y,
+	AXIS_RIGHT_X,
+	AXIS_RIGHT_Y,
+	AXIS_LEFT_TRIG,
+	AXIS_RIGHT_TRIG,
 	MAX_JOYSTICK_AXIS
 } joystickAxis_t;
 
 typedef enum {
 	SE_NONE,				// evTime is still valid
 	SE_KEY,					// evValue is a key code, evValue2 is the down flag
-	SE_CHAR,				// evValue is an ascii char
-	SE_MOUSE,				// evValue and evValue2 are reletive signed x / y moves
-	SE_JOYSTICK_AXIS,		// evValue is an axis number and evValue2 is the current state (-127 to 127)
+	SE_CHAR,				// evValue is a "High ASCII" (ISO-8859-1) char
+	SE_MOUSE,				// evValue and evValue2 are relative signed x / y moves
+	SE_MOUSE_ABS,			// evValue and evValue2 are absolute x / y coordinates in the window
+	SE_JOYSTICK,			// evValue is an axis number and evValue2 is the current state (-127 to 127)
 	SE_CONSOLE				// evPtr is a char*, from typing something at a non-game console
 } sysEventType_t;
 
@@ -76,10 +77,52 @@ typedef enum {
 	M_DELTAZ
 } sys_mEvents;
 
+typedef enum {
+	J_ACTION_FIRST,
+	// these names are similar to the SDL3 SDL_GamepadButton names
+	J_BTN_SOUTH = J_ACTION_FIRST, // bottom face button, like Xbox A
+	J_BTN_EAST,  // right face button, like Xbox B
+	J_BTN_WEST,  // left face button, like Xbox X
+	J_BTN_NORTH, // top face button, like Xbox Y
+	J_BTN_BACK,
+	J_BTN_GUIDE, // Note: this one should probably not be used?
+	J_BTN_START,
+	J_BTN_LSTICK, // press left stick
+	J_BTN_RSTICK, // press right stick
+	J_BTN_LSHOULDER,
+	J_BTN_RSHOULDER,
+
+	J_DPAD_UP,
+	J_DPAD_DOWN,
+	J_DPAD_LEFT,
+	J_DPAD_RIGHT,
+
+	J_BTN_MISC1, // Additional button (e.g. Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Amazon Luna microphone button)
+	J_BTN_RPADDLE1, // Upper or primary paddle, under your right hand (e.g. Xbox Elite paddle P1)
+	J_BTN_LPADDLE1, // Upper or primary paddle, under your left hand (e.g. Xbox Elite paddle P3)
+	J_BTN_RPADDLE2, // Lower or secondary paddle, under your right hand (e.g. Xbox Elite paddle P2)
+	J_BTN_LPADDLE2, //  Lower or secondary paddle, under your left hand (e.g. Xbox Elite paddle P4)
+
+	J_ACTION_MAX = J_BTN_LPADDLE2,
+	// leaving some space here for about 12 additional J_ACTIONs, if needed
+
+	J_AXIS_MIN = 32,
+	J_AXIS_LEFT_X = J_AXIS_MIN + AXIS_LEFT_X,
+	J_AXIS_LEFT_Y = J_AXIS_MIN + AXIS_LEFT_Y,
+	J_AXIS_RIGHT_X = J_AXIS_MIN + AXIS_RIGHT_X,
+	J_AXIS_RIGHT_Y = J_AXIS_MIN + AXIS_RIGHT_Y,
+	J_AXIS_LEFT_TRIG = J_AXIS_MIN + AXIS_LEFT_TRIG,
+	J_AXIS_RIGHT_TRIG = J_AXIS_MIN + AXIS_RIGHT_TRIG,
+
+	J_AXIS_MAX = J_AXIS_MIN + MAX_JOYSTICK_AXIS - 1,
+
+	MAX_JOY_EVENT
+} sys_jEvents;
+
 struct sysEvent_t {
 	sysEventType_t	evType;
-	int				evValue;
-	int				evValue2;
+	int				evValue;	// for keys: K_* or ASCII code; for joystick: axis; for mouse: mouseX
+	int				evValue2;	// for keys: 0/1 for up/down; for axis: value; for mouse: mouseY
 	int				evPtrLength;		// bytes of data pointed to by evPtr, for journaling
 	void *			evPtr;				// this must be manually freed if not NULL
 };
@@ -89,6 +132,9 @@ enum sysPath_t {
 	PATH_CONFIG,
 	PATH_SAVE,
 	PATH_EXE
+#if defined(__AROS__)
+	, PATH_LAUNCH
+#endif
 };
 
 template<class type> class idList;		// for Sys_ListFiles
@@ -101,6 +147,7 @@ void			Sys_Quit( void );
 
 // note that this isn't journaled...
 char *			Sys_GetClipboardData( void );
+void			Sys_FreeClipboardData( char* data );
 void			Sys_SetClipboardData( const char *string );
 
 // will go to the various text consoles
@@ -115,9 +162,18 @@ void			Sys_DebugVPrintf( const char *fmt, va_list arg );
 // NOTE: due to SDL_TIMESLICE this is very bad portability karma, and should be completely removed
 void			Sys_Sleep( int msec );
 
+// like Sys_Milliseconds(), but with higher precision
+double			Sys_MillisecondsPrecise( void );
+
 // Sys_Milliseconds should only be used for profiling purposes,
 // any game related timing information should come from event timestamps
-unsigned int	Sys_Milliseconds( void );
+ID_INLINE unsigned int Sys_Milliseconds( void ) {
+	return (unsigned int)Sys_MillisecondsPrecise();
+}
+
+// sleep until Sys_MillisecondsPrecise() returns >= targetTimeMS
+// aims for about 0.01ms precision (but might busy wait for the last 1.5ms or so)
+void Sys_SleepUntilPrecise( double targetTimeMS );
 
 // returns a selection of the CPUID_* flags
 int				Sys_GetProcessorId( void );
@@ -165,6 +221,25 @@ unsigned char	Sys_GetConsoleKey( bool shifted );
 // does nothing on win32, as SE_KEY == SE_CHAR there
 // on other OSes, consider the keyboard mapping
 unsigned char	Sys_MapCharForKey( int key );
+// for keynums between K_FIRST_SCANCODE and K_LAST_SCANCODE
+// returns e.g. "SC_A" for K_SC_A
+const char* Sys_GetScancodeName( int key );
+// returns localized name of the key (between K_FIRST_SCANCODE and K_LAST_SCANCODE),
+// regarding the current keyboard layout - if that name is in ASCII or corresponds
+// to a "High-ASCII" char supported by Doom3.
+// Otherwise return same name as Sys_GetScancodeName()
+// !! Returned string is only valid until next call to this function !!
+const char* Sys_GetLocalizedScancodeName( int key );
+// the same, but using UTF-8 instead of "High-ASCII"
+const char* Sys_GetLocalizedScancodeNameUTF8( int key );
+// returns keyNum_t (K_SC_* constant) for given scancode name (like "SC_A")
+int Sys_GetKeynumForScancodeName( const char* name );
+
+// returns display name of the key (between K_FIRST_JOY and K_LAST_JOY)
+// With SDL2 it'll return the name in the SDL_GameController standard layout
+// (which is based on XBox/XInput => on Nintendo gamepads, A/B and X/Y will be flipped),
+// with SDL3 it will return the "real" button name
+const char* Sys_GetLocalizedJoyKeyName( int key );
 
 // keyboard input polling
 int				Sys_PollKeyboardInputEvents( void );
@@ -176,10 +251,23 @@ int				Sys_PollMouseInputEvents( void );
 int				Sys_ReturnMouseInputEvent( const int n, int &action, int &value );
 void			Sys_EndMouseInputEvents( void );
 
+// joystick input polling
+void			Sys_SetRumble( int device, int low, int hi );
+int				Sys_PollJoystickInputEvents( int deviceNum );
+int				Sys_ReturnJoystickInputEvent( const int n, int &action, int &value );
+void			Sys_EndJoystickInputEvents();
+
 // when the console is down, or the game is about to perform a lengthy
 // operation like map loading, the system can release the mouse cursor
 // when in windowed mode
 void			Sys_GrabMouseCursor( bool grabIt );
+
+// DG: added this for an ungodly hack for gamepad support
+// active = true means "currently a GUI with a cursor is active/focused"
+// active = false means "that GUI is not active anymore"
+// ui == NULL means "clear all currently remembered GUIs"
+class idUserInterface;
+void			Sys_SetInteractiveIngameGuiActive( bool active, idUserInterface* ui );
 
 void			Sys_ShowWindow( bool show );
 bool			Sys_IsWindowVisible( void );
@@ -295,7 +383,11 @@ typedef int (*xthread_t)( void * );
 typedef struct {
 	const char		*name;
 	SDL_Thread		*threadHandle;
-	unsigned int	threadId;
+#ifdef D3_SDL3
+	uint64_t		threadId;
+#else
+	unsigned long	threadId;
+#endif
 } xthreadInfo;
 
 void				Sys_CreateThread( xthread_t function, void *parms, xthreadInfo &info, const char *name );
@@ -307,6 +399,8 @@ const char *		Sys_GetThreadName( int *index = 0 );
 
 extern void Sys_InitThreads();
 extern void Sys_ShutdownThreads();
+
+bool Sys_IsMainThread();
 
 const int MAX_CRITICAL_SECTIONS		= 5;
 

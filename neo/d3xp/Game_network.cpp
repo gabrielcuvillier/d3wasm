@@ -734,7 +734,7 @@ void idGameLocal::NetworkEventWarning( const entityNetEvent_t *event, const char
 	va_end( argptr );
 	idStr::Append( buf, sizeof(buf), "\n" );
 
-	common->DWarning( buf );
+	common->DWarning( "%s", buf );
 }
 
 /*
@@ -1543,8 +1543,8 @@ gameReturn_t idGameLocal::ClientPrediction( int clientNum, const usercmd_t *clie
 	}
 
 #ifdef _D3XP
-	slow.Set( time, previousTime, msec, framenum, realClientTime );
-	fast.Set( time, previousTime, msec, framenum, realClientTime );
+	slow.Set( time, previousTime, msec, framenum, realClientTime, msecPrecise );
+	fast.Set( time, previousTime, msec, framenum, realClientTime, msecPrecise );
 #endif
 
 	// set the user commands for this frame
@@ -1566,7 +1566,7 @@ gameReturn_t idGameLocal::ClientPrediction( int clientNum, const usercmd_t *clie
 	}
 
 	if ( sessionCommand.Length() ) {
-		strncpy( ret.sessionCommand, sessionCommand, sizeof( ret.sessionCommand ) );
+		idStr::Copynz( ret.sessionCommand, sessionCommand, sizeof( ret.sessionCommand ) );
 	}
 	return ret;
 }

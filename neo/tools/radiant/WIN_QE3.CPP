@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "mru.h"
@@ -176,7 +176,7 @@ int WINAPI QEW_SetupPixelFormat(HDC hDC, bool zbuffer)
 {
 #if 1
 
-	int pixelFormat = ChoosePixelFormat(hDC, &win32.pfd);
+	int pixelFormat = Win_ChoosePixelFormat(hDC);
 	if (pixelFormat > 0) {
 		if (SetPixelFormat(hDC, pixelFormat, &win32.pfd) == NULL) {
 			Error("SetPixelFormat failed.");
@@ -281,11 +281,6 @@ void Error(char *error, ...) {
 void Warning(char *error, ...) {
 	va_list argptr;
 	char	text[1024];
-	int		err;
-
-	err = GetLastError();
-
-	int i = qglGetError();
 
 	va_start(argptr, error);
 	vsprintf(text, error, argptr);
@@ -320,7 +315,7 @@ static char			szFilter[260] =			/* filter string */
 static char			szProjectFilter[260] =	/* filter string */
 "Q3Radiant project (*.qe4, *.prj)\0*.qe4\0*.prj\0\0";
 static char			chReplace;				/* string separator for szFilter */
-static int			i, cbString;			/* integer count variables */
+static int			cbString;				/* integer count variables */
 static HANDLE		hf;						/* file handle */
 
 /*
@@ -336,7 +331,7 @@ void OpenDialog(void) {
 	}
 
 	if (g_PrefsDlg.m_strMaps.GetLength() > 0) {
-		strcat(szDirName, va("\\%s", g_PrefsDlg.m_strMaps));
+		strcat(szDirName, va("\\%s", g_PrefsDlg.m_strMaps.GetString()));
 	}
 
 	/* Place the terminating null character in the szFile. */
@@ -422,7 +417,7 @@ void SaveAsDialog(bool bRegion) {
 	AddSlash(strPath);
 	strPath += "maps";
 	if (g_PrefsDlg.m_strMaps.GetLength() > 0) {
-		strPath += va("\\%s", g_PrefsDlg.m_strMaps);
+		strPath += va("\\%s", g_PrefsDlg.m_strMaps.GetString());
 	}
 
 	/* Place the terminating null character in the szFile. */

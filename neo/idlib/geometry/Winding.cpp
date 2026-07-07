@@ -102,7 +102,12 @@ int idWinding::Split( const idPlane &plane, const float epsilon, idWinding **fro
 	idWinding *		f, *b;
 	int				maxpts;
 
-	assert( this );
+	assert( this && numPoints > 0);
+
+	// DG: unlikely, but makes sure we don't use uninitialized memory below
+	if ( numPoints == 0 ) {
+		return 0; // it's not like the callers check the return value anyway..
+	}
 
 	dists = (float *) _alloca( (numPoints+4) * sizeof( float ) );
 	sides = (byte *) _alloca( (numPoints+4) * sizeof( byte ) );
@@ -245,7 +250,13 @@ idWinding *idWinding::Clip( const idPlane &plane, const float epsilon, const boo
 	idVec5		mid;
 	int			maxpts;
 
-	assert( this );
+	assert( this && numPoints > 0 );
+
+	// DG: this shouldn't happen, probably, but if it does we'd use uninitialized memory below
+	if ( numPoints == 0 ) {
+		delete this;
+		return NULL;
+	}
 
 	dists = (float *) _alloca( (numPoints+4) * sizeof( float ) );
 	sides = (byte *) _alloca( (numPoints+4) * sizeof( byte ) );
@@ -757,11 +768,13 @@ void idWinding::RemoveColinearPoints( const idVec3 &normal, const float epsilon 
 	idVec3 edgeNormal;
 	float dist;
 
-	if ( numPoints <= 3 ) {
-		return;
-	}
-
 	for ( i = 0; i < numPoints; i++ ) {
+
+		// from TDM: angua: don't remove any points when there are only 3 or less left to avoid
+		// degenerating the winding, otherwise this may result in windings with numPoints = 0
+		if ( numPoints <= 3 ) {
+			return;
+		}
 
 		// create plane through edge orthogonal to winding plane
 		edgeNormal = (p[i].ToVec3() - p[(i+numPoints-1)%numPoints].ToVec3()).Cross( normal );

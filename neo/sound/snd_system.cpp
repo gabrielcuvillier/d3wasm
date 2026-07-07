@@ -29,6 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "sys/platform.h"
 
 #include "sound/snd_local.h"
+#include <limits.h>
 
 #ifdef ID_DEDICATED
 idCVar idSoundSystemLocal::s_noSound( "s_noSound", "1", CVAR_SOUND | CVAR_BOOL | CVAR_ROM, "" );
@@ -77,11 +78,54 @@ idCVar idSoundSystemLocal::s_useEAXReverb( "s_useEAXReverb", "0", CVAR_SOUND | C
 idCVar idSoundSystemLocal::s_decompressionLimit( "s_decompressionLimit", "6", CVAR_SOUND | CVAR_INTEGER | CVAR_ROM, "specifies maximum uncompressed sample length in seconds" );
 #endif
 
+idCVar idSoundSystemLocal::s_alReverbGain( "s_alReverbGain", "0.5", CVAR_SOUND | CVAR_FLOAT | CVAR_ARCHIVE, "reduce reverb strength (0.0 to 1.0)", 0.0f, 1.0f );
+
+idCVar idSoundSystemLocal::s_scaleDownAndClamp( "s_scaleDownAndClamp", "1", CVAR_SOUND | CVAR_BOOL | CVAR_ARCHIVE, "Clamp and reduce volume of all sounds to prevent clipping or temporary downscaling by OpenAL. When disabling this, you probably want to explicitly disable s_alOutputLimiter" );
+idCVar idSoundSystemLocal::s_alOutputLimiter( "s_alOutputLimiter", "-1", CVAR_SOUND | CVAR_INTEGER | CVAR_ARCHIVE, "Configure OpenAL's output-limiter. 0: Disable, 1: Enable, -1: Let OpenAL decide (default)" );
+idCVar idSoundSystemLocal::s_alHRTF( "s_alHRTF", "-1", CVAR_SOUND | CVAR_INTEGER | CVAR_ARCHIVE, "Enable HRTF for better surround sound with stereo *headphones*. 0: Disable, 1: Enable, -1: Let OpenAL decide (default)" );
+
 bool idSoundSystemLocal::useEFXReverb = false;
 int idSoundSystemLocal::EFXAvailable = -1;
 
+bool idSoundSystemLocal::alHRTFavailable = false;
+bool idSoundSystemLocal::alOutputLimiterAvailable = false;
+bool idSoundSystemLocal::alEnumerateAllAvailable = false;
+bool idSoundSystemLocal::alIsDisconnectAvailable = false;
+bool idSoundSystemLocal::alOutputModeAvailable = false;
+
+
 idSoundSystemLocal	soundSystemLocal;
 idSoundSystem	*soundSystem  = &soundSystemLocal;
+
+enum { D3_ALC_ATTRLIST_LEN = 6 }; // currently we set at most two setting-pairs + terminating 0, 0
+
+static ALCint cvarToAlcBoolish( const idCVar& cvar )
+{
+	int val = cvar.GetInteger();
+	return (val < 0) ? ALC_DONT_CARE_SOFT : ( (val > 0) ? ALC_TRUE : ALC_FALSE );
+}
+
+// initialize attrList for alcCreateContext() or alcResetDeviceSOFT(),
+// based on s_alHRTF and s_alOutputLimiter
+static void SetAlcAttrList( ALCint attrList[D3_ALC_ATTRLIST_LEN] )
+{
+	int idx = 0;
+	// ALC_HRTF_SOFT, ALC_TRUE            // or ALC_FALSE or ALC_DONT_CARE_SOFT
+	if ( idSoundSystemLocal::alHRTFavailable ) {
+		attrList[idx++] = ALC_HRTF_SOFT;
+		attrList[idx++] = cvarToAlcBoolish( idSoundSystemLocal::s_alHRTF );
+	}
+	// TODO: ALC_HRTF_ID_SOFT, index  // to select an HRTF model?
+
+	// ALC_OUTPUT_LIMITER_SOFT, ALC_FALSE // or ALC_FALSE or ALC_DONT_CARE_SOFT
+	if ( idSoundSystemLocal::alOutputLimiterAvailable ) {
+		attrList[idx++] = ALC_OUTPUT_LIMITER_SOFT;
+		attrList[idx++] = cvarToAlcBoolish( idSoundSystemLocal::s_alOutputLimiter );
+	}
+	// terminating 0, 0
+	attrList[idx++] = 0;
+	attrList[idx++] = 0;
+}
 
 /*
 ===============
@@ -277,6 +321,17 @@ void SoundSystemRestart_f( const idCmdArgs &args ) {
 	soundSystem->SetMute( false );
 }
 
+// DG: make this function callable from idSessionLocal::Frame() without having to
+// change the public idSoundSystem interface - that would break mod DLL compat,
+// and this is not relevant for gamecode.
+bool CheckOpenALDeviceAndRecoverIfNeeded()
+{
+	if(soundSystemLocal.isInitialized)
+		return soundSystemLocal.CheckDeviceAndRecoverIfNeeded();
+
+	return true;
+}
+
 /*
 ===============
 idSoundSystemLocal::Init
@@ -313,130 +368,186 @@ void idSoundSystemLocal::Init() {
 
 	graph = NULL;
 
-	if ( !s_noSound.GetBool() ) {
-		idSampleDecoder::Init();
-		soundCache = new idSoundCache();
-	}
+	// DG: added these for CheckDeviceAndRecoverIfNeeded()
+	alcResetDeviceSOFT = NULL;
+	resetRetryCount = 0;
+	lastCheckTime = 0;
 
-	// set up openal device and context
-	common->Printf( "Setup OpenAL device and context\n" );
+	// DG: no point in initializing OpenAL if sound is disabled with s_noSound
+	if ( s_noSound.GetBool() ) {
+		common->Printf( "Sound disabled with s_noSound 1 !\n" );
+		openalDevice = NULL;
+		openalContext = NULL;
+	} else {
+		// set up openal device and context
+		common->Printf( "Setup OpenAL device and context\n" );
 
-	const char *device = s_device.GetString();
-	if (strlen(device) < 1)
-		device = NULL;
-	else if (!idStr::Icmp(device, "default"))
-		device = NULL;
+		const char *device = s_device.GetString();
+		if (strlen(device) < 1)
+			device = NULL;
+		else if (!idStr::Icmp(device, "default"))
+			device = NULL;
 
-	if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT")) {
-		const char *devs = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
-		bool found = false;
+		alEnumerateAllAvailable = alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT");
+		if ( alEnumerateAllAvailable ) {
+			const char *devs = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+			bool found = false;
 
-		while (devs && *devs) {
-			common->Printf("OpenAL: found device '%s'", devs);
+			while (devs && *devs) {
+				common->Printf("OpenAL: found device '%s'", devs);
 
-			if (device && !idStr::Icmp(devs, device)) {
-				common->Printf(" (ACTIVE)\n");
-				found = true;
-			} else {
-				common->Printf("\n");
+				if ( device && !idStr::Icmp(devs, device) ) {
+					common->Printf(" (ACTIVE)\n");
+					found = true;
+				} else {
+					common->Printf("\n");
+				}
+
+				devs += strlen(devs) + 1;
 			}
 
-			devs += strlen(devs) + 1;
+			if ( device && !found ) {
+				common->Printf("OpenAL: device %s not found, using default\n", device);
+				device = NULL;
+			}
 		}
 
-		if (device && !found) {
-			common->Printf("OpenAL: device %s not found, using default\n", device);
-			device = NULL;
+		openalDevice = alcOpenDevice(device);
+		if ( !openalDevice && device ) {
+			common->Printf( "OpenAL: failed to open device '%s' (0x%x), trying default...\n", device, alGetError() );
+			openalDevice = alcOpenDevice( NULL );
 		}
-	}
 
-	openalDevice = alcOpenDevice( device );
-	if (!openalDevice && device) {
-		common->Printf("OpenAL: failed to open device '%s' (0x%x), using default\n", device, alGetError());
-		openalDevice = alcOpenDevice( NULL );
-	}
-
-	openalContext = alcCreateContext( openalDevice, NULL );
-	alcMakeContextCurrent( openalContext );
-
-	// log openal info
-	common->Printf( "OpenAL vendor: %s\n", alGetString(AL_VENDOR));
-	common->Printf( "OpenAL renderer: %s\n", alGetString(AL_RENDERER));
-	common->Printf( "OpenAL version: %s\n", alGetString(AL_VERSION));
-
-	// try to obtain EFX extensions
-	if (alcIsExtensionPresent(openalDevice, "ALC_EXT_EFX")) {
-		common->Printf( "OpenAL: found EFX extension\n" );
-		EFXAvailable = 1;
-
-		alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");
-		alDeleteEffects = (LPALDELETEEFFECTS)alGetProcAddress("alDeleteEffects");
-		alIsEffect = (LPALISEFFECT)alGetProcAddress("alIsEffect");
-		alEffecti = (LPALEFFECTI)alGetProcAddress("alEffecti");
-		alEffectf = (LPALEFFECTF)alGetProcAddress("alEffectf");
-		alEffectfv = (LPALEFFECTFV)alGetProcAddress("alEffectfv");
-		alGenFilters = (LPALGENFILTERS)alGetProcAddress("alGenFilters");
-		alDeleteFilters = (LPALDELETEFILTERS)alGetProcAddress("alDeleteFilters");
-		alIsFilter = (LPALISFILTER)alGetProcAddress("alIsFilter");
-		alFilteri = (LPALFILTERI)alGetProcAddress("alFilteri");
-		alFilterf = (LPALFILTERF)alGetProcAddress("alFilterf");
-		alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)alGetProcAddress("alGenAuxiliaryEffectSlots");
-		alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)alGetProcAddress("alDeleteAuxiliaryEffectSlots");
-		alIsAuxiliaryEffectSlot = (LPALISAUXILIARYEFFECTSLOT)alGetProcAddress("alIsAuxiliaryEffectSlot");;
-		alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)alGetProcAddress("alAuxiliaryEffectSloti");
-	} else {
-		common->Printf( "OpenAL: EFX extension not found\n" );
-		EFXAvailable = 0;
-		idSoundSystemLocal::s_useEAXReverb.SetBool( false );
-
-		alGenEffects = NULL;
-		alDeleteEffects = NULL;
-		alIsEffect = NULL;
-		alEffecti = NULL;
-		alEffectf = NULL;
-		alEffectfv = NULL;
-		alGenFilters = NULL;
-		alDeleteFilters = NULL;
-		alIsFilter = NULL;
-		alFilteri = NULL;
-		alFilterf = NULL;
-		alGenAuxiliaryEffectSlots = NULL;
-		alDeleteAuxiliaryEffectSlots = NULL;
-		alIsAuxiliaryEffectSlot = NULL;
-		alAuxiliaryEffectSloti = NULL;
-	}
-
-	ALuint handle;
-	openalSourceCount = 0;
-
-	while ( openalSourceCount < 256 ) {
-		alGetError();
-		alGenSources( 1, &handle );
-		if ( alGetError() != AL_NO_ERROR ) {
-			break;
+		// DG: handle the possibility that opening the default device or creating context failed
+		if ( openalDevice == NULL ) {
+			common->Printf( "OpenAL: failed to open default device (0x%x), disabling sound\n", alGetError() );
+			openalContext = NULL;
 		} else {
-			// store in source array
-			openalSources[openalSourceCount].handle = handle;
-			openalSources[openalSourceCount].startTime = 0;
-			openalSources[openalSourceCount].chan = NULL;
-			openalSources[openalSourceCount].inUse = false;
-			openalSources[openalSourceCount].looping = false;
+			// DG: extensions needed for CheckDeviceAndRecoverIfNeeded(), HRTF, output-limiter, the info in the settings menu, ...
+			alHRTFavailable = alcIsExtensionPresent( openalDevice, "ALC_SOFT_HRTF" ) != AL_FALSE;
+			alIsDisconnectAvailable = alcIsExtensionPresent( openalDevice, "ALC_EXT_disconnect" ) != AL_FALSE;
+			if ( alHRTFavailable ) {
+				common->Printf( "OpenAL: found extension for HRTF\n" );
+				alcResetDeviceSOFT = (LPALCRESETDEVICESOFT)alcGetProcAddress( openalDevice, "alcResetDeviceSOFT" );
+				if ( alIsDisconnectAvailable ) {
+					common->Printf( "OpenAL: found extensions for resetting disconnected devices\n" );
+				}
+				alOutputLimiterAvailable = alcIsExtensionPresent( openalDevice, "ALC_SOFT_output_limiter" ) != AL_FALSE;
+				if ( alOutputLimiterAvailable ) {
+					common->Printf( "OpenAL: found extension to control output-limiter\n" );
+				}
+			} else {
+				alOutputLimiterAvailable = false;
+				alcResetDeviceSOFT = NULL;
+			}
+			alOutputModeAvailable = alcIsExtensionPresent( openalDevice, "ALC_SOFT_output_mode" );
 
-			// initialise sources
-			alSourcef( handle, AL_ROLLOFF_FACTOR, 0.0f );
+			ALCint attrList[D3_ALC_ATTRLIST_LEN] = {};
+			SetAlcAttrList( attrList );
 
-			// found one source
-			openalSourceCount++;
+			s_alHRTF.ClearModified();
+			s_alOutputLimiter.ClearModified();
+
+			openalContext = alcCreateContext( openalDevice, attrList );
+			if ( openalContext == NULL ) {
+				common->Printf( "OpenAL: failed to create context (0x%x), disabling sound\n", alcGetError(openalDevice) );
+				alcCloseDevice( openalDevice );
+				openalDevice = NULL;
+			}
 		}
 	}
 
-	common->Printf( "OpenAL: found %d hardware voices\n", openalSourceCount );
+	// DG: only do these things if opening device and creating context succeeded and sound is enabled
+	//     (if sound is disabled with s_noSound, openalContext is NULL)
+	if ( openalContext != NULL )
+	{
+		idSampleDecoder::Init();
+		soundCache = new idSoundCache();
 
-	// adjust source count to allow for at least eight stereo sounds to play
-	openalSourceCount -= 8;
+		alcMakeContextCurrent( openalContext );
 
-	useEFXReverb = idSoundSystemLocal::s_useEAXReverb.GetBool();
-	efxloaded = false;
+		// log openal info
+		common->Printf( "OpenAL vendor: %s\n", alGetString(AL_VENDOR) );
+		common->Printf( "OpenAL renderer: %s\n", alGetString(AL_RENDERER) );
+		common->Printf( "OpenAL version: %s\n", alGetString(AL_VERSION) );
+
+		// try to obtain EFX extensions
+		if (alcIsExtensionPresent(openalDevice, "ALC_EXT_EFX")) {
+			common->Printf( "OpenAL: found EFX extension\n" );
+			EFXAvailable = 1;
+
+			alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");
+			alDeleteEffects = (LPALDELETEEFFECTS)alGetProcAddress("alDeleteEffects");
+			alIsEffect = (LPALISEFFECT)alGetProcAddress("alIsEffect");
+			alEffecti = (LPALEFFECTI)alGetProcAddress("alEffecti");
+			alEffectf = (LPALEFFECTF)alGetProcAddress("alEffectf");
+			alEffectfv = (LPALEFFECTFV)alGetProcAddress("alEffectfv");
+			alGenFilters = (LPALGENFILTERS)alGetProcAddress("alGenFilters");
+			alDeleteFilters = (LPALDELETEFILTERS)alGetProcAddress("alDeleteFilters");
+			alIsFilter = (LPALISFILTER)alGetProcAddress("alIsFilter");
+			alFilteri = (LPALFILTERI)alGetProcAddress("alFilteri");
+			alFilterf = (LPALFILTERF)alGetProcAddress("alFilterf");
+			alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)alGetProcAddress("alGenAuxiliaryEffectSlots");
+			alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)alGetProcAddress("alDeleteAuxiliaryEffectSlots");
+			alIsAuxiliaryEffectSlot = (LPALISAUXILIARYEFFECTSLOT)alGetProcAddress("alIsAuxiliaryEffectSlot");;
+			alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)alGetProcAddress("alAuxiliaryEffectSloti");
+			alAuxiliaryEffectSlotf = (LPALAUXILIARYEFFECTSLOTF)alGetProcAddress("alAuxiliaryEffectSlotf");
+		} else {
+			common->Printf( "OpenAL: EFX extension not found\n" );
+			EFXAvailable = 0;
+			idSoundSystemLocal::s_useEAXReverb.SetBool( false );
+
+			alGenEffects = NULL;
+			alDeleteEffects = NULL;
+			alIsEffect = NULL;
+			alEffecti = NULL;
+			alEffectf = NULL;
+			alEffectfv = NULL;
+			alGenFilters = NULL;
+			alDeleteFilters = NULL;
+			alIsFilter = NULL;
+			alFilteri = NULL;
+			alFilterf = NULL;
+			alGenAuxiliaryEffectSlots = NULL;
+			alDeleteAuxiliaryEffectSlots = NULL;
+			alIsAuxiliaryEffectSlot = NULL;
+			alAuxiliaryEffectSloti = NULL;
+			alAuxiliaryEffectSlotf = NULL;
+		}
+
+		ALuint handle;
+		openalSourceCount = 0;
+
+		while ( openalSourceCount < 256 ) {
+			alGetError();
+			alGenSources( 1, &handle );
+			if ( alGetError() != AL_NO_ERROR ) {
+				break;
+			} else {
+				// store in source array
+				openalSources[openalSourceCount].handle = handle;
+				openalSources[openalSourceCount].startTime = 0;
+				openalSources[openalSourceCount].chan = NULL;
+				openalSources[openalSourceCount].inUse = false;
+				openalSources[openalSourceCount].looping = false;
+
+				// initialise sources
+				alSourcef( handle, AL_ROLLOFF_FACTOR, 0.0f );
+
+				// found one source
+				openalSourceCount++;
+			}
+		}
+
+		common->Printf( "OpenAL: found %d hardware voices\n", openalSourceCount );
+
+		// adjust source count to allow for at least eight stereo sounds to play
+		openalSourceCount -= 8;
+
+		useEFXReverb = idSoundSystemLocal::s_useEAXReverb.GetBool();
+		efxloaded = false;
+
+	}
 
 	cmdSystem->AddCommand( "listSounds", ListSounds_f, CMD_FL_SOUND, "lists all sounds" );
 	cmdSystem->AddCommand( "listSoundDecoders", ListSoundDecoders_f, CMD_FL_SOUND, "list active sound decoders" );
@@ -507,7 +618,9 @@ bool idSoundSystemLocal::InitHW() {
 		s_numberOfSpeakers.SetInteger(numSpeakers);
 	}
 
-	if ( s_noSound.GetBool() ) {
+	// DG: if OpenAL context couldn't be created (maybe there were no
+	//      audio devices), keep audio disabled.
+	if ( s_noSound.GetBool() || openalContext == NULL ) {
 		return false;
 	}
 
@@ -543,6 +656,100 @@ bool idSoundSystemLocal::ShutdownHW() {
 	}
 
 	return true;
+}
+
+/*
+===============
+idSoundSystemLocal::ResetALDevice
+
+ DG: resets the OpenAL device, applying the settings of s_alHRTF and s_alOutputLimiter
+     returns false if that failed, or the necessary OpenAL extension isn't available
+===============
+*/
+bool idSoundSystemLocal::ResetALDevice()
+{
+	s_alHRTF.ClearModified();
+	s_alOutputLimiter.ClearModified();
+
+	if ( alcResetDeviceSOFT == NULL ) {
+		common->Warning( "Can't reset OpenAL device, because OpenAL Extension (ALC_SOFT_HRTF) is missing!\nConsider using (a recent-ish version of) OpenAL-Soft!" );
+		return false;
+	}
+
+	ALCint attrList[D3_ALC_ATTRLIST_LEN] = {};
+	SetAlcAttrList( attrList );
+
+	if ( alcResetDeviceSOFT( openalDevice, attrList ) ) {
+		common->Printf( "OpenAL: resetting device succeeded!\n" );
+		resetRetryCount = 0;
+		return true;
+	} else if ( resetRetryCount == 0 ) {
+		common->Warning( "OpenAL: resetting device FAILED!\n" );
+	}
+	return false;
+}
+
+
+/*
+===============
+idSoundSystemLocal::CheckDeviceAndRecoverIfNeeded
+
+ DG: returns true if openalDevice is still available,
+     otherwise it will try to recover the device and return false while it's gone
+     (display audio sound devices sometimes disappear for a few seconds when switching resolution)
+     As this is called every frame, it now also checks if s_alHRTF or s_alOutputLimiter are
+     modified and if they are, resets the device to apply the change
+===============
+*/
+bool idSoundSystemLocal::CheckDeviceAndRecoverIfNeeded()
+{
+	static const int maxRetries = 20;
+
+	if ( alcResetDeviceSOFT == NULL ) {
+		return true; // we can't check or reset, just pretend everything is fine..
+	}
+
+	if ( s_alOutputLimiter.IsModified() || s_alHRTF.IsModified() ) {
+		common->Printf( "%s is modified, trying to reset OpenAL device to apply that change\n",
+		                s_alOutputLimiter.IsModified() ? "s_alOutputLimiter" : "s_alHRTF" );
+		return ResetALDevice();
+	}
+
+	unsigned int curTime = Sys_Milliseconds();
+	if ( curTime - lastCheckTime >= 1000 ) // check once per second
+	{
+		lastCheckTime = curTime;
+
+		ALCint connected; // ALC_CONNECTED needs ALC_EXT_disconnect (we check for that in Init())
+		alcGetIntegerv( openalDevice, ALC_CONNECTED, 1, &connected );
+		if ( connected ) {
+			resetRetryCount = 0;
+			return true;
+		}
+
+		if ( resetRetryCount == 0 ) {
+			common->Warning( "OpenAL device disconnected! Will try to reconnect.." );
+			resetRetryCount = 1;
+		} else if ( resetRetryCount > maxRetries ) { // give up after 20 seconds
+			if ( resetRetryCount == maxRetries+1 ) {
+				common->Warning( "OpenAL device still disconnected! Giving up!" );
+				++resetRetryCount; // this makes sure the warning is only shown once
+
+				// TODO: can we shut down sound without things blowing up?
+				//       if we can, we could do that if we don't have alcResetDeviceSOFT but ALC_EXT_disconnect
+			}
+			return false;
+		}
+
+		if ( ResetALDevice() ) {
+			return true;
+		}
+
+		++resetRetryCount;
+		return false;
+	}
+
+	return resetRetryCount == 0; // if it's 0, state on last check was ok
 }
 
 /*
@@ -589,7 +796,10 @@ int idSoundSystemLocal::AsyncMix( int soundTime, float *mixBuffer ) {
 /*
 ===================
 idSoundSystemLocal::AsyncUpdate
-called from async sound thread when com_asyncSound == 1 ( Windows )
+called from async sound thread when com_asyncSound == 2
+DG: using this for the "traditional" sound updates that
+    only happen about every 100ms (and lead to delays between 1 and 110ms between
+    starting a sound in gamecode and it being played), for people who like that..
 ===================
 */
 int idSoundSystemLocal::AsyncUpdate( int inTime ) {
@@ -666,32 +876,33 @@ int idSoundSystemLocal::AsyncUpdate( int inTime ) {
 /*
 ===================
 idSoundSystemLocal::AsyncUpdateWrite
-sound output using a write API. all the scheduling based on time
-we mix MIXBUFFER_SAMPLES at a time, but we feed the audio device with smaller chunks (and more often)
-called by the sound thread when com_asyncSound is 3 ( Linux )
+DG: using this now for 60Hz sound updates
+called from async sound thread when com_asyncSound is 3 or 1
+also called from main thread if com_asyncSound == 0
+(those were the default values used in dhewm3 on unix-likes (except mac) or rest)
+with this, once every async tic new sounds are started and existing ones updated,
+instead of once every ~100ms.
 ===================
 */
 int idSoundSystemLocal::AsyncUpdateWrite( int inTime ) {
-
+	D3P_CPUSampleFn();
 	if ( !isInitialized || shutdown ) {
 		return 0;
 	}
 
-	unsigned int dwCurrentBlock = (unsigned int)( inTime * 44.1f / MIXBUFFER_SAMPLES );
+	// inTime is in milliseconds and if running for long enough that overflows,
+	// when multiplying with 44.1 it overflows even sooner, so use int64 at first
+	// (and double because float doesn't have good precision at bigger numbers)
+	// and then manually truncate to regular int afterwards - this should at least
+	// prevent sampleTime becoming negative (as long as inTime is not)
+	long long int sampleTime64 = double( inTime ) * 44.1;
 
-	if ( nextWriteBlock == 0xffffffff ) {
-		nextWriteBlock = dwCurrentBlock;
-	}
+	// furthermore, sampleTime should be divisible by 8
+	// (at least by 4 for handling 11kHz samples) so round to nearest multiple of 8
+	sampleTime64 = (sampleTime64 + 4) & ~(long long int)7;
 
-	if ( dwCurrentBlock < nextWriteBlock ) {
-		return 0;
-	}
+	const int sampleTime = sampleTime64 & INT_MAX;
 
-	if ( nextWriteBlock != dwCurrentBlock ) {
-		Sys_Printf( "missed %d sound updates\n", dwCurrentBlock - nextWriteBlock );
-	}
-
-	int sampleTime = dwCurrentBlock * MIXBUFFER_SAMPLES;
 	int numSpeakers = s_numberOfSpeakers.GetInteger();
 
 	// enable audio hardware caching
@@ -705,8 +916,6 @@ int idSoundSystemLocal::AsyncUpdateWrite( int inTime ) {
 	// disable audio hardware caching (this updates ALL settings since last alcSuspendContext)
 	alcProcessContext( openalContext );
 
-	// only move to the next block if the write was successful
-	nextWriteBlock = dwCurrentBlock + 1;
 	CurrentSoundTime = sampleTime;
 
 	return Sys_Milliseconds() - inTime;

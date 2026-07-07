@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -38,6 +38,9 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "../../renderer/tr_local.h"
 #include "../../renderer/model_local.h"	// for idRenderModelMD5
+
+
+// TODO: DG: could merge SteelStorm2 "new 3D view navigation" improvements
 
 #ifdef _DEBUG
 	#define new DEBUG_NEW
@@ -123,7 +126,7 @@ END_MESSAGE_MAP()
  =======================================================================================================================
  =======================================================================================================================
  */
-LONG WINAPI CamWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LONG_PTR WINAPI CamWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	RECT	rect;
 
 	GetClientRect(hWnd, &rect);
@@ -196,7 +199,6 @@ brush_t *g_pSplitList = NULL;
  */
 void CCamWnd::OnPaint() {
 	CPaintDC	dc(this);	// device context for painting
-	bool		bPaint = true;
 
 	if (!qwglMakeCurrent(dc.m_hDC, win32.hGLRC)) {
 		common->Printf("ERROR: wglMakeCurrent failed..\n ");
@@ -354,7 +356,13 @@ int CCamWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
 
 	HFONT hOldFont = (HFONT)SelectObject(hDC, hfont);
 
-	wglMakeCurrent (hDC, win32.hGLRC);
+	//qwglMakeCurrent (hDC, win32.hGLRC);
+	if( qwglMakeCurrent ( hDC, win32.hGLRC ) == FALSE ) {
+		common->Warning("wglMakeCurrent failed: %d", ::GetLastError());
+		if ( r_multiSamples.GetInteger() > 0 ) {
+			common->Warning("\n!!! Try setting r_multiSamples 0 when using the editor !!!\n");
+		}
+	}
 
 	if ((g_qeglobals.d_font_list = qglGenLists(256)) == 0) {
 		common->Warning( "couldn't create font dlists" );
@@ -753,7 +761,7 @@ bool CCamWnd::CullBrush(brush_t *b, bool cubicOnly) {
 		float distance = g_PrefsDlg.m_nCubicScale * 64;
 
 		idVec3 mid;
-		for (int i = 0; i < 3; i++) {
+		for (i = 0; i < 3; i++) {
 			mid[i] = (b->mins[i] + ((b->maxs[i] - b->mins[i]) / 2));
 		}
 
@@ -1056,7 +1064,7 @@ void CCamWnd::Cam_Draw() {
 	int nCount = g_ptrSelectedFaces.GetSize();
 
 	if (!renderMode) {
-		for (int i = 0; i < nCount; i++) {
+		for (i = 0; i < nCount; i++) {
 			face_t	*selFace = reinterpret_cast < face_t * > (g_ptrSelectedFaces.GetAt(i));
 			Face_Draw(selFace);
 			DrawAxial(selFace);
@@ -1070,7 +1078,7 @@ void CCamWnd::Cam_Draw() {
 
 	if (renderMode) {
 		qglColor3f(1, 0, 0);
-		for (int i = 0; i < nCount; i++) {
+		for (i = 0; i < nCount; i++) {
 			face_t	*selFace = reinterpret_cast < face_t * > (g_ptrSelectedFaces.GetAt(i));
 			Face_Draw(selFace);
 		}
@@ -1385,7 +1393,6 @@ void Tris_ToOBJ(const char *outFile, idTriList *tris, idMatList *mats) {
 		int i, j, k;
 		int indexBase = 1;
 		idStr lastMaterial("");
-		int matCount = 0;
 		//idStr basePath = cvarSystem->GetCVarString( "fs_savepath" );
 		f->Printf( "mtllib %s.mtl\n", out );
 		for (i = 0; i < tris->Num(); i++) {
@@ -1420,7 +1427,7 @@ void Tris_ToOBJ(const char *outFile, idTriList *tris, idMatList *mats) {
 				}
 			}
 
-			for (int j = 0; j < tri->numIndexes; j += 3) {
+			for (j = 0; j < tri->numIndexes; j += 3) {
 				int i1, i2, i3;
 				i1 = tri->indexes[j+2] + indexBase;
 				i2 = tri->indexes[j+1] + indexBase;
@@ -1452,7 +1459,7 @@ int Brush_TransformModel(brush_t *brush, idTriList *tris, idMatList *mats) {
 		idRenderModel *model = brush->modelHandle;
 		if (model) {
 			float	a = FloatForKey(brush->owner, "angle");
-			float	s, c;
+			float	s = 0.0f, c = 0.0f;
 			//FIXME: support full rotation matrix
 			bool matrix = false;
 			if (a) {
@@ -1660,7 +1667,11 @@ void Select_ToOBJ() {
 }
 
 void Select_ToCM() {
-	CFileDialog dlgFile( FALSE, "lwo, ase", NULL, 0, "(*.lwo)|*.lwo|(*.ase)|*.ase|(*.ma)|*.ma||", g_pParentWnd );
+#if USE_COLLADA
+	CFileDialog dlgFile( FALSE, "lwo, ase, dae", NULL, 0, "(*.lwo)|*.lwo|(*.ase)|*.ase|(*.ma)|*.ma|(*.dae)|*.dae||", g_pParentWnd );
+#else
+	CFileDialog dlgFile(FALSE, "lwo, ase", NULL, 0, "(*.lwo)|*.lwo|(*.ase)|*.ase|(*.ma)|*.ma||", g_pParentWnd);
+#endif
 
 	if ( dlgFile.DoModal() == IDOK ) {
 		idMapEntity *mapEnt;
@@ -2062,11 +2073,13 @@ void CCamWnd::Cam_Render() {
 		return;					// not valid yet
 	}
 
-	if (!qwglMakeCurrent(dc.m_hDC, win32.hGLRC)) {
+	// DG: from SteelStorm2
+	// Jmarshal23 recommended to disable this to fix lighting render in the Cam window
+	/* if (!qwglMakeCurrent(dc.m_hDC, win32.hGLRC)) {
 		common->Printf("ERROR: wglMakeCurrent failed..\n ");
 		common->Printf("Please restart " EDITOR_WINDOWTEXT " if the camera view is not working\n");
 		return;
-	}
+	} */
 
 	// save the editor state
 	//qglPushAttrib( GL_ALL_ATTRIB_BITS );
@@ -2118,7 +2131,7 @@ void CCamWnd::Cam_Render() {
 }
 
 
-void CCamWnd::OnTimer(UINT nIDEvent)
+void CCamWnd::OnTimer(UINT_PTR nIDEvent)
 {
 	if (animationMode || nIDEvent == 1) {
 		Sys_UpdateWindows(W_CAMERA);

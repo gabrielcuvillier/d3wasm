@@ -244,7 +244,7 @@ void idInternalCVar::UpdateValue( void ) {
 				clamped = true;
 			}
 		}
-		if ( clamped || !idStr::IsNumeric( value ) || idStr::FindChar( value, '.' ) ) {
+		if ( clamped || !idStr::IsNumeric( value ) || (idStr::FindChar( value, '.' )!=-1) ) {
 			valueString = idStr( integerValue );
 			value = valueString.c_str();
 		}
@@ -1207,7 +1207,7 @@ void idCVarSystemLocal::ListByFlags( const idCmdArgs &args, cvarFlags_t flags ) 
 				string += ( cvar->GetFlags() & CVAR_ARCHIVE ) ?		"AR "	: "   ";
 				string += ( cvar->GetFlags() & CVAR_MODIFIED ) ?	"MO "	: "   ";
 				string += "\n";
-				common->Printf( string );
+				common->Printf( "%s", string.c_str() );
 			}
 			break;
 		}

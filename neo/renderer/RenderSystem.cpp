@@ -221,11 +221,6 @@ void	R_AddDrawViewCmd( viewDef_t *parms ) {
 
 	cmd->viewDef = parms;
 
-	if ( parms->viewEntitys ) {
-		// save the command for r_lockSurfaces debugging
-		tr.lockSurfacesCmd = *cmd;
-	}
-
 	tr.pc.c_numViews++;
 
 	R_ViewStatistics( parms );
@@ -234,43 +229,6 @@ void	R_AddDrawViewCmd( viewDef_t *parms ) {
 
 //=================================================================================
 
-
-/*
-======================
-R_LockSurfaceScene
-
-r_lockSurfaces allows a developer to move around
-without changing the composition of the scene, including
-culling.  The only thing that is modified is the
-view position and axis, no front end work is done at all
-
-
-Add the stored off command again, so the new rendering will use EXACTLY
-the same surfaces, including all the culling, even though the transformation
-matricies have been changed.  This allow the culling tightness to be
-evaluated interactively.
-======================
-*/
-void R_LockSurfaceScene( viewDef_t *parms ) {
-	drawSurfsCommand_t	*cmd;
-	viewEntity_t			*vModel;
-
-	// set the matrix for world space to eye space
-	R_SetViewMatrix( parms );
-	tr.lockSurfacesCmd.viewDef->worldSpace = parms->worldSpace;
-
-	// update the view origin and axis, and all
-	// the entity matricies
-	for( vModel = tr.lockSurfacesCmd.viewDef->viewEntitys ; vModel ; vModel = vModel->next ) {
-		myGlMultMatrix( vModel->modelMatrix,
-			tr.lockSurfacesCmd.viewDef->worldSpace.modelViewMatrix,
-			vModel->modelViewMatrix );
-	}
-
-	// add the stored off surface commands again
-	cmd = (drawSurfsCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
-	*cmd = tr.lockSurfacesCmd;
-}
 
 /*
 =============
@@ -287,6 +245,30 @@ static void R_CheckCvars( void ) {
 		r_gamma.ClearModified();
 		r_brightness.ClearModified();
 		R_SetColorMappings();
+	}
+
+	if ( r_gammaInShader.IsModified() ) {
+		r_gammaInShader.ClearModified();
+		// reload shaders so they either add or remove the code for setting gamma/brightness in shader
+		R_ReloadARBPrograms_f( idCmdArgs() );
+
+		if ( r_gammaInShader.GetBool() ) {
+			common->Printf( "Will apply r_gamma and r_brightness in shaders\n" );
+			GLimp_ResetGamma(); // reset hardware gamma
+		} else {
+			common->Printf( "Will apply r_gamma and r_brightness in hardware (possibly on all screens)\n" );
+			R_SetColorMappings();
+		}
+	}
+
+	if ( r_swapInterval.IsModified() ) {
+		GLimp_SetSwapInterval( r_swapInterval.GetInteger() );
+		r_swapInterval.ClearModified();
+	}
+
+	if ( r_windowResizable.IsModified() ) {
+		GLimp_SetWindowResizable( r_windowResizable.GetBool() );
+		r_windowResizable.ClearModified();
 	}
 }
 
@@ -599,6 +581,18 @@ void idRenderSystemLocal::BeginFrame( int windowWidth, int windowHeight ) {
 		return;
 	}
 
+	// DG: r_lockSurfaces only works properly if r_useScissor is disabled
+	if ( r_lockSurfaces.IsModified() ) {
+		static bool origUseScissor = true;
+		r_lockSurfaces.ClearModified();
+		if ( r_lockSurfaces.GetBool() ) {
+			origUseScissor = r_useScissor.GetBool();
+			r_useScissor.SetBool( false );
+		} else {
+			r_useScissor.SetBool( origUseScissor );
+		}
+	} // DG end
+
 	// determine which back end we will use
 	SetBackEndRenderer();
 
@@ -609,6 +603,11 @@ void idRenderSystemLocal::BeginFrame( int windowWidth, int windowHeight ) {
 		windowWidth = tiledViewport[0];
 		windowHeight = tiledViewport[1];
 	}
+
+	// DG: save the original size, so editors don't mess up the game viewport
+	//     with their tiny (texture-preview etc) viewports.
+	origWidth = glConfig.vidWidth;
+	origHeight = glConfig.vidHeight;
 
 	glConfig.vidWidth = windowWidth;
 	glConfig.vidHeight = windowHeight;
@@ -710,6 +709,7 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 
 	// use the other buffers next frame, because another CPU
 	// may still be rendering into the current buffers
+
 	R_ToggleSmpFrame();
 
 	// we can now release the vertexes used this frame
@@ -723,6 +723,12 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 		}
 	}
 
+	// DG: restore the original size that was set before BeginFrame() overwrote it
+	//     with its function-arguments, so editors don't mess up our viewport.
+	//     (unsure why/how this at least *kinda* worked in original Doom3,
+	//      maybe glConfig.vidWidth/Height was reset if the window gained focus or sth)
+	glConfig.vidWidth = origWidth;
+	glConfig.vidHeight = origHeight;
 }
 
 /*

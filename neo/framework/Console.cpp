@@ -40,6 +40,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "framework/Console.h"
 
+#include "tools/edit_public.h"
+
 void SCR_DrawTextLeftAlign( float &y, const char *text, ... ) id_attribute((format(printf,2,3)));
 void SCR_DrawTextRightAlign( float &y, const char *text, ... ) id_attribute((format(printf,2,3)));
 
@@ -191,41 +193,49 @@ void SCR_DrawTextRightAlign( float &y, const char *text, ... ) {
 SCR_DrawFPS
 ==================
 */
-#define	FPS_FRAMES	4
+#define	FPS_FRAMES	64
 float SCR_DrawFPS( float y ) {
-	char		*s;
-	int			w;
-	static int	previousTimes[FPS_FRAMES];
+	static float previousTimes[FPS_FRAMES];
 	static int	index;
-	int		i, total;
-	int		fps;
-	static	int	previous;
-	int		t, frameTime;
+	static double previous;
 
 	// don't use serverTime, because that will be drifting to
 	// correct for internet lag changes, timescales, timedemos, etc
-	t = Sys_Milliseconds();
-	frameTime = t - previous;
+	double t = Sys_MillisecondsPrecise();
+	float frameTime = t - previous;
 	previous = t;
 
 	previousTimes[index % FPS_FRAMES] = frameTime;
 	index++;
 	if ( index > FPS_FRAMES ) {
 		// average multiple frames together to smooth changes out a bit
-		total = 0;
-		for ( i = 0 ; i < FPS_FRAMES ; i++ ) {
-			total += previousTimes[i];
+		float total = 0.0f;
+		float minTime = 10000;
+		float maxTime = 0;
+		for ( int i = 0 ; i < FPS_FRAMES ; i++ ) {
+			float pt = previousTimes[i];
+			total += pt;
+			minTime = Min( minTime, pt );
+			maxTime = Max( maxTime, pt );
 		}
-		if ( !total ) {
-			total = 1;
+		if ( total == 0.0f ) {
+			total = 0.1f;
 		}
-		fps = 10000 * FPS_FRAMES / total;
-		fps = (fps + 5)/10;
+		float fps = (1000.0f * FPS_FRAMES) / total;
 
-		s = va( "%ifps", fps );
-		w = strlen( s ) * BIGCHAR_WIDTH;
+		char* s = va( "%.2ffps", fps );
+		int w = strlen( s ) * BIGCHAR_WIDTH;
 
 		renderSystem->DrawBigStringExt( 635 - w, idMath::FtoiFast( y ) + 2, s, colorWhite, true, localConsole.charSetShader);
+
+		if ( com_showFPS.GetInteger() > 1 ) {
+			y +=  BIGCHAR_HEIGHT + 4;
+
+			s = va( "avg %.2fms min %.2f max %.2f", total * (1.0f / FPS_FRAMES), minTime, maxTime );
+			w = strlen ( s ) * SMALLCHAR_WIDTH;
+			renderSystem->DrawSmallStringExt( 635 - w, idMath::FtoiFast( y ) + 2, s, colorWhite, true, localConsole.charSetShader );
+		}
+
 	}
 
 	return y + BIGCHAR_HEIGHT + 4;
@@ -240,10 +250,10 @@ float SCR_DrawMemoryUsage( float y ) {
 	memoryStats_t allocs, frees;
 
 	Mem_GetStats( allocs );
-	SCR_DrawTextRightAlign( y, "total allocated memory: %4d, %4dkB", allocs.num, allocs.totalSize>>10 );
+	SCR_DrawTextRightAlign( y, "total allocated memory: %4d, %4lldkB", allocs.num, allocs.totalSize>>10 );
 
 	Mem_GetFrameStats( allocs, frees );
-	SCR_DrawTextRightAlign( y, "frame alloc: %4d, %4dkB  frame free: %4d, %4dkB", allocs.num, allocs.totalSize>>10, frees.num, frees.totalSize>>10 );
+	SCR_DrawTextRightAlign( y, "frame alloc: %4d, %4lldkB  frame free: %4d, %4lldkB", allocs.num, allocs.totalSize>>10, frees.num, frees.totalSize>>10 );
 
 	Mem_ClearFrameStats();
 
@@ -280,7 +290,7 @@ float SCR_DrawAsyncStats( float y ) {
 
 		idStr msg;
 		idAsyncNetwork::server.GetAsyncStatsAvgMsg( msg );
-		SCR_DrawTextRightAlign( y, msg.c_str() );
+		SCR_DrawTextRightAlign( y, "%s", msg.c_str() );
 
 	} else if ( idAsyncNetwork::client.IsActive() ) {
 
@@ -795,8 +805,9 @@ bool	idConsoleLocal::ProcessEvent( const sysEvent_t *event, bool forceAccept ) {
 	bool consoleKey = false;
 	if(event->evType == SE_KEY)
 	{
-		if( event->evValue == Sys_GetConsoleKey( false ) || event->evValue == Sys_GetConsoleKey( true )
-		    || (event->evValue == K_ESCAPE && idKeyInput::IsDown( K_SHIFT )) ) // shift+esc should also open console
+		bool shiftPressed = idKeyInput::IsDown( K_SHIFT );
+		if( event->evValue == K_CONSOLE || event->evValue == Sys_GetConsoleKey( shiftPressed )
+		   || (event->evValue == K_ESCAPE && shiftPressed) ) // shift+esc should also open console
 		{
 			consoleKey = true;
 		}
@@ -823,7 +834,6 @@ bool	idConsoleLocal::ProcessEvent( const sysEvent_t *event, bool forceAccept ) {
 		// a down event will toggle the destination lines
 		if ( keyCatching ) {
 			Close();
-			Sys_GrabMouseCursor( true );
 			cvarSystem->SetCVarBool( "ui_chat", false );
 		} else {
 			consoleField.Clear();
@@ -848,7 +858,7 @@ bool	idConsoleLocal::ProcessEvent( const sysEvent_t *event, bool forceAccept ) {
 	// handle key and character events
 	if ( event->evType == SE_CHAR ) {
 		// never send the console key as a character
-		if ( event->evValue != Sys_GetConsoleKey( false ) && event->evValue != Sys_GetConsoleKey( true ) ) {
+		if ( event->evValue != Sys_GetConsoleKey( idKeyInput::IsDown( K_SHIFT ) ) ) {
 			consoleField.CharEvent( event->evValue );
 		}
 		return true;

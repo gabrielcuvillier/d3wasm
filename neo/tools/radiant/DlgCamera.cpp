@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/rc/common_resource.h"
 #include "../comafx/DialogName.h"
@@ -186,7 +186,7 @@ void CDlgCamera::OnSelchangeComboSplines()
 
 void CDlgCamera::OnSelchangeListEvents()
 {
-	int sel = m_wndEvents.GetCurSel();
+	//int sel = m_wndEvents.GetCurSel();
 	//g_splineList->setActiveSegment(sel >= 0 ? sel : 0);
 }
 
@@ -330,7 +330,7 @@ void CDlgCamera::OnFileOpen()
 	DialogName dlg("Open Camera File");
 	if (dlg.DoModal() == IDOK) {
 		g_splineList->clear();
-		g_splineList->load(va("cameras/%s.camera", dlg.m_strName));
+		g_splineList->load(va("cameras/%s.camera", dlg.m_strName.GetString()));
 	}
 }
 
@@ -338,7 +338,7 @@ void CDlgCamera::OnFileSave()
 {
 	DialogName dlg("Save Camera File");
 	if (dlg.DoModal() == IDOK) {
-		g_splineList->save(va("cameras/%s.camera", dlg.m_strName));
+		g_splineList->save(va("cameras/%s.camera", dlg.m_strName.GetString()));
 	}
 }
 

@@ -34,11 +34,52 @@ If you have questions concerning this license or the applicable additional terms
 // because the implemenations are in openal_stub.cpp
 // this is ensured by defining AL_LIBTYPE_STATIC before including the AL headers
 #define AL_LIBTYPE_STATIC
+// newer versions of openal-soft set the noexcept attribute to functions, older ones didn't
+// just disable that so the stub functions continue to match the prototypes in the header
+#define AL_DISABLE_NOEXCEPT
 #endif
 
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
+
+// DG: make this code build with older OpenAL headers that don't know about ALC_SOFT_HRTF
+//     which provides LPALCRESETDEVICESOFT for idSoundSystemLocal::alcResetDeviceSOFT()
+#ifndef ALC_SOFT_HRTF
+  typedef ALCboolean (ALC_APIENTRY*LPALCRESETDEVICESOFT)(ALCdevice *device, const ALCint *attribs);
+#endif
+
+// DG: ALC_SOFT_output_mode is pretty new, provide compatibility..
+#ifndef ALC_SOFT_output_mode
+  #define ALC_SOFT_output_mode
+  #define ALC_OUTPUT_MODE_SOFT                     0x19AC
+  #define ALC_ANY_SOFT                             0x19AD
+
+  #define ALC_STEREO_BASIC_SOFT                    0x19AE
+  #define ALC_STEREO_UHJ_SOFT                      0x19AF
+  #define ALC_STEREO_HRTF_SOFT                     0x19B2
+
+  #define ALC_SURROUND_5_1_SOFT                    0x1504
+  #define ALC_SURROUND_6_1_SOFT                    0x1505
+  #define ALC_SURROUND_7_1_SOFT                    0x1506
+#endif
+// the following formats are defined in https://openal-soft.org/openal-extensions/SOFT_output_mode.txt
+// but commented out in OpenAL Softs current AL/alext.h
+#ifndef ALC_MONO_SOFT
+  #define ALC_MONO_SOFT                            0x1500
+#endif
+#ifndef ALC_STEREO_SOFT
+  #define ALC_STEREO_SOFT                          0x1501
+#endif
+#ifndef ALC_QUAD_SOFT
+  #define ALC_QUAD_SOFT                            0x1503
+#endif
+
+// DG: in case ALC_SOFT_output_limiter is not available in some headers..
+#ifndef ALC_SOFT_output_limiter
+  #define ALC_SOFT_output_limiter
+  #define ALC_OUTPUT_LIMITER_SOFT                  0x199A
+#endif
 
 #include "framework/UsercmdGen.h"
 #include "sound/efxlib.h"
@@ -202,6 +243,7 @@ private:
 	dword			mulDataSize;
 
 	void *			ogg;			// only !NULL when !s_realTimeDecoding
+	byte*			oggData; // the contents of the .ogg for stbi_vorbis (it doesn't support custom reading callbacks)
 	bool			isOgg;
 
 private:
@@ -299,6 +341,12 @@ class SoundFX_LowpassFast : public SoundFX {
 public:
 	virtual void		ProcessSample( float* in, float* out );
 	void				SetParms( float p1 = 0, float p2 = 0, float p3 = 0 );
+
+	void				Clear() {
+		freq = res = 0.0f;
+		a1 = a2 = a3 = 0.0f;
+		b1 = b2 = 0.0f;
+	}
 };
 
 class SoundFX_Comb : public SoundFX {
@@ -386,6 +434,8 @@ public:
 	ALuint				lastopenalStreamingBuffer[3];
 	bool				stopped;
 
+	bool				paused;					// DG: currently paused, but generally still playing - for when menu is open etc
+
 	bool				disallowSlow;
 
 };
@@ -427,6 +477,9 @@ public:
 	//----------------------------------------------
 
 	void				Clear( void );
+
+	void				PauseAll( void );   // DG: to pause active OpenAL sources when entering menu etc
+	void				UnPauseAll( void ); // DG: to resume active OpenAL sources when leaving menu etc
 
 	void				OverrideParms( const soundShaderParms_t *base, const soundShaderParms_t *over, soundShaderParms_t *out );
 	void				CheckForCompletion( int current44kHzTime );
@@ -593,7 +646,9 @@ public:
 	idStr					listenerAreaName;
 	ALuint					listenerEffect;
 	ALuint					listenerSlot;
-	ALuint					listenerFilter;
+	bool					listenerAreFiltersInitialized;
+	ALuint					listenerFilters[2]; // 0 - direct; 1 - send.
+	float					listenerSlotReverbGain;
 
 	int						gameMsec;
 	int						game44kHz;
@@ -691,6 +746,14 @@ public:
 	ALuint					AllocOpenALSource( idSoundChannel *chan, bool looping, bool stereo );
 	void					FreeOpenALSource( ALuint handle );
 
+	// returns true if openalDevice is still available,
+	// otherwise it will try to recover the device and return false while it's gone
+	// (display audio sound devices sometimes disappear for a few seconds when switching resolution)
+	bool					CheckDeviceAndRecoverIfNeeded();
+	// resets the OpenAL device, applying the settings of s_alHRTF and s_alOutputLimiter
+	// returns false if that failed, or the necessary OpenAL extension isn't available
+	bool					ResetALDevice();
+
 	idSoundCache *			soundCache;
 
 	idSoundWorldLocal *		currentSoundWorld;	// the one to mix each async tic
@@ -739,6 +802,7 @@ public:
 	LPALDELETEAUXILIARYEFFECTSLOTS	alDeleteAuxiliaryEffectSlots;
 	LPALISAUXILIARYEFFECTSLOT		alIsAuxiliaryEffectSlot;
 	LPALAUXILIARYEFFECTSLOTI		alAuxiliaryEffectSloti;
+	LPALAUXILIARYEFFECTSLOTF		alAuxiliaryEffectSlotf;
 
 	idEFXFile				EFXDatabase;
 	bool					efxloaded;
@@ -746,6 +810,17 @@ public:
 	static bool				useEFXReverb;
 							// mark available during initialization, or through an explicit test
 	static int				EFXAvailable;
+
+	static bool				alHRTFavailable; // needs ALC_SOFT_HRTF extension
+	static bool				alOutputLimiterAvailable; // needs ALC_SOFT_output_limiter extension (+ HRTF extension)
+	static bool				alEnumerateAllAvailable;  // needs ALC_ENUMERATE_ALL_EXT
+	static bool				alIsDisconnectAvailable;  // needs ALC_EXT_disconnect
+	static bool				alOutputModeAvailable;    // needs ALC_SOFT_output_mode
+
+	// DG: for CheckDeviceAndRecoverIfNeeded()
+	LPALCRESETDEVICESOFT	alcResetDeviceSOFT; // needs ALC_SOFT_HRTF extension
+	int						resetRetryCount;
+	unsigned int			lastCheckTime;
 
 	static idCVar			s_noSound;
 	static idCVar			s_device;
@@ -775,6 +850,12 @@ public:
 	static idCVar			s_realTimeDecoding;
 	static idCVar			s_useEAXReverb;
 	static idCVar			s_decompressionLimit;
+
+	static idCVar			s_alReverbGain;
+
+	static idCVar			s_scaleDownAndClamp;
+	static idCVar			s_alOutputLimiter;
+	static idCVar			s_alHRTF;
 
 	static idCVar			s_slowAttenuate;
 

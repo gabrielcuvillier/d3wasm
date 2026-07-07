@@ -65,6 +65,17 @@ ALC_API ALCboolean ALC_APIENTRY alcIsExtensionPresent( ALCdevice *device, const 
 	return AL_FALSE;
 }
 
+ALC_API void ALC_APIENTRY alcGetIntegerv(ALCdevice *device, ALCenum param, ALCsizei size, ALCint *values) {}
+
+ALC_API ALCenum ALC_APIENTRY alcGetError(ALCdevice *device) {
+	return ALC_NO_ERROR;
+}
+
+ALC_API void* ALC_APIENTRY alcGetProcAddress(ALCdevice *device, const ALCchar *funcname) {
+	return NULL;
+}
+
+
 AL_API void AL_APIENTRY alDeleteBuffers( ALsizei n, const ALuint* buffers ) { }
 
 AL_API ALboolean AL_APIENTRY alIsExtensionPresent( const ALchar* fname ) {
@@ -132,5 +143,6 @@ AL_API void AL_APIENTRY alSourcef( ALuint sid, ALenum param, ALfloat value ) { }
 AL_API void AL_APIENTRY alSourceUnqueueBuffers( ALuint sid, ALsizei numEntries, ALuint *bids ) { }
 
 AL_API void AL_APIENTRY alSourcePlay( ALuint sid ) { }
+AL_API void AL_APIENTRY alSourcePause( ALuint source ) {}
 
 } // extern "C"

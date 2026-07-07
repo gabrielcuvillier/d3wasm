@@ -501,7 +501,9 @@ void idSoundSample::Load( void ) {
 				hardwareBuffer = true;
 			}
 		}
+	}
 
+	{
 		// OGG decompressed at load time (when smaller than s_decompressionLimit seconds, 6 seconds by default)
 		if ( objectInfo.wFormatTag == WAVE_FORMAT_TAG_OGG ) {
 			if ( ( objectSize < ( ( int ) objectInfo.nSamplesPerSec * idSoundSystemLocal::s_decompressionLimit.GetInteger() ) ) ) {
@@ -576,11 +578,11 @@ void idSoundSample::PurgeSoundSample() {
 	alGetError();
 	alDeleteBuffers( 1, &openalBuffer );
 	if ( alGetError() != AL_NO_ERROR ) {
-		common->Error( "idSoundCache: error unloading data from OpenAL hardware buffer" );
-	} else {
-		openalBuffer = 0;
-		hardwareBuffer = false;
+		common->Warning( "idSoundCache: error unloading data from OpenAL hardware buffer" );
 	}
+
+	openalBuffer = 0;
+	hardwareBuffer = false;
 
 	if ( amplitudeData ) {
 		soundCacheAllocator.Free( amplitudeData );

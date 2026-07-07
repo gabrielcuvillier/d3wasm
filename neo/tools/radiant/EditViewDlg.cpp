@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -69,9 +69,19 @@ END_MESSAGE_MAP()
 
 void CEditViewDlg::OnSize(UINT nType, int cx, int cy) {
 	CDialog::OnSize(nType, cx, cy);
+
 	if (GetSafeHwnd() == NULL) {
 		return;
 	}
+
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
+	int s2 = int(2 * scaling_factor);
+	int s8 = int(8 * scaling_factor);
+	int s4 = int(4 * scaling_factor);
+	int s6 = int(6 * scaling_factor);
+	int s12 = int(12 * scaling_factor);
+	int s16 = int(16 * scaling_factor);
+
 	CRect rect, crect;
 	GetClientRect(rect);
 	CWnd *wnd = GetDlgItem(IDC_BUTTON_OPEN);
@@ -212,7 +222,7 @@ void CEditViewDlg::SetGuiInfo(const char *name) {
 	UpdateEditPreview();
 }
 
-void CEditViewDlg::OnTimer(UINT nIDEvent) {
+void CEditViewDlg::OnTimer(UINT_PTR nIDEvent) {
 	CDialog::OnTimer(nIDEvent);
 	CWnd *wnd = GetDlgItem(IDC_EDIT_LINE);
 	if (wnd) {

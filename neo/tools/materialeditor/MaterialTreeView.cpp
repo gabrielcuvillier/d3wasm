@@ -25,8 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "MaterialTreeView.h"
 
@@ -119,8 +119,6 @@ void MaterialTreeView::InitializeMaterialList(bool includeFile, const char* file
 */
 void MaterialTreeView::BuildMaterialList(bool includeFile, const char* filename) {
 
-	CTreeCtrl& tree = GetTreeCtrl();
-
 	idStrList list(1024);
 
 	int count = declManager->GetNumDecls( DECL_MATERIAL );
@@ -138,10 +136,6 @@ void MaterialTreeView::BuildMaterialList(bool includeFile, const char* filename)
 			idStr filename = mat->GetFileName();
 			if(!filename.Icmp("<implicit file>")) {
 				continue;
-			}
-
-			if(filename.Find("def") != -1) {
-				int x = 0;
 			}
 
 			if(includeFile) {
@@ -968,9 +962,9 @@ void MaterialTreeView::OnMouseMove(UINT nFlags, CPoint point) {
 		if(item && (TVHT_ONITEM & flags)) {
 			if(item != hoverItem) {
 				hoverItem = item;
-				hoverStartTime = timeGetTime();
+				hoverStartTime = Sys_Milliseconds();
 			} else {
-				DWORD currentTime = timeGetTime();
+				DWORD currentTime = Sys_Milliseconds();
 				if(currentTime - hoverStartTime > HOVER_EXPAND_DELAY) {
 
 					UINT state = tree.GetItemState(hoverItem, TVIS_EXPANDED);
@@ -1807,7 +1801,7 @@ void MaterialTreeView::SetItemImage(HTREEITEM item, bool mod, bool apply, bool c
 
 	CTreeCtrl& tree = GetTreeCtrl();
 
-	int image;
+	int image = 0;
 
 	DWORD itemType = tree.GetItemData(item);
 	switch(itemType) {

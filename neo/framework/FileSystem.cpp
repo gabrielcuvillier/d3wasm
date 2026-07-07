@@ -415,6 +415,8 @@ private:
 	static idCVar			fs_game_base;
 	static idCVar			fs_caseSensitiveOS;
 	static idCVar			fs_searchAddons;
+	// DG: additional directory to search for game DLLs
+	static idCVar			fs_gameDllPath;
 
 	backgroundDownload_t *	backgroundDownloads;
 	backgroundDownload_t	defaultBackgroundDownload;
@@ -482,6 +484,8 @@ idCVar	idFileSystemLocal::fs_caseSensitiveOS( "fs_caseSensitiveOS", "0", CVAR_SY
 idCVar	idFileSystemLocal::fs_caseSensitiveOS( "fs_caseSensitiveOS", "1", CVAR_SYSTEM | CVAR_BOOL, "" );
 #endif
 idCVar	idFileSystemLocal::fs_searchAddons( "fs_searchAddons", "0", CVAR_SYSTEM | CVAR_BOOL, "search all addon pk4s ( disables addon functionality )" );
+
+idCVar idFileSystemLocal::fs_gameDllPath( "fs_gameDllPath", "", CVAR_SYSTEM | CVAR_INIT, "additional directory to search the game .dll (.so/.dylib/...) in; searched before all other places (if set)" );
 
 idFileSystemLocal	fileSystemLocal;
 idFileSystem *		fileSystem = &fileSystemLocal;
@@ -798,7 +802,7 @@ const char *idFileSystemLocal::BuildOSPath( const char *base, const char *game, 
 
 		if ( testPath.HasUpper() ) {
 
-			common->DPrintf( "Non-portable: path contains uppercase characters: %s", testPath.c_str() );
+			common->DPrintf( "Non-portable: path contains uppercase characters: %s\n", testPath.c_str() );
 
 			// attempt a fixup on the fly
 			if ( fs_caseSensitiveOS.GetBool() ) {
@@ -886,10 +890,20 @@ const char *idFileSystemLocal::OSPathToRelativePath( const char *OSPath ) {
 	}
 
 	if ( base ) {
-		s = strstr( base, "/" );
-		if ( !s ) {
-			s = strstr( base, "\\" );
+		// DG: on Windows base might look like "base\\pak008.pk4/script/doom_util.script"
+		//     while on Linux it'll be more like "base/pak008.pk4/script/doom_util.script"
+		//     I /think/ we want to get rid of the bla.pk4 part, at least that's what happens implicitly on Windows
+		//     (I hope these problems don't exist if the file is not from a .pk4, so that case is handled like before)
+		s = strstr( base, ".pk4/" );
+		if ( s != NULL ) {
+			s += 4; // skip ".pk4", but *not* the following '/', that'll be skipped below
+		} else {
+			s = strchr( base, '/' );
+			if ( s == NULL ) {
+				s = strchr( base, '\\' );
+			}
 		}
+
 		if ( s ) {
 			strcpy( relativePath, s + 1 );
 			if ( fs_debug.GetInteger() > 1 ) {
@@ -1709,6 +1723,10 @@ idModList *idFileSystemLocal::ListMods( void ) {
 	search[3] = fs_cdpath.GetString();
 
 	for ( isearch = 0; isearch < 4; isearch++ ) {
+		// skip empty cdpath or such, so we don't search C:\ or / -_-
+		if ( search[ isearch ][ 0 ] == '\0' ) {
+			continue;
+		}
 
 		dirs.Clear();
 		pk4s.Clear();
@@ -1727,8 +1745,8 @@ idModList *idFileSystemLocal::ListMods( void ) {
 			ListOSFiles( gamepath, ".pk4", pk4s );
 			if ( pk4s.Num() ) {
 				if ( !list->mods.Find( dirs[ i ] ) ) {
-					// D3 1.3 #31, only list d3xp if the pak is present
-					if ( dirs[ i ].Icmp( "d3xp" ) || HasD3XP() ) {
+					// DG: ignore d3xp, it's added explicitly later, if available
+					if ( dirs[ i ].Icmp( "d3xp" ) ) {
 						list->mods.Append( dirs[ i ] );
 					}
 				}
@@ -1764,7 +1782,13 @@ idModList *idFileSystemLocal::ListMods( void ) {
 	}
 
 	list->mods.Insert( "" );
-	list->descriptions.Insert( "dhewm 3" );
+	list->descriptions.Insert( "Doom 3 (base game)" );
+
+	// DG: if installed, add d3xp with useful description, right below the base game
+	if ( HasD3XP() ) {
+		list->mods.Insert( "d3xp", 1 );
+		list->descriptions.Insert( "Resurrection Of Evil (d3xp)", 1 );
+	}
 
 	assert( list->mods.Num() == list->descriptions.Num() );
 
@@ -1972,7 +1996,7 @@ void idFileSystemLocal::Path_f( const idCmdArgs &args ) {
 				} else {
 					status += ")\n";
 				}
-				common->Printf( status.c_str() );
+				common->Printf( "%s", status.c_str() );
 			} else {
 				common->Printf( "%s (%i files)\n", sp->pack->pakFilename.c_str(), sp->pack->numfiles );
 			}
@@ -3668,7 +3692,7 @@ void idFileSystemLocal::FindDLL( const char *name, char _dllPath[ MAX_OSPATH ] )
 	} else {
 		dllPath = "";
 	}
-	idStr::snPrintf( _dllPath, MAX_OSPATH, dllPath.c_str() );
+	idStr::snPrintf( _dllPath, MAX_OSPATH, "%s", dllPath.c_str() );
 }
 
 /*

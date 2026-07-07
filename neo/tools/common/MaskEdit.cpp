@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #define MASKEDIT_MAXINVALID	1024
 typedef struct
@@ -45,7 +45,7 @@ Prevents the invalid characters from being entered
 */
 LRESULT CALLBACK MaskEdit_WndProc ( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 {
-	rvGEMaskEdit* edit = (rvGEMaskEdit*)GetWindowLong ( hWnd, GWL_USERDATA );
+	rvGEMaskEdit* edit = (rvGEMaskEdit*)GetWindowLongPtr ( hWnd, GWLP_USERDATA );
 	WNDPROC		  wndproc = edit->mProc;
 
 	switch ( msg )
@@ -60,7 +60,7 @@ LRESULT CALLBACK MaskEdit_WndProc ( HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 
 		case WM_DESTROY:
 			delete edit;
-			SetWindowLong ( hWnd, GWL_WNDPROC, (LONG)wndproc );
+			SetWindowLongPtr ( hWnd, GWLP_WNDPROC, (LONG_PTR)wndproc );
 			break;
 	}
 
@@ -77,10 +77,10 @@ Attaches the mask edit control to a normal edit control
 void MaskEdit_Attach ( HWND hWnd, const char* invalid )
 {
 	rvGEMaskEdit* edit = new rvGEMaskEdit;
-	edit->mProc = (WNDPROC)GetWindowLong ( hWnd, GWL_WNDPROC );
+	edit->mProc = (WNDPROC)GetWindowLongPtr ( hWnd, GWLP_WNDPROC );
 	strcpy ( edit->mInvalid, invalid );
-	SetWindowLong ( hWnd, GWL_USERDATA, (LONG)edit );
-	SetWindowLong ( hWnd, GWL_WNDPROC, (LONG)MaskEdit_WndProc );
+	SetWindowLongPtr ( hWnd, GWLP_USERDATA, (LONG_PTR)edit );
+	SetWindowLongPtr ( hWnd, GWLP_WNDPROC, (LONG_PTR)MaskEdit_WndProc );
 }
 
 /*

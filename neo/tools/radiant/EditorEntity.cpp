@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "../../renderer/tr_local.h"
@@ -613,6 +613,11 @@ entity_t *Entity_PostParse(entity_t *ent, brush_t *pList) {
 	}
 
 	if (e->nShowFlags & ECLASS_WORLDSPAWN) {
+		// DG: this makes sure that tr.allowNoSpecular is set appropriately when loading a map
+		const char* noSpecVal = ValueForKey(ent, "allow_nospecular");
+		tr.allowNoSpecular = noSpecVal && *noSpecVal && atoi(noSpecVal) != 0;
+		common->Printf("This map does%s support 'nospecular' lights\n", tr.allowNoSpecular ? "" : " not");
+
 		ent->origin.Zero();
 		needsOrigin = false;
 		ent->epairs.Delete( "model" );
@@ -657,9 +662,10 @@ entity_t *Entity_PostParse(entity_t *ent, brush_t *pList) {
 			// model entity
 			idRenderModel *modelHandle = renderModelManager->FindModel( pModel );
 
-			if ( dynamic_cast<idRenderModelPrt*>( modelHandle ) || dynamic_cast<idRenderModelLiquid*>( modelHandle ) ) {
+			if ( modelHandle == NULL || dynamic_cast<idRenderModelPrt*>( modelHandle ) || dynamic_cast<idRenderModelLiquid*>( modelHandle ) ) {
 				bo.Zero();
 				bo.ExpandSelf( 12.0f );
+				common->Printf( "Missing model '%s'!\n", pModel );
 			} else {
 				bo = modelHandle->Bounds( NULL );
 			}
@@ -734,28 +740,28 @@ entity_t *Entity_PostParse(entity_t *ent, brush_t *pList) {
 		}
 
 		if (needsOrigin) {
-			idVec3	mins, maxs, mid;
+			idVec3	entmins, entmaxs, mid;
 			int		i;
 			char	text[32];
-			mins[0] = mins[1] = mins[2] = 999999;
-			maxs[0] = maxs[1] = maxs[2] = -999999;
+			entmins[0] = entmins[1] = entmins[2] = 999999;
+			entmaxs[0] = entmaxs[1] = entmaxs[2] = -999999;
 
 			// add in the origin
 			for (b = ent->brushes.onext; b != &ent->brushes; b = b->onext) {
 				Brush_Build(b, true, false, false);
 				for (i = 0; i < 3; i++) {
-					if (b->mins[i] < mins[i]) {
-						mins[i] = b->mins[i];
+					if (b->mins[i] < entmins[i]) {
+						entmins[i] = b->mins[i];
 					}
 
-					if (b->maxs[i] > maxs[i]) {
-						maxs[i] = b->maxs[i];
+					if (b->maxs[i] > entmaxs[i]) {
+						entmaxs[i] = b->maxs[i];
 					}
 				}
 			}
 
 			for (i = 0; i < 3; i++) {
-				ent->origin[i] = (mins[i] + ((maxs[i] - mins[i]) / 2));
+				ent->origin[i] = (entmins[i] + ((entmaxs[i] - entmins[i]) / 2));
 			}
 
 			sprintf(text, "%i %i %i", (int)ent->origin[0], (int)ent->origin[1], (int)ent->origin[2]);
@@ -809,7 +815,6 @@ entity_t *Entity_Parse(bool onlypairs, brush_t *pList) {
 	ent->brushes.onext = ent->brushes.oprev = &ent->brushes;
 	ent->origin.Zero();
 
-	int n = 0;
 	do {
 		if (!GetToken(true)) {
 			Warning("ParseEntity: EOF without closing brace");

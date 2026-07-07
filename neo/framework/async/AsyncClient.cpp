@@ -1426,7 +1426,7 @@ bool idAsyncClient::ValidatePureServerChecksums( const netadr_t from, const idBi
 					message += va( common->GetLanguageDict()->GetString( "#str_06751" ), numMissingChecksums, checksums.c_str() );
 				}
 
-				common->Printf( message );
+				common->Printf( "%s", message.c_str() );
 				cmdSystem->BufferCommandText( CMD_EXEC_NOW, "disconnect" );
 				session->MessageBox( MSG_OK, message, common->GetLanguageDict()->GetString( "#str_06735" ), true );
 			} else {
@@ -1664,7 +1664,7 @@ void idAsyncClient::SetupConnection( void ) {
 		// do not make the protocol depend on PB
 		msg.WriteShort( 0 );
 		clientPort.SendPacket( serverAddress, msg.GetData(), msg.GetSize() );
-#ifdef ID_ENFORCE_KEY_CLIENT
+#if ID_ENFORCE_KEY_CLIENT
 		if ( idAsyncNetwork::LANServer.GetBool() ) {
 			common->Printf( "net_LANServer is set, connecting in LAN mode\n" );
 		} else {

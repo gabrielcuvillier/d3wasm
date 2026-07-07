@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/win_local.h"
 #include "../../sys/win32/rc/common_resource.h"
@@ -306,7 +306,7 @@ void rvOpenFileDialog::HandleInitDialog ( void )
 	SendMessage( mWndLookin,CBEM_SETIMAGELIST,0,(LPARAM) mImageList );
 
 	// Back button is a bitmap button
-	SendMessage( GetDlgItem ( mWnd, IDC_TOOLS_BACK ), BM_SETIMAGE, IMAGE_BITMAP, (LONG) mBackBitmap );
+	SendMessage( GetDlgItem ( mWnd, IDC_TOOLS_BACK ), BM_SETIMAGE, IMAGE_BITMAP, (LONG_PTR) mBackBitmap );
 
 	// Allow custom titles
 	SetWindowText ( mWnd, mTitle );
@@ -392,7 +392,8 @@ void rvOpenFileDialog::SetFilter ( const char* s )
 		if ( semi != -1 )
 		{
 			filter  = filters.Left ( semi );
-			filters = filters.Right ( filters.Length ( ) - semi );
+			filters = filters.Right ( filters.Length ( ) - (semi + 1));
+			filters.Strip(' ');
 		}
 		else
 		{
@@ -413,13 +414,13 @@ Dialog Procedure for the open file dialog
 */
 INT_PTR rvOpenFileDialog::DlgProc ( HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam )
 {
-	rvOpenFileDialog* dlg = (rvOpenFileDialog*) GetWindowLong ( wnd, GWL_USERDATA );
+	rvOpenFileDialog* dlg = (rvOpenFileDialog*) GetWindowLongPtr ( wnd, GWLP_USERDATA );
 
 	switch ( msg )
 	{
 		case WM_INITDIALOG:
 			dlg = (rvOpenFileDialog*) lparam;
-			SetWindowLong ( wnd, GWL_USERDATA, lparam );
+			SetWindowLongPtr ( wnd, GWLP_USERDATA, lparam );
 			dlg->mWnd = wnd;
 			dlg->HandleInitDialog ( );
 			return TRUE;

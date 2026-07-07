@@ -272,7 +272,15 @@ public:
 	int						framenum;
 	int						previousTime;			// time in msec of last frame
 	int						time;					// in msec
-	static const int		msec = USERCMD_MSEC;	// time since last update in milliseconds
+
+	// DG: msec used to be static const, making it mutable
+	//     so it can be set to 16 or 17 in different frames
+	//     so 60 frames add up to 1000ms
+	int						msec;					// time since last update in milliseconds
+	// DG: unlike msec, msecPrecise remains constant (in the base game, in d3xp it might be scaled for slowmo)
+	//     so it can be used when the correct time for multiple frames must be calculated,
+	//     or when setting an int-timer for next frame (where it rounds down which is safe for that case)
+	static const float		msecPrecise;			// 16.66666
 
 	int						vacuumAreaNum;			// -1 if level doesn't have any outside areas
 
@@ -450,6 +458,7 @@ public:
 
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;
+	const static int		INTERNAL_SAVEGAME_VERSION = 1; // DG: added this for >= 1305 savegames
 
 	idStr					mapFileName;			// name of the map, empty string if no map loaded
 	idMapFile *				mapFile;				// will be NULL during the game unless in-game editing is used

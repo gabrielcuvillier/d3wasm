@@ -61,24 +61,41 @@ void idSoundWorldLocal::Init( idRenderWorld *renderWorld ) {
 			}
 		}
 
-		if (!soundSystemLocal.alIsFilter(listenerFilter)) {
-			alGetError();
+		if (!listenerAreFiltersInitialized) {
+			listenerAreFiltersInitialized = true;
 
-			soundSystemLocal.alGenFilters(1, &listenerFilter);
+			alGetError();
+			soundSystemLocal.alGenFilters(2, listenerFilters);
 			ALuint e = alGetError();
 			if (e != AL_NO_ERROR) {
 				common->Warning("idSoundWorldLocal::Init: alGenFilters failed: 0x%x", e);
-				listenerFilter = AL_FILTER_NULL;
+				listenerFilters[0] = AL_FILTER_NULL;
+				listenerFilters[1] = AL_FILTER_NULL;
 			} else {
-				soundSystemLocal.alFilteri(listenerFilter, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+				soundSystemLocal.alFilteri(listenerFilters[0], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
 				// original EAX occusion value was -1150
 				// default OCCLUSIONLFRATIO is 0.25
+				// default OCCLUSIONDIRECTRATIO is 1.0
 
-				// pow(10.0, (-1150*0.25)/2000.0)
-				soundSystemLocal.alFilterf(listenerFilter, AL_LOWPASS_GAIN, 0.718208f);
-				// pow(10.0, -1150/2000.0)
-				soundSystemLocal.alFilterf(listenerFilter, AL_LOWPASS_GAINHF, 0.266073f);
+				// pow(10.0, (-1150*0.25*1.0)/2000.0)
+				soundSystemLocal.alFilterf(listenerFilters[0], AL_LOWPASS_GAIN, 0.718208f);
+				// pow(10.0, (-1150*1.0)/2000.0)
+				soundSystemLocal.alFilterf(listenerFilters[0], AL_LOWPASS_GAINHF, 0.266073f);
+
+
+				soundSystemLocal.alFilteri(listenerFilters[1], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+				// original EAX occusion value was -1150
+				// default OCCLUSIONLFRATIO is 0.25
+				// default OCCLUSIONROOMRATIO is 1.5
+
+				// pow(10.0, (-1150*(0.25+1.5-1.0))/2000.0)
+				soundSystemLocal.alFilterf(listenerFilters[1], AL_LOWPASS_GAIN, 0.370467f);
+				// pow(10.0, (-1150*1.5)/2000.0)
+				soundSystemLocal.alFilterf(listenerFilters[1], AL_LOWPASS_GAINHF, 0.137246f);
 			}
+			// allow reducing the gain effect globally via s_alReverbGain CVar
+			listenerSlotReverbGain = soundSystemLocal.s_alReverbGain.GetFloat();
+			soundSystemLocal.alAuxiliaryEffectSlotf(listenerSlot, AL_EFFECTSLOT_GAIN, listenerSlotReverbGain);
 		}
 	}
 
@@ -113,6 +130,10 @@ idSoundWorldLocal::idSoundWorldLocal
 ===============
 */
 idSoundWorldLocal::idSoundWorldLocal() {
+	listenerEffect                = 0;
+	listenerSlot                  = 0;
+	listenerAreFiltersInitialized = false;
+	listenerSlotReverbGain = 1.0f;
 }
 
 /*
@@ -140,6 +161,15 @@ void idSoundWorldLocal::Shutdown() {
 
 	AVIClose();
 
+	// delete emitters before deletign the listenerSlot, so their sources aren't
+	// associated with the listenerSlot anymore
+	for ( i = 0; i < emitters.Num(); i++ ) {
+		if ( emitters[i] ) {
+			delete emitters[i];
+			emitters[i] = NULL;
+		}
+	}
+
 	if (idSoundSystemLocal::useEFXReverb) {
 		if (soundSystemLocal.alIsAuxiliaryEffectSlot(listenerSlot)) {
 			soundSystemLocal.alAuxiliaryEffectSloti(listenerSlot, AL_EFFECTSLOT_EFFECT, AL_EFFECTSLOT_NULL);
@@ -147,18 +177,18 @@ void idSoundWorldLocal::Shutdown() {
 			listenerSlot = AL_EFFECTSLOT_NULL;
 		}
 
-		if (soundSystemLocal.alIsFilter(listenerFilter)) {
-			soundSystemLocal.alDeleteFilters(1, &listenerFilter);
-			listenerFilter = AL_FILTER_NULL;
+		if (listenerAreFiltersInitialized) {
+			listenerAreFiltersInitialized = false;
+
+			if (listenerFilters[0] != AL_FILTER_NULL && listenerFilters[1] != AL_FILTER_NULL) {
+				soundSystemLocal.alDeleteFilters(2, listenerFilters);
+				listenerFilters[0] = AL_FILTER_NULL;
+				listenerFilters[1] = AL_FILTER_NULL;
+			}
 		}
+		listenerSlotReverbGain = 1.0f;
 	}
 
-	for ( i = 0; i < emitters.Num(); i++ ) {
-		if ( emitters[i] ) {
-			delete emitters[i];
-			emitters[i] = NULL;
-		}
-	}
 	localSound = NULL;
 }
 
@@ -498,6 +528,13 @@ void idSoundWorldLocal::MixLoop( int current44kHz, int numSpeakers, float *final
 	if (idSoundSystemLocal::useEFXReverb && soundSystemLocal.efxloaded) {
 		ALuint effect = 0;
 		idStr s(listenerArea);
+
+		// allow reducing the gain effect globally via s_alReverbGain CVar
+		float gain = soundSystemLocal.s_alReverbGain.GetFloat();
+		if (listenerSlotReverbGain != gain) {
+			listenerSlotReverbGain = gain;
+			soundSystemLocal.alAuxiliaryEffectSlotf(listenerSlot, AL_EFFECTSLOT_GAIN, gain);
+		}
 
 		bool found = soundSystemLocal.EFXDatabase.FindEffect(s, &effect);
 		if (!found) {
@@ -1346,6 +1383,11 @@ void idSoundWorldLocal::ReadFromSaveGame( idFile *savefile ) {
 			// make sure we start up the hardware voice if needed
 			chan->triggered = chan->triggerState;
 			chan->openalStreamingOffset = currentSoundTime - chan->trigger44kHzTime;
+			// DG: round up openalStreamingOffset to multiple of 8, so it still has an even number
+			//  if we calculate "how many 11kHz stereo samples do we need to decode" and don't
+			//  run into a "I need one more sample apparently, so decode 0 stereo samples"
+			//  situation that could cause an endless loop.. (44kHz/11kHz = 4; *2 for stereo => 8)
+			chan->openalStreamingOffset = (chan->openalStreamingOffset+7) & ~7;
 
 			// adjust the hardware fade time
 			if ( chan->channelFade.fadeStart44kHz != 0 ) {
@@ -1457,6 +1499,16 @@ void idSoundWorldLocal::Pause( void ) {
 	}
 
 	pause44kHz = soundSystemLocal.GetCurrent44kHzTime();
+
+	for ( int i = 0; i < emitters.Num(); i++ ) {
+		idSoundEmitterLocal * emitter = emitters[i];
+
+		// if no channels are active, do nothing
+		if ( emitter == NULL || !emitter->playing ) {
+			continue;
+		}
+		emitter->PauseAll();
+	}
 }
 
 /*
@@ -1476,6 +1528,16 @@ void idSoundWorldLocal::UnPause( void ) {
 	OffsetSoundTime( offset44kHz );
 
 	pause44kHz = -1;
+
+	for ( int i = 0; i < emitters.Num(); i++ ) {
+		idSoundEmitterLocal * emitter = emitters[i];
+
+		// if no channels are active, do nothing
+		if ( emitter == NULL || !emitter->playing ) {
+			continue;
+		}
+		emitter->UnPauseAll();
+	}
 }
 
 /*
@@ -1672,16 +1734,7 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 		volume = soundSystemLocal.dB2Scale( parms->volume );
 	}
 
-	// global volume scale
-	volume *= soundSystemLocal.dB2Scale( idSoundSystemLocal::s_volume.GetFloat() );
-
-	// DG: scaling the volume of *everything* down a bit to prevent some sounds
-	//     (like shotgun shot) being "drowned" when lots of other loud sounds
-	//     (like shotgun impacts on metal) are played at the same time
-	//     I guess this happens because the loud sounds mixed together are too loud so
-	//     OpenAL just makes *everything* quiter or sth like that.
-	//     See also https://github.com/dhewm/dhewm3/issues/179
-	volume *= 0.333f; // (0.333 worked fine, 0.5 didn't)
+	// DG: moved global volume scale down to after clamping to 1.0
 
 	// volume fading
 	float	fadeDb = chan->channelFade.FadeDbAt44kHz( current44kHz );
@@ -1740,6 +1793,29 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 		}
 	}
 
+	// DG: scaling the volume of *everything* down a bit to prevent some sounds
+	//     (like shotgun shot) being "drowned" when lots of other loud sounds
+	//     (like shotgun impacts on metal) are played at the same time
+	//     I guess this happens because the loud sounds mixed together are too loud so
+	//     OpenAL just makes *everything* quiter or sth like that.
+	//     See also https://github.com/dhewm/dhewm3/issues/179
+	if( soundSystemLocal.s_scaleDownAndClamp.GetBool() ) {
+		// First clamp it to 1.0 - that's done anyway when setting AL_GAIN below,
+		// for consistency it must be done before scaling, because many player-weapon
+		// sounds have a too high volume defined and only sound right (relative to
+		// other weapons) when clamped
+		// see https://github.com/dhewm/dhewm3/issues/326#issuecomment-1366833004
+		if(volume > 1.0f) {
+			volume = 1.0f;
+		}
+
+		volume *= 0.333f; // (0.333 worked fine, 0.5 didn't)
+	}
+
+	// global volume scale - DG: now done after clamping to 1.0, so reducing the
+	// global volume doesn't cause the different weapon volume issues described above
+	volume *= soundSystemLocal.dB2Scale( idSoundSystemLocal::s_volume.GetFloat() );
+
 	//
 	// do we have anything to add?
 	//
@@ -1780,7 +1856,10 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 				alSource3f( chan->openalSource, AL_POSITION, -spatializedOriginInMeters.y, spatializedOriginInMeters.z, -spatializedOriginInMeters.x );
 				alSourcef( chan->openalSource, AL_GAIN, ( volume ) < ( 1.0f ) ? ( volume ) : ( 1.0f ) );
 			}
-			alSourcei( chan->openalSource, AL_LOOPING, ( looping && chan->soundShader->entries[0]->hardwareBuffer ) ? AL_TRUE : AL_FALSE );
+			// DG: looping sounds with a leadin can't just use a HW buffer and openal's AL_LOOPING
+			//     because we need to switch from leadin to the looped sound.. see https://github.com/dhewm/dhewm3/issues/291
+			bool haveLeadin = chan->soundShader->numLeadins > 0;
+			alSourcei( chan->openalSource, AL_LOOPING, ( looping && chan->soundShader->entries[0]->hardwareBuffer && !haveLeadin ) ? AL_TRUE : AL_FALSE );
 #if 1
 			alSourcef( chan->openalSource, AL_REFERENCE_DISTANCE, mind );
 			alSourcef( chan->openalSource, AL_MAX_DISTANCE, maxd );
@@ -1789,16 +1868,20 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 
 			if (idSoundSystemLocal::useEFXReverb) {
 				if (enviroSuitActive) {
-					alSourcei(chan->openalSource, AL_DIRECT_FILTER, listenerFilter);
-					alSource3i(chan->openalSource, AL_AUXILIARY_SEND_FILTER, listenerSlot, 0, listenerFilter);
+					alSourcei(chan->openalSource, AL_DIRECT_FILTER, listenerFilters[0]);
+					alSource3i(chan->openalSource, AL_AUXILIARY_SEND_FILTER, listenerSlot, 0, listenerFilters[1]);
 				} else {
+					alSourcei(chan->openalSource, AL_DIRECT_FILTER, AL_FILTER_NULL);
 					alSource3i(chan->openalSource, AL_AUXILIARY_SEND_FILTER, listenerSlot, 0, AL_FILTER_NULL);
 				}
 			}
 
 
-			if ( ( !looping && chan->leadinSample->hardwareBuffer ) || ( looping && chan->soundShader->entries[0]->hardwareBuffer ) ) {
+			if ( ( !looping && chan->leadinSample->hardwareBuffer )
+				|| ( looping && !haveLeadin && chan->soundShader->entries[0]->hardwareBuffer ) ) {
 				// handle uncompressed (non streaming) single shot and looping sounds
+				// DG: ... that have no leadin (with leadin we still need to switch to another sound,
+				//     just use streaming code for that) - see https://github.com/dhewm/dhewm3/issues/291
 				if ( chan->triggered ) {
 					alSourcei( chan->openalSource, AL_BUFFER, looping ? chan->soundShader->entries[0]->openalBuffer : chan->leadinSample->openalBuffer );
 				}
@@ -1851,7 +1934,11 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 				chan->triggered = false;
 			}
 		}
-	} else {
+	}
+#if 1 // DG: I /think/ this was only relevant for the old sound backends?
+	// FIXME: completely remove else branch, but for testing leave it in under com_asyncSound 2
+	//        (which also does the old 92-100ms updates)
+	else if( com_asyncSound.GetInteger() == 2 ) {
 
 		if ( slowmoActive && !chan->disallowSlow ) {
 			idSlowChannel slow = sound->GetSlowChannel( chan );
@@ -1946,6 +2033,7 @@ void idSoundWorldLocal::AddChannelContribution( idSoundEmitterLocal *sound, idSo
 		}
 
 	}
+#endif // 1/0
 
 	soundSystemLocal.soundStats.activeSounds++;
 
@@ -2060,10 +2148,13 @@ float idSoundWorldLocal::FindAmplitude( idSoundEmitterLocal *sound, const int lo
 				sourceBuffer[j] = j & 1 ? 32767.0f : -32767.0f;
 			}
 		} else {
-			int offset = (localTime - localTriggerTimes);	// offset in samples
-			int size = ( looping ? chan->soundShader->entries[0]->LengthIn44kHzSamples() : chan->leadinSample->LengthIn44kHzSamples() );
-			short *amplitudeData = (short *)( looping ? chan->soundShader->entries[0]->amplitudeData : chan->leadinSample->amplitudeData );
+			idSoundSample* sample = looping ? chan->soundShader->entries[0] : chan->leadinSample;
+			if ( sample == NULL ) // DG: this happens if sound is disabled (s_noSound 1)
+				continue;
 
+			int offset = (localTime - localTriggerTimes);	// offset in samples
+			int size = sample->LengthIn44kHzSamples();
+			short *amplitudeData = (short *)( sample->amplitudeData );
 			if ( amplitudeData ) {
 				// when the amplitudeData is present use that fill a dummy sourceBuffer
 				// this is to allow for amplitude based effect on hardware audio solutions

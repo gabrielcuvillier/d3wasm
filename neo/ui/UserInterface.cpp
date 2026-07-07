@@ -36,6 +36,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "ui/UserInterfaceLocal.h"
 
+#include "renderer/tr_local.h" // glConfig for winWidth/winHeight
+
 extern idCVar r_skipGuiShaders;		// 1 = don't render any gui elements on surfaces
 extern idCVar r_scaleMenusTo43; // DG: for the "scale menus to 4:3" hack
 
@@ -118,6 +120,9 @@ void idUserInterfaceManagerLocal::EndLevelLoad() {
 			}
 		}
 	}
+
+	// DG: this should probably be reset at this point
+	Sys_SetInteractiveIngameGuiActive( false, NULL );
 }
 
 void idUserInterfaceManagerLocal::Reload( bool all ) {
@@ -246,6 +251,8 @@ idUserInterfaceLocal::idUserInterfaceLocal() {
 	//so the reg eval in gui parsing doesn't get bogus values
 	time = 0;
 	refs = 1;
+	timeStamp = 0;
+	lastGlWidth = lastGlHeight = 0;
 }
 
 idUserInterfaceLocal::~idUserInterfaceLocal() {
@@ -334,6 +341,31 @@ bool idUserInterfaceLocal::InitFromFile( const char *qpath, bool rebuild, bool c
 	return true;
 }
 
+// static
+bool idUserInterface::IsUserInterfaceScaledTo43( const idUserInterface* ui_ )
+{
+	const idUserInterfaceLocal* ui = (const idUserInterfaceLocal*)ui_;
+	if ( ui == NULL ) {
+		assert( 0 && "why do you call this without a ui?!" );
+		return false;
+	}
+	idWindow* win = ui->GetDesktop();
+	if ( win == NULL ) {
+		return false;
+	}
+	int winFlags = win->GetFlags();
+	if ( (winFlags & WIN_MENUGUI) == 0 || !r_scaleMenusTo43.GetBool() ) {
+		// if the window is no fullscreen menu (but an ingame menu or noninteractive like the HUD)
+		// or scaling menus to 4:3 by default (r_scaleMenusTo43) is disabled,
+		// they only get scaled if they explicitly requested it with "scaleto43 1"
+		return (winFlags & WIN_SCALETO43) != 0;
+	} else {
+		// if it's a fullscreen menu and r_scaleMenusTo43 is enabled,
+		// they get scaled to 4:3 unless they explicitly disable it with "scaleto43 0"
+		return (winFlags & WIN_NO_SCALETO43) == 0;
+	}
+}
+
 const char *idUserInterfaceLocal::HandleEvent( const sysEvent_t *event, int _time, bool *updateVisuals ) {
 
 	time = _time;
@@ -344,19 +376,24 @@ const char *idUserInterfaceLocal::HandleEvent( const sysEvent_t *event, int _tim
 		return ret;
 	}
 
-	if ( event->evType == SE_MOUSE ) {
+	// DG: used to translate gamepad input into events the UI system is familiar with
+	sysEvent_t fakedEvent = {};
+
+	if ( event->evType == SE_MOUSE || event->evType == SE_MOUSE_ABS ) {
 		if ( !desktop || (desktop->GetFlags() & WIN_MENUGUI) ) {
 			// DG: this is a fullscreen GUI, scale the mousedelta added to cursorX/Y
 			//     by 640/w, because the GUI pretends that everything is 640x480
 			//     even if the actual resolution is higher => mouse moved too fast
-			float w = renderSystem->GetScreenWidth();
-			float h = renderSystem->GetScreenHeight();
+			float w = glConfig.winWidth;
+			float h = glConfig.winHeight;
 			if( w <= 0.0f || h <= 0.0f ) {
 				w = VIRTUAL_WIDTH;
 				h = VIRTUAL_HEIGHT;
 			}
+			const float realW = w;
+			const float realH = h;
 
-			if(r_scaleMenusTo43.GetBool()) {
+			if ( IsUserInterfaceScaledTo43(this) ) {
 				// in case we're scaling menus to 4:3, we need to take that into account
 				// when scaling the mouse events.
 				// no, we can't just call uiManagerLocal.dc.GetFixScaleForMenu() or sth like that,
@@ -374,8 +411,20 @@ const char *idUserInterfaceLocal::HandleEvent( const sysEvent_t *event, int _tim
 				}
 			}
 
-			cursorX += event->evValue * (float(VIRTUAL_WIDTH)/w);
-			cursorY += event->evValue2 * (float(VIRTUAL_HEIGHT)/h);
+			if( event->evType == SE_MOUSE ) {
+				cursorX += event->evValue * (float(VIRTUAL_WIDTH)/w);
+				cursorY += event->evValue2 * (float(VIRTUAL_HEIGHT)/h);
+			} else { // SE_MOUSE_ABS
+				// Note: In case of scaling to 4:3, w and h are already scaled down
+				//       to the 4:3 size that fits into the real resolution.
+				//       Otherwise xOffset/yOffset will just be 0
+				float xOffset = (realW  - w) * 0.5f;
+				float yOffset = (realH - h) * 0.5f;
+				// offset the mouse coordinates into 4:3 area and scale down to 640x480
+				// yes, result could be negative, doesn't matter, code below checks that anyway
+				cursorX = (event->evValue  - xOffset) * (float(VIRTUAL_WIDTH)/w);
+				cursorY = (event->evValue2 - yOffset) * (float(VIRTUAL_HEIGHT)/h);
+			}
 		} else {
 			// not a fullscreen GUI but some ingame thing - no scaling needed
 			cursorX += event->evValue;
@@ -387,6 +436,80 @@ const char *idUserInterfaceLocal::HandleEvent( const sysEvent_t *event, int _tim
 		}
 		if (cursorY < 0) {
 			cursorY = 0;
+		}
+	}
+	else if ( event->evType == SE_JOYSTICK && event->evValue2 != 0 && event->evValue < 4 )
+	{
+		// evValue:  axis = jEvent - J_AXIS_MIN;
+		// evValue2: percent (-100 to 100)
+
+		// currently uses both sticks for cursor movement
+		// TODO could use one stick for scrolling (maybe by generating K_UPARROW/DOWNARROW events?)
+		float addVal = expf( fabsf(event->evValue2 * 0.03f) ) * 0.5f;
+		if(event->evValue2 < 0)
+			addVal = -addVal;
+
+		if( event->evValue == 0 || event->evValue == 2 ) {
+			cursorX += addVal;
+		} else if( event->evValue == 1 || event->evValue == 3 ) {
+			cursorY += addVal;
+		}
+
+		if (cursorX < 0) {
+			cursorX = 0;
+		}
+		if (cursorY < 0) {
+			cursorY = 0;
+		}
+
+		// some things like highlighting hovered UI elements need a mouse event,
+		// so create a fake mouse event
+		fakedEvent.evType = SE_MOUSE;
+		// the coordinates (evValue/evValue2) aren't used, but keeping them at 0
+		// (as default-initialized above) shouldn't hurt either way
+		event = &fakedEvent;
+	}
+	else if ( event->evType == SE_KEY && event->evValue >= K_FIRST_JOY && event->evValue <= K_LAST_JOY )
+	{
+		// map some gamepad buttons to SE_KEY events that the UI already knows how to use
+		int key = 0;
+		if( idKeyInput::GetUsercmdAction( event->evValue ) ==  20 /* UB_ATTACK*/ ) {
+			// if this button is bound to _attack (fire), treat it as left mouse button
+			key = K_MOUSE1;
+		} else {
+			switch(event->evValue) {
+				// emulate mouse buttons
+				case K_JOY_BTN_SOUTH: // A on xbox controller
+					key = K_MOUSE1;
+					break;
+				case K_JOY_BTN_EAST: // B on xbox controller
+					key = K_MOUSE2;
+					break;
+				// emulate cursor keys (sometimes used for scrolling or selecting in a list)
+				case K_JOY_DPAD_UP:
+					key = K_UPARROW;
+					break;
+				case K_JOY_DPAD_DOWN:
+					key = K_DOWNARROW;
+					break;
+				case K_JOY_DPAD_LEFT:
+					key = K_LEFTARROW;
+					break;
+				case K_JOY_DPAD_RIGHT:
+					key = K_RIGHTARROW;
+					break;
+				// enter is useful after selecting something with cursor keys (or dpad)
+				// in a list, like selecting a savegame - I guess left trigger is suitable for that?
+				// (right trigger is often used for shooting, which we use as K_MOUSE1 here)
+				case K_JOY_TRIGGER1:
+					key = K_ENTER;
+					break;
+			}
+		}
+		if (key != 0) {
+			fakedEvent = *event;
+			fakedEvent.evValue = key;
+			event = &fakedEvent;
 		}
 	}
 
@@ -406,6 +529,18 @@ void idUserInterfaceLocal::Redraw( int _time ) {
 		return;
 	}
 	if ( !loading && desktop ) {
+		if ( desktop->GetFlags() & WIN_MENUGUI ) {
+			// if the (SDL) window size has changed, calculate and set the
+			// "gui::cst*" window register variables accordingly
+			if ( MaybeSetCstWinRegs() ) {
+				// tell the GUI script about it in case it wants to handle the size change in
+				// some way (though usually it's enough to use sth like
+				// `rect 0, 200, "gui::cstHorPad", 100"` and `cstAnchor  CST_ANCHOR_LEFT`
+				// for a windowDef that should fill part of the left side)
+				HandleNamedEvent( "CstScreenSizeChange" );
+			}
+		}
+
 		time = _time;
 		uiManagerLocal.dc.PushClipRect( uiManagerLocal.screenRect );
 		desktop->Redraw( 0, 0 );
@@ -467,13 +602,19 @@ void idUserInterfaceLocal::StateChanged( int _time, bool redraw ) {
 		// DG: little hack: allow game DLLs to do
 		//     ui->SetStateBool("scaleto43", true);
 		//     ui->StateChanged(gameLocal.time);
-		//     so we can force cursors.gui (crosshair) to be scaled, for example
-		bool scaleTo43 = false;
-		if(state.GetBool("scaleto43", "0", scaleTo43)) {
-			if(scaleTo43)
+		//     so we can force cursors.gui (crosshair) to be scaled, for example.
+		//     Not sure if/where that's needed, but ui->SetStateBool("scaleto43", false);
+		//     is now also supported to explicitly disable scaling from the code
+		int scaleTo43 = 0;
+		if(state.GetInt("scaleto43", "-1", scaleTo43)) {
+			if(scaleTo43 > 0) {
 				desktop->SetFlag(WIN_SCALETO43);
-			else
+				desktop->ClearFlag(WIN_NO_SCALETO43);
+				// TODO
+			} else if(scaleTo43 == 0) {
 				desktop->ClearFlag(WIN_SCALETO43);
+				desktop->SetFlag(WIN_NO_SCALETO43);
+			} // do nothing for -1, it means that it wasn't set at all
 		}
 		// DG end
 
@@ -495,7 +636,19 @@ const char *idUserInterfaceLocal::Activate(bool activate, int _time) {
 	time = _time;
 	active = activate;
 	if ( desktop ) {
+		// DG: added this hack for gamepad input - Note that it can happen that
+		//     a UI has been made non-interactive before Activate(false, ..) is called
+		//     and it still needs to be unregistered with Sys_SetInteractiveIngameGuiActive()!
+		if ( interactive || !activate ) {
+			Sys_SetInteractiveIngameGuiActive( activate, this );
+		} // DG end
 		activateStr = "";
+
+		if ( desktop->GetFlags() & WIN_MENUGUI ) {
+			// DG: calculate and set the "gui::cst*" window register variables
+			//     so the GUI can use them
+			MaybeSetCstWinRegs(true);
+		}
 		desktop->Activate( activate, activateStr );
 		return activateStr;
 	}
@@ -685,4 +838,45 @@ idUserInterfaceLocal::SetCursor
 void idUserInterfaceLocal::SetCursor( float x, float y ) {
 	cursorX = x;
 	cursorY = y;
+}
+
+
+bool idUserInterfaceLocal::MaybeSetCstWinRegs(bool force) {
+	if ( desktop == NULL ) {
+		return false;
+	}
+	int glWidth, glHeight;
+	renderSystem->GetGLSettings(glWidth, glHeight);
+	if (glWidth <= 0 || glHeight <= 0 || (!force && glWidth == lastGlWidth && glHeight == lastGlHeight) ) {
+		return false;
+	}
+	lastGlWidth = glWidth;
+	lastGlHeight = glHeight;
+
+	float glAspectRatio = (float)glWidth / (float)glHeight;
+	const float vidAspectRatio = (float)VIRTUAL_WIDTH / (float)VIRTUAL_HEIGHT;
+
+	const float desktopWidth  = desktop->forceAspectWidth;
+	const float desktopHeight = desktop->forceAspectHeight;
+
+	float horizPadding = 0;
+	float vertPadding = 0;
+	float modWidth = desktopWidth;
+	float modHeight = desktopHeight;
+
+	if (glAspectRatio >= vidAspectRatio) {
+		modWidth = desktopHeight * glAspectRatio;
+		horizPadding = 0.5f * (modWidth - desktopWidth);
+	} else {
+		modHeight = desktopWidth / glAspectRatio;
+		vertPadding = 0.5f * (modHeight - desktopHeight);
+	}
+
+	SetStateFloat( "cstAspectRatio", glAspectRatio );
+	SetStateFloat( "cstWidth", modWidth );
+	SetStateFloat( "cstHeight", modHeight );
+	SetStateFloat( "cstHorPad", horizPadding );
+	SetStateFloat( "cstVertPad", vertPadding );
+
+	return true;
 }

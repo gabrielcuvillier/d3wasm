@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -501,7 +501,6 @@ void CDialogTextures::OnClickTreeTextures(NMHDR *pNMHDR, LRESULT *pResult) {
  =======================================================================================================================
  */
 void CDialogTextures::OnSelchangedTreeTextures(NMHDR *pNMHDR, LRESULT *pResult) {
-	NM_TREEVIEW *pNMTreeView = (NM_TREEVIEW *) pNMHDR;
 	*pResult = 0;
 
 	editMaterial = NULL;
@@ -827,9 +826,11 @@ void CDialogTextures::addStrList( const char *root, const idStrList &list, int i
  */
 void CDialogTextures::addModels(bool rootItems) {
 	idFileList *files;
-
-	files = fileSystem->ListFilesTree( "models", ".ase|.lwo|.ma", true );
-
+#if USE_COLLADA
+	files = fileSystem->ListFilesTree( "models", ".ase|.lwo|.ma|.dae", true );
+#else
+	files = fileSystem->ListFilesTree("models", ".ase|.lwo|.ma", true);
+#endif
 	if ( files->GetNumFiles() ) {
 		addStrList( TypeNames[MODELS], files->GetList(), MODELS );
 	}
@@ -937,27 +938,32 @@ void CDialogTextures::OnSize(UINT nType, int cx, int cy)
 		return;
 	}
 
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
+	int s8 = int(8 * scaling_factor);
+	int s4 = int(4 * scaling_factor);
+	int s12 = int(12 * scaling_factor);
+
 	CRect rect, rect2, rect3;
 	GetClientRect(rect);
 	m_btnLoad.GetWindowRect(rect2);
 
-	m_btnLoad.SetWindowPos(NULL, rect.left + 4, rect.top + 4, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
-	m_btnRefresh.SetWindowPos(NULL, rect.left + rect2.Width() + 4, rect.top + 4, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
+	m_btnLoad.SetWindowPos(NULL, rect.left + s4, rect.top + s4, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
+	m_btnRefresh.SetWindowPos(NULL, rect.left + rect2.Width() + s4, rect.top + 4, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
 
 
-	int right = rect.right - 4 - rect3.Width() - 4;
+	int right = rect.right - s4 - rect3.Width() - s4;
 
 
-	right = rect3.right - 4 - rect3.Width() - 4;
+	right = rect3.right - s4 - rect3.Width() - s4;
 
 	m_chkHideRoot.GetWindowRect(rect3);
-	m_chkHideRoot.SetWindowPos(NULL, right - rect3.Width() * 2, rect.top + 4, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
+	m_chkHideRoot.SetWindowPos(NULL, right - rect3.Width() * 2, rect.top + s4, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
 	m_chkHideRoot.ShowWindow(SW_HIDE);
 
-	int verticalSpace = (rect.Height() - rect2.Height() - 12) / 2;
+	int verticalSpace = (rect.Height() - rect2.Height() - s12) / 2;
 
-	m_treeTextures.SetWindowPos(NULL, rect.left + 4, rect.top + 8 + rect2.Height(), (rect.Width() - 8), verticalSpace, SWP_SHOWWINDOW);
-	m_wndPreview.SetWindowPos(NULL, rect.left + 4, rect.top + 12 + rect2.Height() + verticalSpace, (rect.Width() - 8), verticalSpace, SWP_SHOWWINDOW);
+	m_treeTextures.SetWindowPos(NULL, rect.left + s4, rect.top + s8 + rect2.Height(), (rect.Width() - s8), verticalSpace, SWP_SHOWWINDOW);
+	m_wndPreview.SetWindowPos(NULL, rect.left + s4, rect.top + s12 + rect2.Height() + verticalSpace, (rect.Width() - s8), verticalSpace, SWP_SHOWWINDOW);
 
 	RedrawWindow();
 }

@@ -26,12 +26,11 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
-#include "../../game/game.h"
 #include "../comafx/DialogColorPicker.h"
 #include "LightDlg.h"
 
@@ -41,6 +40,11 @@ If you have questions concerning this license or the applicable additional terms
 #define DEBUG_NEW new
 #endif
 
+// returns true if light editor has been opened in D3Radiant,
+// false if it has been opened from within a running game
+static bool InRadiant() {
+	return (com_editors & EDITOR_RADIANT) != 0;
+}
 
 void CLightInfo::Defaults() {
 	pointLight = true;
@@ -180,6 +184,8 @@ void CLightInfo::ToDictWriteAllInfo( idDict *e ) {
 
 	if (strTexture.GetLength() > 0 ) {
 		e->Set("texture", strTexture);
+	} else {
+		e->Set("texture", "");
 	}
 
 	idVec3 temp = color;
@@ -326,7 +332,7 @@ void CLightDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CLightDlg)
-	if ( com_editorActive ) {
+	if ( InRadiant() ) {
 		DDX_Control(pDX, IDC_LIGHTPREVIEW, m_wndPreview);
 	}
 	DDX_Control(pDX, IDC_COMBO_TEXTURE, m_wndLights);
@@ -570,7 +576,7 @@ void CLightDlg::UpdateLightInfoFromDialog( void ) {
 
 void CLightDlg::SaveLightInfo( const idDict *differences ) {
 
-	if ( com_editorActive ) {
+	if ( InRadiant() ) {
 
 		// used from Radiant
 		for ( brush_t *b = selected_brushes.next; b && b != &selected_brushes; b = b->next ) {
@@ -653,7 +659,7 @@ BOOL CLightDlg::OnInitDialog()
 
 	LoadLightTextures();
 
-	if ( com_editorActive ) {
+	if ( InRadiant() ) {
 		m_wndPreview.setDrawable(m_drawMaterial);
 	}
 
@@ -728,7 +734,7 @@ void CLightDlg::UpdateDialog( bool updateChecks )
 	lightInfo.Defaults();
 	lightInfoOriginal.Defaults ();
 
-	if ( com_editorActive ) {
+	if ( InRadiant() ) {
 		// used from Radiant
 		entity_t *e = SingleLightSelected();
 		if ( e ) {
@@ -901,7 +907,7 @@ void CLightDlg::OnSelchangeComboTexture()
 	if (sel >= 0) {
 		m_wndLights.GetLBText(sel, str);
 		m_drawMaterial->setMedia(str);
-		if ( com_editorActive ) {
+		if ( InRadiant() ) {
 			m_wndPreview.RedrawWindow();
 		}
 	}
@@ -941,19 +947,19 @@ void CLightDlg::OnCheckParallel() {
 
 //jhefty - only apply settings that are different
 void CLightDlg::OnApplyDifferences () {
-	idDict differences, modified, original;
+	idDict differences, modifiedlight, originallight;
 
 	UpdateLightInfoFromDialog();
 
-	lightInfo.ToDict( &modified );
-	lightInfoOriginal.ToDictWriteAllInfo( &original );
+	lightInfo.ToDict( &modifiedlight);
+	lightInfoOriginal.ToDictWriteAllInfo( &originallight);
 
-	differences = modified;
+	differences = modifiedlight;
 
 	// jhefty - compile a set of modified values to apply
-	for ( int i = 0; i < modified.GetNumKeyVals (); i ++ ) {
-		const idKeyValue* valModified = modified.GetKeyVal ( i );
-		const idKeyValue* valOriginal = original.FindKey ( valModified->GetKey() );
+	for ( int i = 0; i < modifiedlight.GetNumKeyVals (); i ++ ) {
+		const idKeyValue* valModified = modifiedlight.GetKeyVal ( i );
+		const idKeyValue* valOriginal = originallight.FindKey ( valModified->GetKey() );
 
 		//if it hasn't changed, remove it from the list of values to apply
 		if ( !valOriginal || ( valModified->GetValue() == valOriginal->GetValue() ) ) {
@@ -963,7 +969,7 @@ void CLightDlg::OnApplyDifferences () {
 
 	SaveLightInfo( &differences );
 
-	lightInfoOriginal.FromDict( &modified );
+	lightInfoOriginal.FromDict( &modifiedlight);
 
 	Sys_UpdateWindows( W_ALL );
 }

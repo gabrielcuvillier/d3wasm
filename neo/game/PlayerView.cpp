@@ -224,81 +224,82 @@ which will determine the head kick direction
 ==============
 */
 void idPlayerView::DamageImpulse( idVec3 localKickDir, const idDict *damageDef ) {
-	//
-	// double vision effect
-	//
-	if ( lastDamageTime > 0.0f && SEC2MS( lastDamageTime ) + IMPULSE_DELAY > gameLocal.time ) {
-		// keep shotgun from obliterating the view
-		return;
-	}
-
-	float	dvTime = damageDef->GetFloat( "dv_time" );
-	if ( dvTime ) {
-		if ( dvFinishTime < gameLocal.time ) {
-			dvFinishTime = gameLocal.time;
+	if ( g_hitEffect.GetBool() ) {
+		//
+		// double vision effect
+		//
+		if ( lastDamageTime > 0.0f && SEC2MS( lastDamageTime ) + IMPULSE_DELAY > gameLocal.time ) {
+			// keep shotgun from obliterating the view
+			return;
 		}
-		dvFinishTime += g_dvTime.GetFloat() * dvTime;
-		// don't let it add up too much in god mode
-		if ( dvFinishTime > gameLocal.time + 5000 ) {
-			dvFinishTime = gameLocal.time + 5000;
+
+		float	dvTime = damageDef->GetFloat( "dv_time" );
+		if ( dvTime ) {
+			if ( dvFinishTime < gameLocal.time ) {
+				dvFinishTime = gameLocal.time;
+			}
+			dvFinishTime += g_dvTime.GetFloat() * dvTime;
+			// don't let it add up too much in god mode
+			if ( dvFinishTime > gameLocal.time + 5000 ) {
+				dvFinishTime = gameLocal.time + 5000;
+			}
 		}
-	}
 
-	//
-	// head angle kick
-	//
-	float	kickTime = damageDef->GetFloat( "kick_time" );
-	if ( kickTime ) {
-		kickFinishTime = gameLocal.time + g_kickTime.GetFloat() * kickTime;
+		//
+		// head angle kick
+		//
+		float	kickTime = damageDef->GetFloat( "kick_time" );
+		if ( kickTime ) {
+			kickFinishTime = gameLocal.time + g_kickTime.GetFloat() * kickTime;
 
-		// forward / back kick will pitch view
-		kickAngles[0] = localKickDir[0];
+			// forward / back kick will pitch view
+			kickAngles[0] = localKickDir[0];
 
-		// side kick will yaw view
-		kickAngles[1] = localKickDir[1]*0.5f;
+			// side kick will yaw view
+			kickAngles[1] = localKickDir[1] * 0.5f;
 
-		// up / down kick will pitch view
-		kickAngles[0] += localKickDir[2];
+			// up / down kick will pitch view
+			kickAngles[0] += localKickDir[2];
 
-		// roll will come from  side
-		kickAngles[2] = localKickDir[1];
+			// roll will come from  side
+			kickAngles[2] = localKickDir[1];
 
-		float kickAmplitude = damageDef->GetFloat( "kick_amplitude" );
-		if ( kickAmplitude ) {
-			kickAngles *= kickAmplitude;
+			float kickAmplitude = damageDef->GetFloat( "kick_amplitude" );
+			if ( kickAmplitude ) {
+				kickAngles *= kickAmplitude;
+			}
 		}
+
+		//
+		// screen blob
+		//
+		float	blobTime = damageDef->GetFloat( "blob_time" );
+		if ( blobTime ) {
+			screenBlob_t* blob = GetScreenBlob();
+			blob->startFadeTime = gameLocal.time;
+			blob->finishTime = gameLocal.time + blobTime * g_blobTime.GetFloat();
+
+			const char* materialName = damageDef->GetString( "mtr_blob" );
+			blob->material = declManager->FindMaterial( materialName );
+			blob->x = damageDef->GetFloat( "blob_x" );
+			blob->x += ( gameLocal.random.RandomInt() & 63 ) - 32;
+			blob->y = damageDef->GetFloat( "blob_y" );
+			blob->y += ( gameLocal.random.RandomInt() & 63 ) - 32;
+
+			float scale = ( 256 + ( ( gameLocal.random.RandomInt() & 63 ) - 32 ) ) / 256.0f;
+			blob->w = damageDef->GetFloat( "blob_width" ) * g_blobSize.GetFloat() * scale;
+			blob->h = damageDef->GetFloat( "blob_height" ) * g_blobSize.GetFloat() * scale;
+			blob->s1 = 0;
+			blob->t1 = 0;
+			blob->s2 = 1;
+			blob->t2 = 1;
+		}
+
+		//
+		// save lastDamageTime for tunnel vision accentuation
+		//
+		lastDamageTime = MS2SEC( gameLocal.time );
 	}
-
-	//
-	// screen blob
-	//
-	float	blobTime = damageDef->GetFloat( "blob_time" );
-	if ( blobTime ) {
-		screenBlob_t	*blob = GetScreenBlob();
-		blob->startFadeTime = gameLocal.time;
-		blob->finishTime = gameLocal.time + blobTime * g_blobTime.GetFloat();
-
-		const char *materialName = damageDef->GetString( "mtr_blob" );
-		blob->material = declManager->FindMaterial( materialName );
-		blob->x = damageDef->GetFloat( "blob_x" );
-		blob->x += ( gameLocal.random.RandomInt()&63 ) - 32;
-		blob->y = damageDef->GetFloat( "blob_y" );
-		blob->y += ( gameLocal.random.RandomInt()&63 ) - 32;
-
-		float scale = ( 256 + ( ( gameLocal.random.RandomInt()&63 ) - 32 ) ) / 256.0f;
-		blob->w = damageDef->GetFloat( "blob_width" ) * g_blobSize.GetFloat() * scale;
-		blob->h = damageDef->GetFloat( "blob_height" ) * g_blobSize.GetFloat() * scale;
-		blob->s1 = 0;
-		blob->t1 = 0;
-		blob->s2 = 1;
-		blob->t2 = 1;
-	}
-
-	//
-	// save lastDamageTime for tunnel vision accentuation
-	//
-	lastDamageTime = MS2SEC( gameLocal.time );
-
 }
 
 /*
@@ -720,7 +721,43 @@ void idPlayerView::RenderPlayerView( idUserInterface *hud ) {
 	}
 
 	if ( net_clientLagOMeter.GetBool() && lagoMaterial && gameLocal.isClient ) {
-		renderSystem->SetColor4( 1.0f, 1.0f, 1.0f, 1.0f );
-		renderSystem->DrawStretchPic( 10.0f, 380.0f, 64.0f, 64.0f, 0.0f, 0.0f, 1.0f, 1.0f, lagoMaterial );
+		//#modified-fva; BEGIN
+		float x = 10.0f;
+		float y = 380.0f;
+		float w = 64.0f;
+		float h = 64.0f;
+		if (cvarSystem->GetCVarBool("cst_hudAdjustAspect")) {
+			// similar to CST_ANCHOR_BOTTOM_LEFT
+			int glWidth, glHeight;
+			renderSystem->GetGLSettings(glWidth, glHeight);
+			if (glWidth > 0 && glHeight > 0) {
+				float glAspectRatio = (float)glWidth / (float)glHeight;
+
+				const float vidWidth = SCREEN_WIDTH;
+				const float vidHeight = SCREEN_HEIGHT;
+				const float vidAspectRatio = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
+
+				float modWidth = vidWidth;
+				float modHeight = vidHeight;
+				if (glAspectRatio >= vidAspectRatio) {
+					modWidth = modHeight * glAspectRatio;
+				} else {
+					modHeight = modWidth / glAspectRatio;
+				}
+
+				float xScale = vidWidth / modWidth;
+				float yScale = vidHeight / modHeight;
+				float xOffset = 0.0f;
+				float yOffset = vidHeight * (1.0f - yScale);
+
+				x = x * xScale + xOffset;
+				y = y * yScale + yOffset;
+				w *= xScale;
+				h *= yScale;
+			}
+		}
+		renderSystem->SetColor4(1.0f, 1.0f, 1.0f, 1.0f);
+		renderSystem->DrawStretchPic(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f, lagoMaterial);
+		//#modified-fva; END
 	}
 }

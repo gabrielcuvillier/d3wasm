@@ -172,7 +172,7 @@ index 0 will never be NULL.  Any anim >= NumAnims will return NULL.
 =====================
 */
 const idMD5Anim *idAnim::MD5Anim( int num ) const {
-	if ( anims == NULL || anims[0] == NULL ) {
+	if ( anims[0] == NULL ) {
 		return NULL;
 	}
 	return anims[ num ];
@@ -539,9 +539,6 @@ const char *idAnim::AddFrameCommand( const idDeclModelDef *modelDef, int framenu
 		}
 		fc.type = FC_MUZZLEFLASH;
 		fc.string = new idStr( token );
-	} else if ( token == "muzzle_flash" ) {
-		fc.type = FC_MUZZLEFLASH;
-		fc.string = new idStr( "" );
 	} else if ( token == "create_missile" ) {
 		if( !src.ReadTokenOnLine( &token ) ) {
 			return "Unexpected end of line";
@@ -3057,6 +3054,7 @@ idDeclModelDef::NumJointsOnChannel
 int idDeclModelDef::NumJointsOnChannel( int channel ) const {
 	if ( ( channel < 0 ) || ( channel >= ANIM_NumAnimChannels ) ) {
 		gameLocal.Error( "idDeclModelDef::NumJointsOnChannel : channel out of range" );
+		return 0; // unreachable, (Error() doesn't return) just to shut up compiler
 	}
 	return channelJoints[ channel ].Num();
 }
@@ -3069,6 +3067,7 @@ idDeclModelDef::GetChannelJoints
 const int * idDeclModelDef::GetChannelJoints( int channel ) const {
 	if ( ( channel < 0 ) || ( channel >= ANIM_NumAnimChannels ) ) {
 		gameLocal.Error( "idDeclModelDef::GetChannelJoints : channel out of range" );
+		return NULL; // unreachable, (Error() doesn't return) just to shut up compiler
 	}
 	return channelJoints[ channel ].Ptr();
 }

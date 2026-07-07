@@ -25,8 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "StageView.h"
 
@@ -365,8 +365,6 @@ void StageView::OnLvnItemchanged(NMHDR *pNMHDR, LRESULT *pResult) {
 * Notifies the property view that all stages have been removed.
 */
 void StageView::OnLvnDeleteallitems(NMHDR *pNMHDR, LRESULT *pResult) {
-	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
-
 	//The list has been cleared so clear the prop view
 	m_propView->SetPropertyListType(-1);
 

@@ -48,6 +48,9 @@ class idFile;
 // are bindable (otherwise they get bound as one of the special keys in this
 // table)
 typedef enum {
+
+	// DG: please don't change any existing constants for keyboard keys below (or recreate the tables in win_input.cpp)!
+
 	K_TAB = 9,
 	K_ENTER = 13,
 	K_ESCAPE = 27,
@@ -119,6 +122,8 @@ typedef enum {
 	K_KP_STAR,
 	K_KP_EQUALS,
 
+	// DG: please don't change any existing constants above this one (or recreate the tables in win_input.cpp)!
+
 	K_MASCULINE_ORDINATOR = 186,
 	// K_MOUSE enums must be contiguous (no char codes in the middle)
 	K_MOUSE1 = 187,
@@ -133,39 +138,51 @@ typedef enum {
 	K_MWHEELDOWN = 195,
 	K_MWHEELUP,
 
-	K_JOY1 = 197,
-	K_JOY2,
-	K_JOY3,
-	K_JOY4,
-	K_JOY5,
-	K_JOY6,
-	K_JOY7,
-	K_JOY8,
-	K_JOY9,
-	K_JOY10,
-	K_JOY11,
-	K_JOY12,
-	K_JOY13,
-	K_JOY14,
-	K_JOY15,
-	K_JOY16,
-	K_JOY17,
-	K_JOY18,
-	K_JOY19,
-	K_JOY20,
-	K_JOY21,
-	K_JOY22,
-	K_JOY23,
-	K_JOY24,
-	K_JOY25,
-	K_JOY26,
-	K_JOY27,
-	K_GRAVE_A = 224,	// lowercase a with grave accent
-	K_JOY28,
-	K_JOY29,
-	K_JOY30,
-	K_JOY31,
-	K_JOY32,
+	//------------------------
+	// K_JOY codes must be contiguous, too, and K_JOY_BTN_* should be kept in sync with J_BTN_* of sys_jEvents
+	//------------------------
+
+	K_FIRST_JOY = 197,
+	K_JOY_BTN_SOUTH = K_FIRST_JOY, // bottom face button, like Xbox A
+	K_JOY_BTN_EAST,  // right face button, like Xbox B
+	K_JOY_BTN_WEST,  // left face button, like Xbox X
+	K_JOY_BTN_NORTH, // top face button, like Xbox Y
+
+	K_JOY_BTN_BACK,
+	K_JOY_BTN_GUIDE, // Note: this one should probably not be used?
+	K_JOY_BTN_START, // hardcoded to generate Esc to open/close menu
+	K_JOY_BTN_LSTICK, // press left stick
+	K_JOY_BTN_RSTICK, // press right stick
+	K_JOY_BTN_LSHOULDER,
+	K_JOY_BTN_RSHOULDER,
+
+	K_JOY_DPAD_UP,
+	K_JOY_DPAD_DOWN,
+	K_JOY_DPAD_LEFT,
+	K_JOY_DPAD_RIGHT,
+
+	K_JOY_BTN_MISC1, // Additional button (e.g. Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Amazon Luna microphone button)
+	K_JOY_BTN_RPADDLE1, // Upper or primary paddle, under your right hand (e.g. Xbox Elite paddle P1)
+	K_JOY_BTN_LPADDLE1, // Upper or primary paddle, under your left hand (e.g. Xbox Elite paddle P3)
+	K_JOY_BTN_RPADDLE2, // Lower or secondary paddle, under your right hand (e.g. Xbox Elite paddle P2)
+	K_JOY_BTN_LPADDLE2, //  Lower or secondary paddle, under your left hand (e.g. Xbox Elite paddle P4)
+
+	K_JOY_STICK1_UP,
+	K_JOY_STICK1_DOWN,
+	K_JOY_STICK1_LEFT,
+	K_JOY_STICK1_RIGHT,
+
+	K_JOY_STICK2_UP,
+	K_JOY_STICK2_DOWN,
+	K_JOY_STICK2_LEFT,
+	K_JOY_STICK2_RIGHT,
+
+	K_JOY_TRIGGER1,
+	K_JOY_TRIGGER2,
+
+	K_LAST_JOY = K_JOY_TRIGGER2,
+
+	K_GRAVE_A = 229,	// lowercase a with grave accent FIXME: used to be 224; this probably isn't used anyway
 
 	K_AUX1 = 230,
 	K_CEDILLA_C = 231,	// lowercase c with Cedilla
@@ -192,9 +209,84 @@ typedef enum {
 
 	K_PRINT_SCR	= 252,	// SysRq / PrintScr
 	K_RIGHT_ALT = 253,	// used by some languages as "Alt-Gr"
-	K_LAST_KEY  = 254	// this better be < 256!
+
+	// DG: added the following two
+	K_RIGHT_CTRL = 254,
+	K_RIGHT_SHIFT = 255,
+
+	// DG: map all relevant scancodes from SDL to K_SC_* (taken from Yamagi Quake II)
+	// (relevant are ones that are likely to be keyboardlayout-dependent,
+	//  i.e. printable characters of sorts, *not* Ctrl, Alt, F1, Del, ...)
+	K_FIRST_SCANCODE = 256,
+
+	// !!! NOTE: if you add a scancode here, make sure to also add it to   !!!
+	// !!!       scancodemappings[] in sys/events.cpp (and preserve order) !!!
+	K_SC_A = K_FIRST_SCANCODE,
+	K_SC_B,
+	K_SC_C,
+	K_SC_D,
+	K_SC_E,
+	K_SC_F,
+	K_SC_G,
+	K_SC_H,
+	K_SC_I,
+	K_SC_J,
+	K_SC_K,
+	K_SC_L,
+	K_SC_M,
+	K_SC_N,
+	K_SC_O,
+	K_SC_P,
+	K_SC_Q,
+	K_SC_R,
+	K_SC_S,
+	K_SC_T,
+	K_SC_U,
+	K_SC_V,
+	K_SC_W,
+	K_SC_X,
+	K_SC_Y,
+	K_SC_Z,
+	// leaving out SDL_SCANCODE_1 ... _0, we handle them separately already
+	// also return, escape, backspace, tab, space, already handled as keycodes
+	K_SC_MINUS,
+	K_SC_EQUALS,
+	K_SC_LEFTBRACKET,
+	K_SC_RIGHTBRACKET,
+	K_SC_BACKSLASH,
+	K_SC_NONUSHASH,
+	K_SC_SEMICOLON,
+	K_SC_APOSTROPHE,
+	K_SC_GRAVE,
+	K_SC_COMMA,
+	K_SC_PERIOD,
+	K_SC_SLASH,
+	// leaving out lots of keys incl. from keypad, we already handle them as normal keys
+	K_SC_NONUSBACKSLASH,
+	K_SC_INTERNATIONAL1, /**< used on Asian keyboards, see footnotes in USB doc */
+	K_SC_INTERNATIONAL2,
+	K_SC_INTERNATIONAL3, /**< Yen */
+	K_SC_INTERNATIONAL4,
+	K_SC_INTERNATIONAL5,
+	K_SC_INTERNATIONAL6,
+	K_SC_INTERNATIONAL7,
+	K_SC_INTERNATIONAL8,
+	K_SC_INTERNATIONAL9,
+	K_SC_THOUSANDSSEPARATOR,
+	K_SC_DECIMALSEPARATOR,
+	K_SC_CURRENCYUNIT,
+	K_SC_CURRENCYSUBUNIT,
+
+	K_LAST_SCANCODE = K_SC_CURRENCYSUBUNIT, // TODO: keep up to date!
+
+	K_CONSOLE, // special keycode used for the "console key" and only to open/close the console (not bindable)
+
+	// FIXME: maybe move everything joystick related here
+
+	K_LAST_KEY // DG: this said "this better be < 256!"; I hope I fixed all places in code assuming this..
 } keyNum_t;
 
+enum { K_NUM_SCANCODES = K_LAST_SCANCODE - K_FIRST_SCANCODE + 1 };
 
 class idKeyInput {
 public:
@@ -220,6 +312,7 @@ public:
 	static const char *	BindingFromKey( const char *key );
 	static bool			KeyIsBoundTo( int keyNum, const char *binding );
 	static void			WriteBindings( idFile *f );
+	static void			KeyReveal( int keyNum );
 };
 
 #endif /* !__KEYINPUT_H__ */

@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "GEApp.h"
 
@@ -45,7 +45,7 @@ bool rvGEWorkspace::SaveFile ( const char* filename )
 	idFile*		file;
 	idWindow*	window;
 
-	SetCursor ( LoadCursor ( NULL, MAKEINTRESOURCE(IDC_WAIT ) ) );
+	SetCursor ( LoadCursor ( NULL, IDC_WAIT ) );
 
 	mFilename = filename;
 
@@ -54,13 +54,14 @@ bool rvGEWorkspace::SaveFile ( const char* filename )
 	idStr ospath;
 
 	tempfile = "guis/temp.guied";
-	ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_basepath" );
+	//ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_basepath" ); DG: change from SteelStorm2
+	ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_savepath" );
 
 	// Open the output file for write
-	if ( !(file = fileSystem->OpenFileWrite ( tempfile ) ) )
+	file = fileSystem->OpenFileWrite(tempfile);
+	if ( !file )
 	{
-		int error = GetLastError ( );
-		SetCursor ( LoadCursor ( NULL, MAKEINTRESOURCE(IDC_ARROW ) ) );
+		SetCursor ( LoadCursor ( NULL, IDC_ARROW ) );
 		return false;
 	}
 
@@ -73,7 +74,7 @@ bool rvGEWorkspace::SaveFile ( const char* filename )
 	if ( !CopyFile ( ospath, filename, FALSE ) )
 	{
 		DeleteFile ( ospath );
-		SetCursor ( LoadCursor ( NULL, MAKEINTRESOURCE(IDC_ARROW ) ) );
+		SetCursor ( LoadCursor ( NULL, IDC_ARROW ) );
 		return false;
 	}
 
@@ -84,7 +85,7 @@ bool rvGEWorkspace::SaveFile ( const char* filename )
 	mNew      = false;
 	UpdateTitle ( );
 
-	SetCursor ( LoadCursor ( NULL, MAKEINTRESOURCE(IDC_ARROW ) ) );
+	SetCursor ( LoadCursor ( NULL, IDC_ARROW ) );
 
 	return true;
 }
@@ -249,7 +250,8 @@ bool rvGEWorkspace::NewFile ( void )
 
 	// Make a temporary file with nothing in it so we can just use
 	// load to do all the work
-	ospath = fileSystem->RelativePathToOSPath ( "guis/Untitled.guiednew", "fs_basepath" );
+	//ospath = fileSystem->RelativePathToOSPath ( "guis/Untitled.guiednew", "fs_basepath" ); DG: change from SteelStorm2
+	ospath = fileSystem->RelativePathToOSPath ( "guis/Untitled.guiednew", "fs_savepath" );
 	DeleteFile ( ospath );
 
 	file = fileSystem->OpenFileWrite ( "guis/Untitled.guiednew" );
@@ -300,7 +302,8 @@ bool rvGEWorkspace::LoadFile ( const char* filename, idStr* error )
 	bool  result;
 
 	tempfile = "guis/temp.guied";
-	ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_basepath" );
+	//ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_basepath" ); DG: change from SteelStorm2
+	ospath = fileSystem->RelativePathToOSPath ( tempfile, "fs_savepath" );
 
 	// Make sure the gui directory exists
 	idStr createDir = ospath;

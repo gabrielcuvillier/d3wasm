@@ -17,8 +17,8 @@
 //	useful.
 
 //#include "stdafx.h"
-#include "../../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "PropTree.h"
 
@@ -88,7 +88,6 @@ CPropTree::CPropTree() :
 	m_bDisableInput(FALSE)
 {
 	m_Root.Expand();
-
 	// init global resources only once
 	if (!s_nInstanceCount)
 		InitGlobalResources();
@@ -192,13 +191,16 @@ void CPropTree::OnSize(UINT nType, int cx, int cy)
 
 void CPropTree::ResizeChildWindows(int cx, int cy)
 {
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
+	int sh = int(m_nInfoHeight * scaling_factor);
+
 	if (m_bShowInfo)
 	{
 		if (IsWindow(m_List.m_hWnd))
-			m_List.MoveWindow(0, 0, cx, cy - m_nInfoHeight);
+			m_List.MoveWindow(0, 0, cx, cy - sh);
 
 		if (IsWindow(m_Info.m_hWnd))
-			m_Info.MoveWindow(0, cy - m_nInfoHeight, cx, m_nInfoHeight);
+			m_Info.MoveWindow(0, cy - sh, cx, sh);
 	}
 	else
 	{
@@ -210,6 +212,9 @@ void CPropTree::ResizeChildWindows(int cx, int cy)
 
 void CPropTree::InitGlobalResources()
 {
+	float scaling_factor = Win_GetWindowScalingFactor(GetSafeHwnd());
+	
+
 	NONCLIENTMETRICS info;
 	info.cbSize = sizeof(info);
 
@@ -221,7 +226,9 @@ void CPropTree::InitGlobalResources()
 	CWindowDC dc(NULL);
 	lf.lfCharSet = (BYTE)GetTextCharsetInfo(dc.GetSafeHdc(), NULL, 0);
 
-	lf.lfHeight = info.lfMenuFont.lfHeight;
+	int fh = int(info.lfMenuFont.lfHeight * scaling_factor);
+
+	lf.lfHeight = fh;
 	lf.lfWeight = info.lfMenuFont.lfWeight;
 	lf.lfItalic = info.lfMenuFont.lfItalic;
 
@@ -889,7 +896,7 @@ LRESULT CPropTree::SendNotify(UINT nNotifyCode, CPropTreeItem* pItem)
 
 	if (lpnm)
 	{
-		UINT id = (UINT)::GetMenu(m_hWnd);
+		UINT_PTR id = (UINT_PTR)::GetMenu(m_hWnd);
 		lpnm->code = nNotifyCode;
 		lpnm->hwndFrom = m_hWnd;
 		lpnm->idFrom = id;

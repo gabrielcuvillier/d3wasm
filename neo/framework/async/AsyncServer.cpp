@@ -1446,7 +1446,7 @@ void idAsyncServer::ProcessAuthMessage( const idBitMsg &msg ) {
 		return;
 	}
 
-	idStr::snPrintf( challenges[ i ].guid, 12, client_guid );
+	idStr::snPrintf( challenges[ i ].guid, 12, "%s", client_guid );
 	if ( reply == AUTH_OK ) {
 		challenges[ i ].authState = CDK_OK;
 		common->Printf( "client %s %s is authed\n", Sys_NetAdrToString( client_from ), client_guid );
@@ -1732,7 +1732,7 @@ void idAsyncServer::ProcessConnectMessage( const netadr_t from, const idBitMsg &
 			PrintOOB( from, SERVER_PRINT_MISC, msg );
 
 			// update the guid in the challenges
-			idStr::snPrintf( challenges[ ichallenge ].guid, sizeof( challenges[ ichallenge ].guid ), guid );
+			idStr::snPrintf( challenges[ ichallenge ].guid, sizeof( challenges[ ichallenge ].guid ), "%s", guid );
 
 			// once auth replied denied, stop sending further requests
 			if ( challenges[ ichallenge ].authReply != AUTH_DENY ) {
@@ -2069,6 +2069,10 @@ void idAsyncServer::ProcessGetInfoMessage( const netadr_t from, const idBitMsg &
 		outMsg.WriteString( sessLocal.mapSpawnData.userInfo[i].GetString( "ui_name", "Player" ) );
 	}
 	outMsg.WriteByte( MAX_ASYNC_CLIENTS );
+	// Stradex: Originally Doom3 did outMsg.WriteLong( fileSystem->GetOSMask() ); here
+	//          dhewm3 eliminated GetOSMask() and WriteLong() became WriteInt() as it's supposed to write an int32
+	//          Sending -1 (instead of nothing at all) restores compatibility with id's masterserver.
+	outMsg.WriteInt( -1 );
 
 	serverPort.SendPacket( from, outMsg.GetData(), outMsg.GetSize() );
 }
@@ -2508,7 +2512,7 @@ void idAsyncServer::RunFrame( void ) {
 
 			idStr msg;
 			GetAsyncStatsAvgMsg( msg );
-			common->Printf( va( "%s\n", msg.c_str() ) );
+			common->Printf( "%s\n", msg.c_str() );
 
 			nextAsyncStatsTime = serverTime + 1000;
 		}

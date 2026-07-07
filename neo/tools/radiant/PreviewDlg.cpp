@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "qe3.h"
 #include "Radiant.h"
@@ -121,6 +121,11 @@ void CPreviewDlg::BuildTree() {
 		files = fileSystem->ListFilesTree( "models", ".ma" );
 		AddStrList( "base", files->GetList(), MODELS );
 		fileSystem->FreeFileList( files );
+#if USE_COLLADA
+		files = fileSystem->ListFilesTree("models", ".dae");
+		AddStrList("base", files->GetList(), MODELS);
+		fileSystem->FreeFileList(files);
+#endif
 	} else if ( currentMode == SOUNDS ) {
 		AddSounds( true );
 	} else if ( currentMode == MATERIALS ) {
@@ -147,9 +152,9 @@ void CPreviewDlg::AddCommentedItems() {
 	if (fileSystem->ReadFile(path, (void**)&buffer, NULL) && buffer) {
 		src.LoadMemory(buffer, strlen(buffer), path);
 		if (src.IsLoaded()) {
-			idToken token, tok1, tok2, tok3;
-			while( src.ReadToken( &token ) ) {
-				if (token == "{") {
+			idToken commenttoken, tok1, tok2, tok3;
+			while( src.ReadToken( &commenttoken) ) {
+				if (commenttoken == "{") {
 					// start a new commented item
 					CommentedItem ci;
 					if (src.ReadToken(&tok1) && src.ReadToken(&tok2) && src.ReadToken(&tok3)) {
@@ -278,7 +283,6 @@ void CPreviewDlg::AddStrList( const char *root, const idStrList &list, int id ) 
 
 void CPreviewDlg::OnTvnSelchangedTreeMedia(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 	HTREEITEM item = treeMedia.GetSelectedItem();
 	mediaName = "";
 	CWnd *add = GetDlgItem(IDC_BUTTON_ADD);
@@ -303,7 +307,7 @@ void CPreviewDlg::OnTvnSelchangedTreeMedia(NMHDR *pNMHDR, LRESULT *pResult)
 			}
 			// strip the leading "base/"
 			if (id == MATERIALS) {
-				mediaName.Strip("Materials/");
+				mediaName.Strip("Materials/"); // FIXME: SteelStorm2 has a _v1 suffix here
 			} else if (id == WAVES) {
 				mediaName.Strip( "Wave files/" );
 			} else if (id == PARTICLES) {
@@ -448,7 +452,8 @@ void CPreviewDlg::SetModal() {
 void CPreviewDlg::OnBnClickedButtonReload()
 {
 	BuildTree();
-	g_qeglobals.sw->StopAllSounds();
+	if(g_qeglobals.sw != NULL)
+		g_qeglobals.sw->StopAllSounds();
 }
 
 void CPreviewDlg::OnBnClickedButtonAdd()
@@ -608,7 +613,7 @@ void CPreviewDlg::AddMaterials(bool rootItems) {
 			list.Append(mat->GetName());
 		}
 		list.Sort();
-		AddStrList("Materials", list, MATERIALS);
+		AddStrList("Materials", list, MATERIALS); // FIXME: SteelStorm2 has a _v1 suffix here
 	}
 
 }

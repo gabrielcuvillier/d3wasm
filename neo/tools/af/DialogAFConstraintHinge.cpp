@@ -26,8 +26,8 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 
-#include "../../idlib/precompiled.h"
-#pragma hdrstop
+#include "tools/edit_gui_common.h"
+
 
 #include "../../sys/win32/rc/AFEditor_resource.h"
 
@@ -273,7 +273,7 @@ void DialogAFConstraintHinge::UpdateFile( void ) {
 DialogAFConstraintHinge::OnToolHitTest
 ================
 */
-int DialogAFConstraintHinge::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
+INT_PTR DialogAFConstraintHinge::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const {
 	CDialog::OnToolHitTest( point, pTI );
 	return DefaultOnToolHitTest( toolTips, this, point, pTI );
 }
