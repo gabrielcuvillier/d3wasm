@@ -515,7 +515,9 @@ bool idSoundSystemLocal::InitHW() {
 		s_numberOfSpeakers.SetInteger(numSpeakers);
 	}
 
-	if ( s_noSound.GetBool() ) {
+	// DG: if OpenAL context couldn't be created (maybe there were no
+	//      audio devices), keep audio disabled.
+	if ( s_noSound.GetBool() || openalContext == NULL ) {
 		return false;
 	}
 

@@ -49,6 +49,9 @@ idDynamicBlockAlloc<byte, 1<<20, 128>		decoderMemoryAllocator;
 
 const int MIN_OGGVORBIS_MEMORY				= 768 * 1024;
 
+// DG: this was only used with original Doom3's patched libvorbis
+// TODO: could use it in stb_vorbis setup_malloc() etc
+#if 0
 extern "C" {
 	void *_decoder_malloc( size_t size );
 	void *_decoder_calloc( size_t num, size_t size );
@@ -78,7 +81,7 @@ void *_decoder_realloc( void *memblock, size_t size ) {
 void _decoder_free( void *memblock ) {
 	decoderMemoryAllocator.Free( (byte *)memblock );
 }
-
+#endif
 
 /*
 ===================================================================================
