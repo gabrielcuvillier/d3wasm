@@ -2077,6 +2077,13 @@ void idPlayer::Restore( idRestoreGame *savefile ) {
 
 	// create combat collision hull for exact collision detection
 	SetCombatModel();
+
+	// DG: workaround for lingering messages that are shown forever after loading a savegame
+	//     (one way to get them is saving again, while the message from first save is still
+	//      shown, and then load)
+	if ( hud ) {
+		hud->SetStateString( "message", "" );
+	}
 }
 
 /*
@@ -4560,6 +4567,11 @@ void idPlayer::UpdateFocus( void ) {
 
 	if ( focusGUIent && focusUI ) {
 		if ( !oldFocus || oldFocus != focusGUIent ) {
+			// DG: tell the old UI it isn't focused anymore
+			if ( oldFocus != NULL && oldUI != NULL ) {
+				command = oldUI->Activate( false, gameLocal.time );
+				// TODO: HandleGuiCommands( oldFocus, command ); ?
+			} // DG end
 			command = focusUI->Activate( true, gameLocal.time );
 			HandleGuiCommands( focusGUIent, command );
 			StartSound( "snd_guienter", SND_CHANNEL_ANY, 0, false, NULL );

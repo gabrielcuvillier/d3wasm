@@ -872,10 +872,12 @@ void idPVS::Shutdown( void ) {
 		delete[] areaPVS;
 		areaPVS = NULL;
 	}
-
-	for ( int i = 0; i < MAX_CURRENT_PVS; i++ ) {
-	  delete[] currentPVS[i].pvs;
-	  currentPVS[i].pvs = NULL;
+	// if ( currentPVS ) - DG: can't be NULL
+	{
+		for ( int i = 0; i < MAX_CURRENT_PVS; i++ ) {
+		  delete[] currentPVS[i].pvs;
+		  currentPVS[i].pvs = NULL;
+		}
 	}
 }
 
