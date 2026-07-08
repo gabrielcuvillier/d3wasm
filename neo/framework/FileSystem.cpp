@@ -1721,6 +1721,10 @@ idModList *idFileSystemLocal::ListMods( void ) {
 	search[3] = fs_cdpath.GetString();
 
 	for ( isearch = 0; isearch < 4; isearch++ ) {
+		// skip empty cdpath or such, so we don't search C:\ or / -_-
+		if ( search[ isearch ][ 0 ] == '\0' ) {
+			continue;
+		}
 
 		dirs.Clear();
 		pk4s.Clear();
@@ -1739,8 +1743,8 @@ idModList *idFileSystemLocal::ListMods( void ) {
 			ListOSFiles( gamepath, ".pk4", pk4s );
 			if ( pk4s.Num() ) {
 				if ( !list->mods.Find( dirs[ i ] ) ) {
-					// D3 1.3 #31, only list d3xp if the pak is present
-					if ( dirs[ i ].Icmp( "d3xp" ) || HasD3XP() ) {
+					// DG: ignore d3xp, it's added explicitly later, if available
+					if ( dirs[ i ].Icmp( "d3xp" ) ) {
 						list->mods.Append( dirs[ i ] );
 					}
 				}
@@ -2728,7 +2732,6 @@ void idFileSystemLocal::Init( void ) {
 
 	if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
 		// DG: the demo gamedata is in demo/ instead of base/. to make it "just work", add a fallback for that
-		common->FatalError("Couldn't load default.cfg");
 		if (fs_game.GetString()[0] == '\0' || idStr::Icmp(fs_game.GetString(), BASE_GAMEDIR) == 0) {
 			common->Warning("Couldn't find default.cfg in %s/, trying again with demo/\n", BASE_GAMEDIR);
 			fs_game.SetString("demo");

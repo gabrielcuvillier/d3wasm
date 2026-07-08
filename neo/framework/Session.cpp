@@ -99,6 +99,13 @@ static void Session_Map_f(const idCmdArgs& args) {
 
   map = args.Argv(1);
   if ( !map.Length()) {
+		// DG: if the map command is called without any arguments, print the current map
+		// TODO: could check whether we're currently in a game, otherwise the last loaded
+		//       map is printed.. but OTOH, who cares
+		const char* curmap = sessLocal.mapSpawnData.serverInfo.GetString( "si_map" );
+		if ( curmap[0] != '\0' ) {
+			common->Printf( "Current Map: %s\n", curmap );
+		}
     return;
   }
   map.StripFileExtension();
@@ -510,8 +517,8 @@ void idSessionLocal::StartWipe(const char* _wipeMaterial, bool hold) {
 
   wipeMaterial = declManager->FindMaterial(_wipeMaterial, false);
 
-  wipeStartTic = com_ticNumber;
-  wipeStopTic = wipeStartTic + 1000.0f / USERCMD_MSEC * com_wipeSeconds.GetFloat();
+	wipeStartTime = Sys_Milliseconds();
+	wipeStopTime = wipeStartTime + com_wipeSeconds.GetFloat() * 1000.0f;
   wipeHold = hold;
 }
 
@@ -522,12 +529,12 @@ idSessionLocal::CompleteWipe
 */
 void idSessionLocal::CompleteWipe() {
   if ( com_ticNumber == 0 ) {
-    // if the async thread hasn't started, we would hang here
-    wipeStopTic = 0;
+		// if the tic counting hasn't started, we would hang here
+		wipeStopTime = 0;
     UpdateScreen(true);
     return;
   }
-  while ( com_ticNumber < wipeStopTic ) {
+	while ( Sys_Milliseconds() < wipeStopTime ) {
 #if ID_CONSOLE_LOCK
     emptyDrawCount = 0;
 #endif
@@ -578,8 +585,8 @@ idSessionLocal::ClearWipe
 */
 void idSessionLocal::ClearWipe(void) {
   wipeHold = false;
-  wipeStopTic = 0;
-  wipeStartTic = wipeStopTic + 1;
+  wipeStopTime = 0;
+  wipeStartTime = 16;
 }
 
 /*
@@ -1324,7 +1331,7 @@ void idSessionLocal::LoadLoadingGui(const char* mapName) {
   stripped.StripPath();
 
   char guiMap[MAX_STRING_CHARS];
-  strncpy(guiMap, va("guis/map/%s.gui", stripped.c_str()), MAX_STRING_CHARS);
+	idStr::Copynz( guiMap, va( "guis/map/%s.gui", stripped.c_str() ), MAX_STRING_CHARS );
   // give the gamecode a chance to override
   game->GetMapLoadingGUI(guiMap);
 
@@ -2151,17 +2158,17 @@ Draw the fade material over everything that has been drawn
 ===============
 */
 void idSessionLocal::DrawWipeModel() {
-  int latchedTic = com_ticNumber;
+	unsigned now = Sys_Milliseconds();
 
-  if ( wipeStartTic >= wipeStopTic ) {
+	if (  wipeStartTime >= wipeStopTime ) {
     return;
   }
 
-  if ( !wipeHold && latchedTic >= wipeStopTic ) {
+	if ( !wipeHold && now > wipeStopTime ) {
     return;
   }
 
-  float fade = (float) ( latchedTic - wipeStartTic ) / ( wipeStopTic - wipeStartTic );
+	float fade = ( float )( now - wipeStartTime ) / ( wipeStopTime - wipeStartTime );
   renderSystem->SetColor4(1, 1, 1, fade);
   renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, wipeMaterial);
 }
@@ -2925,9 +2932,8 @@ void idSessionLocal::ReadCDKey(void) {
   f = fileSystem->OpenExplicitFileRead(fileSystem->RelativePathToOSPath(filename, "fs_configpath"));
 
   // try the install path, which is where the cd installer and steam put it
-  if ( !f ) {
+	if ( !f )
     f = fileSystem->OpenExplicitFileRead(fileSystem->RelativePathToOSPath(filename, "fs_basepath"));
-  }
 
   if ( !f ) {
     common->Printf("Couldn't read %s.\n", filename.c_str());
@@ -2946,9 +2952,8 @@ void idSessionLocal::ReadCDKey(void) {
   f = fileSystem->OpenExplicitFileRead(fileSystem->RelativePathToOSPath(filename, "fs_configpath"));
 
   // try the install path, which is where the cd installer and steam put it
-  if ( !f ) {
+	if ( !f )
     f = fileSystem->OpenExplicitFileRead(fileSystem->RelativePathToOSPath(filename, "fs_basepath"));
-  }
 
   if ( !f ) {
     common->Printf("Couldn't read %s.\n", filename.c_str());
