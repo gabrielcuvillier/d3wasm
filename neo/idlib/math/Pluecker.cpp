@@ -63,6 +63,7 @@ idPluecker::Distance3DSqr
 ================
 */
 float idPluecker::Distance3DSqr( const idPluecker &a ) const {
+	float d, s;
 	idVec3 dir;
 
 	dir[0] = -a.p[5] *  p[4] -  a.p[4] * -p[5];
@@ -71,10 +72,10 @@ float idPluecker::Distance3DSqr( const idPluecker &a ) const {
 	if ( dir[0] == 0.0f && dir[1] == 0.0f && dir[2] == 0.0f ) {
 		return -1.0f;	// FIXME: implement for parallel lines
 	}
-	const float d = a.p[4] * ( p[2]*dir[1] - -p[5]*dir[0]) +
+	d = a.p[4] * ( p[2]*dir[1] - -p[5]*dir[0]) +
 		a.p[5] * ( p[2]*dir[2] -  p[4]*dir[0]) +
 		a.p[2] * (-p[5]*dir[2] -  p[4]*dir[1]);
-	const float s = PermutedInnerProduct( a ) / d;
+	s = PermutedInnerProduct( a ) / d;
 	return ( dir * dir ) * ( s * s );
 }
 
