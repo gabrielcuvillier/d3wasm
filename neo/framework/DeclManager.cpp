@@ -956,8 +956,18 @@ idDeclManagerLocal::EndLevelLoad
 void idDeclManagerLocal::EndLevelLoad() {
 	insideLevelLoad = false;
 
-	// we don't need to do anything here, but the image manager, model manager,
-	// and sound sample manager will need to free media that was not referenced
+	for ( int i = 0; i < DECL_MAX_TYPES; i++ ) {
+		int	num = linearLists[i].Num();
+		for ( int j = 0 ; j < num ; j++ ) {
+			idDeclLocal *decl = linearLists[i][j];
+			if (decl->GetType() == DECL_SOUND && decl->referencedThisLevel) {
+				const idSoundShader* sh = static_cast<const idSoundShader*>(decl->self);
+				if (sh) {
+					sh->TouchData();
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -1145,13 +1155,6 @@ const idDecl *idDeclManagerLocal::FindType( declType_t type, const char *name, b
 	// if it hasn't been parsed yet, parse it now
 	if ( decl->declState == DS_UNPARSED ) {
 		decl->ParseLocal();
-	} else {
-		if (type == DECL_SOUND && insideLevelLoad) {
-			const idSoundShader* sh = static_cast<const idSoundShader*>(decl->self);
-			if (sh) {
-				sh->TouchCache();
-			}
-		}
 	}
 
 	// mark it as referenced

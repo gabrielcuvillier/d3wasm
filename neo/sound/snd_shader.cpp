@@ -427,7 +427,7 @@ void idSoundShader::List() const {
 idSoundShader::TouchCache
 ===============
 */
-void idSoundShader::TouchCache() const {
+void idSoundShader::TouchData() const {
 	idStrList	shaders;
 
 	for( int k = 0; k < numLeadins ; k++ ) {

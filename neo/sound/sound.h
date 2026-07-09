@@ -91,7 +91,7 @@ public:
 	virtual bool			Parse( const char *text, const int textLength );
 	virtual void			FreeData( void );
 	virtual void			List( void ) const;
-	virtual void			TouchCache( ) const;
+	virtual void			TouchData( ) const;
 
 	virtual const char *	GetDescription() const;
 
