@@ -1254,95 +1254,101 @@ Com_ExecMachineSpecs_f
 =================
 */
 void Com_ExecMachineSpec_f(const idCmdArgs& args) {
-
-#if 1
-  // GAB NOTE Dec 2018: Specific configuration for emscripten
-  if ( com_machineSpec.GetInteger() == 4 ) {
-    cvarSystem->SetCVarInteger("image_anisotropy", 8, CVAR_ARCHIVE);
-    cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ROM);
-    cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
-    cvarSystem->SetCVarInteger("r_mode", 5, CVAR_ARCHIVE);
-// These CVAR are read only
-    cvarSystem->SetCVarInteger("image_forceDownSize", 0, CVAR_ROM);
-    cvarSystem->SetCVarInteger("image_roundDown", 0, CVAR_ROM);
-    cvarSystem->SetCVarInteger("image_downSizeSpecular", 0, CVAR_ROM);
-    cvarSystem->SetCVarInteger("image_downSizeBump", 0, CVAR_ROM);
-    cvarSystem->SetCVarInteger("image_downSizeSpecularLimit", 64, CVAR_ROM);
-    cvarSystem->SetCVarInteger("image_downSizeBumpLimit", 256, CVAR_ROM);
-    cvarSystem->SetCVarInteger("image_downsize", 0, CVAR_ROM);
-    cvarSystem->SetCVarInteger("r_multiSamples", 0, CVAR_ROM);
-  }
-  else
+#ifndef __EMSCRIPTEN__
+#define EM_CVAR_FLAGS(X) X
+	if ( com_machineSpec.GetInteger() == 3 ) { // ultra
 #else
-    if (com_machineSpec.GetInteger() == 3) {
-      cvarSystem->SetCVarInteger("image_anisotropy", 1, CVAR_ARCHIVE);
+#define EM_CVAR_FLAGS(X) X | CVAR_ROM
+#endif
+		  cvarSystem->SetCVarInteger( "image_lodbias", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
+      cvarSystem->SetCVarInteger("image_forceDownSize", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarInteger("image_roundDown", 1, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarInteger("image_preload", 1, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+	  	cvarSystem->SetCVarInteger( "image_useAllFormats", 1, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
+      cvarSystem->SetCVarInteger("image_downSizeSpecular", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarInteger("image_downSizeBump", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarInteger("image_downSizeSpecularLimit", 64, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarInteger("image_downSizeBumpLimit", 256, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+		  cvarSystem->SetCVarInteger( "image_usePrecompressedTextures", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
+      cvarSystem->SetCVarInteger("image_downsize", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarInteger("image_anisotropy", 8, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+		  cvarSystem->SetCVarInteger( "image_useCompression", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
+		  cvarSystem->SetCVarInteger( "image_ignoreHighQuality", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
+      cvarSystem->SetCVarInteger("s_maxSoundsPerShader", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+      cvarSystem->SetCVarInteger("r_mode", 5, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+		  cvarSystem->SetCVarInteger( "image_useNormalCompression", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
+      cvarSystem->SetCVarInteger("r_multiSamples", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
+#undef EM_CVAR_FLAGS
+#ifndef __EMSCRIPTEN__
+	} else if ( com_machineSpec.GetInteger() == 2 ) { // high
+      cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
+	  	cvarSystem->SetCVarInteger( "image_lodbias", 0, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("image_forceDownSize", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_roundDown", 1, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useAllFormats", 1, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("image_downSizeSpecular", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeBump", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeSpecularLimit", 64, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeBumpLimit", 256, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_downsize", 0, CVAR_ARCHIVE);
-      cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_anisotropy", 8, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("s_maxSoundsPerShader", 0, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("r_mode", 5, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("r_multiSamples", 0, CVAR_ARCHIVE);
-    } else if (com_machineSpec.GetInteger() == 2) {
-      cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_anisotropy", 1, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_forceDownSize", 0, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_roundDown", 1, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_downSizeSpecular", 0, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_downSizeBump", 0, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_downSizeSpecularLimit", 64, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("image_downSizeBumpLimit", 256, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_usePrecompressedTextures", 1, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("image_downsize", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_anisotropy", 8, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useCompression", 1, CVAR_ARCHIVE );
+		  cvarSystem->SetCVarInteger( "image_ignoreHighQuality", 0, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("s_maxSoundsPerShader", 0, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("r_mode", 4, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useNormalCompression", 0, CVAR_ARCHIVE );
+		  cvarSystem->SetCVarInteger("r_mode", 4, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("r_multiSamples", 0, CVAR_ARCHIVE);
-    } else if (com_machineSpec.GetInteger() == 1) {
+	} else if ( com_machineSpec.GetInteger() == 1 ) { // medium
       cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_anisotropy", 1, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_lodbias", 0, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("image_downSize", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_forceDownSize", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_roundDown", 1, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useCompression", 1, CVAR_ARCHIVE );
+		  cvarSystem->SetCVarInteger( "image_useAllFormats", 1, CVAR_ARCHIVE );
+		  cvarSystem->SetCVarInteger( "image_usePrecompressedTextures", 1, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("image_downSizeSpecular", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeBump", 0, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeSpecularLimit", 64, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeBumpLimit", 256, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("r_mode", 3, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useNormalCompression", 2, CVAR_ARCHIVE );
+		  cvarSystem->SetCVarInteger("r_mode", 3, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("r_multiSamples", 0, CVAR_ARCHIVE);
-    } else {
+	} else { // low
       cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_anisotropy", 1, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_lodbias", 0, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("image_roundDown", 1, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_preload", 1, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useAllFormats", 1, CVAR_ARCHIVE );
+		  cvarSystem->SetCVarInteger( "image_usePrecompressedTextures", 1, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("image_downSize", 1, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_anisotropy", 0, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useCompression", 1, CVAR_ARCHIVE );
+		  cvarSystem->SetCVarInteger( "image_ignoreHighQuality", 1, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("s_maxSoundsPerShader", 1, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeSpecular", 1, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeBump", 1, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeSpecularLimit", 64, CVAR_ARCHIVE);
       cvarSystem->SetCVarInteger("image_downSizeBumpLimit", 256, CVAR_ARCHIVE);
-      cvarSystem->SetCVarInteger("r_mode", 3, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger("r_mode", 3, CVAR_ARCHIVE);
+		  cvarSystem->SetCVarInteger( "image_useNormalCompression", 2, CVAR_ARCHIVE );
       cvarSystem->SetCVarInteger("r_multiSamples", 0, CVAR_ARCHIVE);
     }
 #endif
-  {
 
     cvarSystem->SetCVarBool("com_purgeAll", false, CVAR_ARCHIVE);
-  }
-  cvarSystem->SetCVarBool("r_forceLoadImages", false, CVAR_ARCHIVE);
+    cvarSystem->SetCVarBool("r_forceLoadImages", false, CVAR_ARCHIVE);
 
-  cvarSystem->SetCVarBool("g_decals", true, CVAR_ARCHIVE);
-  cvarSystem->SetCVarBool("g_projectileLights", true, CVAR_ARCHIVE);
-  cvarSystem->SetCVarBool("g_doubleVision", true, CVAR_ARCHIVE);
-  cvarSystem->SetCVarBool("g_muzzleFlash", true, CVAR_ARCHIVE);
+    cvarSystem->SetCVarBool("g_decals", true, CVAR_ARCHIVE);
+    cvarSystem->SetCVarBool("g_projectileLights", true, CVAR_ARCHIVE);
+    cvarSystem->SetCVarBool("g_doubleVision", true, CVAR_ARCHIVE);
+    cvarSystem->SetCVarBool("g_muzzleFlash", true, CVAR_ARCHIVE);
 }
 
 /*
@@ -2410,24 +2416,23 @@ void idCommonLocal::SetMachineSpec(void) {
   int sysRam = Sys_GetSystemRam();
 
   Printf("Detected\n\t%i MB of System memory\n\n", sysRam);
-
-  Printf("This system have specific quality requirements (Emscripten/WebGL)!\n");
-  com_machineSpec.SetInteger(4);
-
-  // We should try to guess if we are on a mobile phone or a desktop system...
-//  if (sysRam >= 1024) {
-//    Printf("This system qualifies for Ultra quality!\n");
-//    com_machineSpec.SetInteger(3);
-//  } else if (sysRam >= 512) {
-//    Printf("This system qualifies for High quality!\n");
-//    com_machineSpec.SetInteger(2);
-//  } else if (sysRam >= 384) {
-//    Printf("This system qualifies for Medium quality.\n");
-//   com_machineSpec.SetInteger(1);
-//  } else {
-//    Printf("This system qualifies for Low quality.\n");
-//    com_machineSpec.SetInteger(0);
-//  }
+#ifndef __EMSCRIPTEN__
+  if (sysRam >= 1024) {
+#endif
+    Printf("This system qualifies for Ultra quality!\n");
+    com_machineSpec.SetInteger(3);
+#ifndef __EMSCRIPTEN__
+  } else if (sysRam >= 512) {
+    Printf("This system qualifies for High quality!\n");
+    com_machineSpec.SetInteger(2);
+  } else if (sysRam >= 384) {
+    Printf("This system qualifies for Medium quality.\n");
+   com_machineSpec.SetInteger(1);
+  } else {
+    Printf("This system qualifies for Low quality.\n");
+    com_machineSpec.SetInteger(0);
+  }
+#endif
 }
 
 #ifdef NOMT
