@@ -128,10 +128,10 @@ idCollisionModelManagerLocal::BuildModels(idMapFile const*)
 idCollisionModelManagerLocal::LoadCollisionModelFile(char const*, unsigned int)
 idCollisionModelManagerLocal::LoadMap(idMapFile const*)
 idCollisionModelManagerLocal::LoadModel(char const*, bool)
-idCollisionModelManagerLocal::TrmFromModel(char const*, idTraceModel&)
 idCollisionModelManagerLocal::LoadRenderModel(char const*)
 idCommonLocal::Error*
 idCommonLocal::FatalError*
+idCommonLocal::ForceRefreshScreen(bool)
 idCommonLocal::Frame()
 idCommonLocal::GUIFrame(bool, bool)
 idCommonLocal::Init(int, char**)
@@ -170,9 +170,9 @@ idDeclLocal::ParseLocal()
 idDeclLocal::Purge()
 idDeclLocal::Reload()
 idDeclLocal::ReplaceSourceFileText()
+idDeclManagerLocal::BeginLevelLoad()
 idDeclManagerLocal::CreateNewDecl(declType_t, char const*, char const*)
 idDeclManagerLocal::DeclByIndex(declType_t, int, bool)
-idDeclManagerLocal::BeginLevelLoad()
 idDeclManagerLocal::EndLevelLoad()
 idDeclManagerLocal::FindMaterial(char const*, bool)
 idDeclManagerLocal::FindSkin(char const*, bool)
@@ -451,7 +451,7 @@ idSoundSample::GetNewTimeStamp() const
 idSoundSample::Load()
 idSoundSample::Reload(bool)
 idSoundShader::ParseShader(idLexer&)
-idSoundShader::TouchCache() const
+idSoundShader::TouchData() const
 idSoundSystemLocal::Init()
 idSoundWorldLocal::PlayShaderDirectly(char const*, int)
 idSoundWorldLocal::ProcessDemoCommand(idDemoFile*)
@@ -596,6 +596,3 @@ unzSetOffset64
 UpdateGuiParms(idUserInterface*, idDict const*)
 writeAtOffset*
 WriteGameState_f(idCmdArgs const&)
-idConsoleLocal::KeyDownEvent(int)
-idConsoleLocal::ProcessEvent(sysEvent_t const*, bool)
-idSessionLocal::ProcessEvent(sysEvent_t const*)
