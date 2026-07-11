@@ -503,7 +503,7 @@ void idGuiScript::FixupParms(idWindow *win) {
 				parser.LoadMemory(str->c_str(), str->Length(), "command");
 
 				while ( parser.ReadToken(&token) ) {
-					if ( token.Icmp("play") == 0 ) {
+					if (( token.Icmp("play") == 0 ) || ( token.Icmp("music") == 0 )) {
 						if ( parser.ReadToken(&token) && ( token != "" ) ) {
 							declManager->FindSound( token.c_str() );
 						}
