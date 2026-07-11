@@ -83,32 +83,28 @@ struct version_s {
 } version;
 
 idCVar com_version("si_version", version.string, CVAR_SYSTEM | CVAR_ROM | CVAR_SERVERINFO, "engine version");
-idCVar com_skipRenderer("com_skipRenderer", "0", CVAR_BOOL | CVAR_SYSTEM, "skip the renderer completely");
-idCVar com_machineSpec("com_machineSpec", "-1", CVAR_INTEGER | CVAR_ARCHIVE | CVAR_SYSTEM,
-                       "hardware classification, -1 = not detected, 0 = low quality, 1 = medium quality, 2 = high quality, 3 = ultra quality");
+idCVar com_skipRenderer("com_skipRenderer", "0", EM_CVAR_FLAGS(CVAR_BOOL | CVAR_SYSTEM), "skip the renderer completely");
+idCVar com_machineSpec("com_machineSpec", EM_CVAR_VAL("-1", "3"), EM_CVAR_FLAGS(CVAR_INTEGER | CVAR_ARCHIVE | CVAR_SYSTEM),
+  "hardware classification, -1 = not detected, 0 = low quality, 1 = medium quality, 2 = high quality, 3 = ultra quality");
+
 idCVar com_purgeAll("com_purgeAll", "0", CVAR_BOOL | CVAR_ARCHIVE | CVAR_SYSTEM,
                     "purge everything between level loads");
 idCVar com_preciseTic("com_preciseTic", "1", CVAR_BOOL | CVAR_SYSTEM, "run one game tick every async thread update");
-#ifdef __EMSCRIPTEN__
-idCVar com_asyncInput("com_asyncInput", "0", CVAR_ROM | CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
-idCVar com_asyncSound("com_asyncSound", "0", CVAR_ROM | CVAR_INTEGER | CVAR_SYSTEM,
+idCVar com_asyncInput("com_asyncInput", "0", EM_CVAR_FLAGS(CVAR_BOOL | CVAR_SYSTEM), "sample input from the async thread");
+idCVar com_asyncSound("com_asyncSound", "0", EM_CVAR_FLAGS(CVAR_INTEGER | CVAR_SYSTEM),
                       "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
-#else
-idCVar com_asyncInput("com_asyncInput", "0", CVAR_BOOL | CVAR_SYSTEM, "sample input from the async thread");
-idCVar com_asyncSound("com_asyncSound", "0", CVAR_INTEGER | CVAR_SYSTEM,
-                      "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix");
-#endif
-idCVar com_forceGenericSIMD("com_forceGenericSIMD", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
+idCVar com_forceGenericSIMD("com_forceGenericSIMD", EM_CVAR_VAL("0", "1"), EM_CVAR_FLAGS(CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT),
                             "force generic platform independent SIMD");
-idCVar com_developer("developer", "1", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "developer mode");
-idCVar com_allowConsole("com_allowConsole", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
+
+idCVar com_developer("developer", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "developer mode");
+idCVar com_allowConsole("com_allowConsole", "0", EM_CVAR_FLAGS(CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT),
                         "allow toggling console with the tilde key");
 idCVar com_speeds("com_speeds", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "show engine timings");
 idCVar com_showFPS("com_showFPS", "1", CVAR_BOOL | CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_NOCHEAT,
                    "show frames rendered per second");
 idCVar com_showMemoryUsage("com_showMemoryUsage", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                            "show total and per frame memory usage");
-idCVar com_showAsyncStats("com_showAsyncStats", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
+idCVar com_showAsyncStats("com_showAsyncStats", "0", EM_CVAR_FLAGS(CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT),
                           "show async network stats");
 idCVar com_showSoundDecoders("com_showSoundDecoders", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
                              "show sound decoders");
@@ -116,10 +112,10 @@ idCVar com_timestampPrints("com_timestampPrints", "0", CVAR_SYSTEM,
                            "print time with each console print, 1 = msec, 2 = sec", 0, 2,
                            idCmdSystem::ArgCompletion_Integer < 0, 2 > );
 idCVar com_timescale("timescale", "1", CVAR_SYSTEM | CVAR_FLOAT, "scales the time", 0.1f, 10.0f);
-idCVar com_updateLoadSize("com_updateLoadSize", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT,
+idCVar com_updateLoadSize("com_updateLoadSize", "0", EM_CVAR_FLAGS(CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT),
                           "update the load size after loading a map");
 
-idCVar com_product_lang_ext("com_product_lang_ext", "1", CVAR_INTEGER | CVAR_SYSTEM | CVAR_ARCHIVE,
+idCVar com_product_lang_ext("com_product_lang_ext", "1", EM_CVAR_FLAGS(CVAR_INTEGER | CVAR_SYSTEM | CVAR_ARCHIVE),
                             "Extension to use when creating language files.");
 
 // com_speeds times
@@ -1255,11 +1251,7 @@ Com_ExecMachineSpecs_f
 */
 void Com_ExecMachineSpec_f(const idCmdArgs& args) {
 #ifndef __EMSCRIPTEN__
-#define EM_CVAR_FLAGS(X) X
 	if ( com_machineSpec.GetInteger() == 3 ) { // ultra
-#else
-#define EM_CVAR_FLAGS(X) X | CVAR_ROM
-#endif
 		  cvarSystem->SetCVarInteger( "image_lodbias", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
       cvarSystem->SetCVarInteger("image_forceDownSize", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
       cvarSystem->SetCVarInteger("image_roundDown", 1, EM_CVAR_FLAGS(CVAR_ARCHIVE));
@@ -1279,8 +1271,6 @@ void Com_ExecMachineSpec_f(const idCmdArgs& args) {
       cvarSystem->SetCVarInteger("r_mode", 5, EM_CVAR_FLAGS(CVAR_ARCHIVE));
 		  cvarSystem->SetCVarInteger( "image_useNormalCompression", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE) );
       cvarSystem->SetCVarInteger("r_multiSamples", 0, EM_CVAR_FLAGS(CVAR_ARCHIVE));
-#undef EM_CVAR_FLAGS
-#ifndef __EMSCRIPTEN__
 	} else if ( com_machineSpec.GetInteger() == 2 ) { // high
       cvarSystem->SetCVarString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE);
 	  	cvarSystem->SetCVarInteger( "image_lodbias", 0, CVAR_ARCHIVE );
@@ -1343,7 +1333,9 @@ void Com_ExecMachineSpec_f(const idCmdArgs& args) {
 #endif
 
     cvarSystem->SetCVarBool("com_purgeAll", false, CVAR_ARCHIVE);
+#ifndef __EMSCRIPTEN__
     cvarSystem->SetCVarBool("r_forceLoadImages", false, CVAR_ARCHIVE);
+#endif
 
     cvarSystem->SetCVarBool("g_decals", true, CVAR_ARCHIVE);
     cvarSystem->SetCVarBool("g_projectileLights", true, CVAR_ARCHIVE);
@@ -1637,6 +1629,7 @@ void Com_ReloadLanguage_f(const idCmdArgs& args) {
 
 typedef idHashTable <idStrList> ListHash;
 
+#ifndef __EMSCRIPTEN__
 void LoadMapLocalizeData(ListHash& listHash) {
 
   idStr fileName = "map_localize.cfg";
@@ -1998,9 +1991,8 @@ void idCommonLocal::InitCommands(void) {
                         "lists all keys used by dictionaries");
   cmdSystem->AddCommand("listDictValues", idDict::ListValues_f, CMD_FL_SYSTEM | CMD_FL_CHEAT,
                         "lists all values used by dictionaries");
-#ifdef __EMSCRIPTEN__
-  // SIMD code not supported on emscripten for now
-#else
+
+#ifndef __EMSCRIPTEN__
   cmdSystem->AddCommand("testSIMD", idSIMD::Test_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "test SIMD code");
 
   // localization
@@ -2016,9 +2008,11 @@ idCommonLocal::InitRenderSystem
 =================
 */
 void idCommonLocal::InitRenderSystem( void ) {
+#ifndef __EMSCRIPTEN__
   if ( com_skipRenderer.GetBool()) {
     return;
   }
+#endif
 
   renderSystem->InitOpenGL();
   PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04343"));
@@ -2420,8 +2414,8 @@ void idCommonLocal::SetMachineSpec(void) {
   if (sysRam >= 1024) {
 #endif
     Printf("This system qualifies for Ultra quality!\n");
-    com_machineSpec.SetInteger(3);
 #ifndef __EMSCRIPTEN__
+    com_machineSpec.SetInteger(3);
   } else if (sysRam >= 512) {
     Printf("This system qualifies for High quality!\n");
     com_machineSpec.SetInteger(2);

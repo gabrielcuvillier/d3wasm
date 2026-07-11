@@ -673,6 +673,7 @@ int idSoundSystemLocal::AsyncUpdate( int inTime ) {
 	return soundStats.timeinprocess;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===================
 idSoundSystemLocal::AsyncUpdateWrite
@@ -721,6 +722,7 @@ int idSoundSystemLocal::AsyncUpdateWrite( int inTime ) {
 
 	return Sys_Milliseconds() - inTime;
 }
+#endif
 
 /*
 ===================

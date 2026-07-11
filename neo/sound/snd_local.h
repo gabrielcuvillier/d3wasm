@@ -633,8 +633,10 @@ public:
 
 	// async loop, called at 60Hz
 	virtual int				AsyncUpdate( int time );
+#ifndef __EMSCRIPTEN__
 	// async loop, when the sound driver uses a write strategy
 	virtual int				AsyncUpdateWrite( int time );
+#endif
 	// direct mixing called from the sound driver thread for OSes that support it
 	virtual int				AsyncMix( int soundTime, float *mixBuffer );
 

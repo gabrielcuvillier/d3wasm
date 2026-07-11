@@ -2363,7 +2363,7 @@ void idSessionLocal::Draw() {
   }
   else {
 #if ID_CONSOLE_LOCK
-                                                                                                                            if ( com_allowConsole.GetBool() ) {
+    if ( com_allowConsole.GetBool() ) {
 			console->Draw( true );
 		} else {
 			emptyDrawCount++;
@@ -2442,10 +2442,9 @@ void idSessionLocal::UpdateScreen(bool outOfSequence) {
 bool idSessionLocal::emsessionframe_pre() {
 
 #ifndef __EMSCRIPTEN__
-	if ( com_asyncSound.GetInteger() == 0 ) {
-#else
-  {
+	if ( com_asyncSound.GetInteger() == 0 )
 #endif
+	{
 		soundSystem->AsyncUpdate( Sys_Milliseconds() );
 	}
 

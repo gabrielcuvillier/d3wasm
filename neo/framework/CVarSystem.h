@@ -33,6 +33,14 @@ If you have questions concerning this license or the applicable additional terms
 #include "idlib/CmdArgs.h"
 #include "framework/CmdSystem.h"
 
+#ifndef __EMSCRIPTEN__
+#define EM_CVAR_FLAGS(X) X
+#define EM_CVAR_VAL(X, Y) X
+#else
+#define EM_CVAR_FLAGS(X) X | CVAR_ROM
+#define EM_CVAR_VAL(X, Y) Y
+#endif
+
 /*
 ===============================================================================
 

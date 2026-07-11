@@ -295,8 +295,10 @@ public:
 	// asyn loop, called at 60Hz
 	virtual int				AsyncUpdate( int time ) = 0;
 
+#ifndef __EMSCRIPTEN__
 	// async loop, when the sound driver uses a write strategy
 	virtual int				AsyncUpdateWrite( int time ) = 0;
+#endif
 
 	// it is a good idea to mute everything when starting a new level,
 	// because sounds may be started before a valid listener origin

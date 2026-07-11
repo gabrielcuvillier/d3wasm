@@ -79,9 +79,7 @@ void idSIMD::InitProcessor( const char *module, bool forceGeneric ) {
 #ifndef __EMSCRIPTEN__
 			if ( ( cpuid & CPUID_MMX ) && ( cpuid & CPUID_SSE ) && ( cpuid & CPUID_SSE2 ) && ( cpuid & CPUID_SSE3 ) ) {
 				processor = new idSIMD_SSE3;
-			} else
-
-			if ( ( cpuid & CPUID_MMX ) && ( cpuid & CPUID_SSE ) && ( cpuid & CPUID_SSE2 ) ) {
+			} else if ( ( cpuid & CPUID_MMX ) && ( cpuid & CPUID_SSE ) && ( cpuid & CPUID_SSE2 ) ) {
 				processor = new idSIMD_SSE2;
 			} else if ( ( cpuid & CPUID_MMX ) && ( cpuid & CPUID_SSE ) ) {
 				processor = new idSIMD_SSE;
@@ -133,6 +131,8 @@ void idSIMD::Shutdown( void ) {
 // Test code
 //
 //===============================================================
+
+#ifndef __EMSCRIPTEN__
 
 #define COUNT		1024		// data count
 #define NUMTESTS	2048		// number of tests
@@ -3939,9 +3939,6 @@ void TestNegate( void ) {
 	PrintClocks( va( "   simd->Negate16( float[] ) %s", result ), COUNT, bestClocksSIMD, bestClocksGeneric );
 }
 
-#ifdef __EMSCRIPTEN__
-// SIMD code not supported on emscripten for now
-#else
 /*
 ============
 idSIMD::Test_f
