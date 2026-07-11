@@ -33,6 +33,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "framework/BuildVersion.h"
 #include "framework/DeclEntityDef.h"
 #include "framework/FileSystem.h"
+#include "framework/Session.h"
 #include "renderer/ModelManager.h"
 
 #include "gamesys/SysCvar.h"
@@ -892,11 +893,15 @@ void idGameLocal::LoadMap( const char *mapName, int randseed ) {
 			mapFile = NULL;
 			Error( "Couldn't load %s", mapName );
 		}
+
+		session->PacifierUpdate();
 	}
 	mapFileName = mapFile->GetName();
 
 	// load the collision map
 	collisionModelManager->LoadMap( mapFile );
+
+	session->PacifierUpdate();
 
 	numClients = 0;
 
@@ -1749,6 +1754,10 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			declManager->FindType( DECL_AUDIO, kv->GetValue().c_str(), false );
 		}
 		kv = dict->MatchPrefix( "audio", kv );
+	}
+
+	if (gamestate == GAMESTATE_STARTUP) {
+		session->PacifierUpdate();
 	}
 }
 
