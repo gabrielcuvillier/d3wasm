@@ -47,11 +47,7 @@ public:
 	static void			Init( void );
 	static void			InitProcessor( const char *module, bool forceGeneric );
 	static void			Shutdown( void );
-#ifdef __EMSCRIPTEN__
-  // SIMD code not supported on emscripten for now
-#else
 	static void			Test_f( const class idCmdArgs &args );
-#endif
 };
 
 
