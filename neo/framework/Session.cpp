@@ -1366,6 +1366,7 @@ int idSessionLocal::GetBytesNeededForMapLoad(const char* mapName) {
   }
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idSessionLocal::SetBytesNeededForMapLoad
@@ -1394,6 +1395,7 @@ void idSessionLocal::SetBytesNeededForMapLoad(const char* mapName, int bytesNeed
     mapDef->ReplaceSourceFileText();
   }
 }
+#endif
 
 /*
 ===============
@@ -1597,10 +1599,12 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
 
   // actually purge/load the media
   if ( !reloadingSameMap ) {
+    declManager->EndLevelLoad();
     renderSystem->EndLevelLoad();
     soundSystem->EndLevelLoad(mapString.c_str());
-    declManager->EndLevelLoad();
+#ifndef __EMSCRIPTEN__
     SetBytesNeededForMapLoad(mapString.c_str(), fileSystem->GetReadCount());
+#endif
   }
   uiManager->EndLevelLoad();
 
