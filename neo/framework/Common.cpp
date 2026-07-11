@@ -434,12 +434,15 @@ void idCommonLocal::VPrintf(const char* fmt, va_list args) {
   // don't trigger any updates if we are in the process of doing a fatal error
   if ( com_errorEntered != ERP_FATAL ) {
     // update the console if we are in a long-running command, like dmap
+
+#ifndef __EMSCRIPTEN__
     if ( com_refreshOnPrint ) {
       session->UpdateScreen();
     }
 
     // let session redraw the animated loading screen if necessary
     session->PacifierUpdate();
+#endif
   }
 
 }
@@ -1953,6 +1956,7 @@ void Com_LocalizeGuis_f(const idCmdArgs& args) {
   }
   strTable.Save(filename);
 }
+#endif
 
 /*
 =================
