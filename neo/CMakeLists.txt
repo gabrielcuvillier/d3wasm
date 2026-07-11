@@ -71,10 +71,10 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang" OR EMSCRIPTE
 
     add_compile_options(-fno-math-errno -fno-trapping-math)
 
-    #CHECK_CXX_COMPILER_FLAG("-ffp-contract=off" cxx_has_fp-contract)
-    #if(cxx_has_fp-contract)
-    #    add_compile_options(-ffp-contract=off)
-    #endif()
+    CHECK_CXX_COMPILER_FLAG("-ffp-contract=off" cxx_has_fp-contract)
+    if(cxx_has_fp-contract)
+        add_compile_options(-ffp-contract=off)
+    endif()
 
     # LTO management
     set(ENABLE_LTO OFF CACHE BOOL "Enable LTO")
@@ -184,6 +184,7 @@ if (EMSCRIPTEN)
     add_link_options(--shell-file ${CMAKE_SOURCE_DIR}/sys/wasm/shell.html)
     add_link_options(-sINITIAL_HEAP=402653184) # 384MB. Going below might lead to crashes after a couple of levels played.
     add_link_options(-sASYNCIFY=1)
+    add_link_options(-sASYNCIFY_DEBUG=0)
     add_link_options(-sWASMFS=1)
     add_link_options(-sUSE_CLOSURE_COMPILER=1)
     add_link_options(-sSTACK_SIZE=327680)  # 320K. Mostly because of large buffer on stack created in R_Specular2DTableImage()
