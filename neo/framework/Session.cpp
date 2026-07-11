@@ -539,13 +539,7 @@ void idSessionLocal::CompleteWipe() {
     emptyDrawCount = 0;
 #endif
     UpdateScreen(true);
-#ifdef __EMSCRIPTEN__
-    // Yield case: local graphic update inside subloop
-    emscripten_sleep(1000.0/60.0);
-#endif
-#ifdef NOMT
-    common->Async();                          // com_ticNumber is used locally, be sure to run the timer to make things move on
-#endif
+    common->ForceRefreshScreen();
   }
 }
 
@@ -570,10 +564,7 @@ void idSessionLocal::ShowLoadingGui() {
     com_frameTime = com_ticNumber * USERCMD_MSEC;
     session->Frame();
     session->UpdateScreen(false);
-#ifdef __EMSCRIPTEN__
-    // Yield case: local graphic update inside subloop
-    emscripten_sleep(1000.0/60.0);
-#endif
+    common->ForceRefreshScreen();
   }
 }
 
@@ -1634,10 +1625,7 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
       Sys_GenerateEvents();
       UpdateScreen();
       pct += 0.05f;
-#ifdef __EMSCRIPTEN__
-      // Yield case: local graphic update inside subloop
-      emscripten_sleep(1000.0/60);
-#endif
+      common->ForceRefreshScreen();
     }
   }
 
