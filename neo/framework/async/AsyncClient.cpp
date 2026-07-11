@@ -1575,9 +1575,11 @@ void idAsyncClient::ConnectionlessMessage( const netadr_t from, const idBitMsg &
 		return;
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( idStr::Icmp( string, "downloadInfo" ) == 0 ) {
 		ProcessDownloadInfoMessage( from, msg );
 	}
+#endif
 
 	if ( idStr::Icmp( string, "authrequired" ) == 0 ) {
 		// server telling us that he's expecting an auth mode connect, just in case we're trying to connect in LAN mode
@@ -1742,8 +1744,10 @@ void idAsyncClient::RunFrame( void ) {
 		return;
 	}
 
+#ifndef __EMSCRIPTEN__
 	// handle ongoing pk4 downloads and patch downloads
 	HandleDownloads();
+#endif
 
 	gameTimeResidual += msec;
 
@@ -1916,6 +1920,7 @@ void idAsyncClient::SendVersionDLUpdate( int state ) {
 	clientPort.SendPacket( idAsyncNetwork::GetMasterAddress(), msg.GetData(), msg.GetSize() );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 idAsyncClient::HandleDownloads
@@ -2108,6 +2113,7 @@ void idAsyncClient::HandleDownloads( void ) {
 		}
 	}
 }
+#endif
 
 /*
 ===============
@@ -2146,6 +2152,7 @@ bool idAsyncClient::CheckTimeout( void ) {
 	return false;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idAsyncClient::ProcessDownloadInfoMessage
@@ -2271,6 +2278,7 @@ void idAsyncClient::ProcessDownloadInfoMessage( const netadr_t from, const idBit
 		session->MessageBox( MSG_OK, common->GetLanguageDict()->GetString( "#str_07223" ), common->GetLanguageDict()->GetString( "#str_07218" ), true );
 	}
 }
+#endif
 
 /*
 ===============

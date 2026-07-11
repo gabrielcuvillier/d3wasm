@@ -144,10 +144,12 @@ bool			Sys_UnlockMemory( void *ptr, int bytes );
 // set amount of physical work memory
 void			Sys_SetPhysicalWorkMemory( int minBytes, int maxBytes );
 
+#ifndef __EMSCRIPTEN__
 // DLL loading, the path should be a fully qualified OS path to the DLL file to be loaded
 uintptr_t		Sys_DLL_Load( const char *dllName );
 void *			Sys_DLL_GetProcAddress( uintptr_t dllHandle, const char *procName );
 void			Sys_DLL_Unload( uintptr_t dllHandle );
+#endif
 
 // event generation
 void			Sys_GenerateEvents( void );
@@ -348,22 +350,28 @@ public:
 
 	virtual unsigned int	GetMilliseconds( void ) = 0;
 	virtual int				GetProcessorId( void ) = 0;
+#ifndef __EMSCRIPTEN__
 	virtual void			FPU_SetFTZ( bool enable ) = 0;
 	virtual void			FPU_SetDAZ( bool enable ) = 0;
+#endif
 
 	virtual bool			LockMemory( void *ptr, int bytes ) = 0;
 	virtual bool			UnlockMemory( void *ptr, int bytes ) = 0;
 
+#ifndef __EMSCRIPTEN__
 	virtual uintptr_t		DLL_Load( const char *dllName ) = 0;
 	virtual void *			DLL_GetProcAddress( uintptr_t dllHandle, const char *procName ) = 0;
 	virtual void			DLL_Unload( uintptr_t dllHandle ) = 0;
 	virtual void			DLL_GetFileName( const char *baseName, char *dllName, int maxLength ) = 0;
+#endif
 
 	virtual sysEvent_t		GenerateMouseButtonEvent( int button, bool down ) = 0;
 	virtual sysEvent_t		GenerateMouseMoveEvent( int deltax, int deltay ) = 0;
 
+#ifndef __EMSCRIPTEN__
 	virtual void			OpenURL( const char *url, bool quit ) = 0;
 	virtual void			StartProcess( const char *exePath, bool quit ) = 0;
+#endif
 };
 
 extern idSys *				sys;

@@ -48,22 +48,28 @@ public:
 
 	virtual unsigned int	GetMilliseconds( void );
 	virtual int				GetProcessorId( void );
+#ifndef __EMSCRIPTEN__
 	virtual void			FPU_SetFTZ( bool enable );
 	virtual void			FPU_SetDAZ( bool enable );
+#endif
 
 	virtual bool			LockMemory( void *ptr, int bytes );
 	virtual bool			UnlockMemory( void *ptr, int bytes );
 
+#ifndef __EMSCRIPTEN__
 	virtual uintptr_t		DLL_Load( const char *dllName );
 	virtual void *			DLL_GetProcAddress( uintptr_t dllHandle, const char *procName );
 	virtual void			DLL_Unload( uintptr_t dllHandle );
 	virtual void			DLL_GetFileName( const char *baseName, char *dllName, int maxLength );
+#endif
 
 	virtual sysEvent_t		GenerateMouseButtonEvent( int button, bool down );
 	virtual sysEvent_t		GenerateMouseMoveEvent( int deltax, int deltay );
 
+#ifndef __EMSCRIPTEN__
 	virtual void			OpenURL( const char *url, bool quit );
 	virtual void			StartProcess( const char *exeName, bool quit );
+#endif
 };
 
 #endif /* !__SYS_LOCAL__ */

@@ -105,12 +105,13 @@ void Posix_Exit(int ret) {
 			Sys_Printf( "tcsetattr failed: %s\n", strerror( errno ) );
 		}
 	}
-#endif
 
 	// process spawning. it's best when it happens after everything has shut down
 	if ( exit_spawn[0] ) {
 		Sys_DoStartProcess( exit_spawn, false );
 	}
+#endif
+
 	// in case of signal, handler tries a common->Quit
 	// we use set_exit to maintain a correct exit code
 	if ( set_exit ) {
@@ -138,6 +139,7 @@ void Posix_SetExitSpawn( const char *exeName ) {
 	idStr::Copynz( exit_spawn, exeName, 1024 );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 idSysLocal::StartProcess
@@ -158,6 +160,7 @@ void idSysLocal::StartProcess( const char *exeName, bool quit ) {
 	common->DPrintf( "Sys_StartProcess %s\n", exeName );
 	Sys_DoStartProcess( exeName );
 }
+#endif
 
 /*
 ================
@@ -293,37 +296,33 @@ uintptr_t Sys_DLL_Load( const char *path ) {
 #endif
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =================
 Sys_DLL_GetProcAddress
 =================
 */
 void* Sys_DLL_GetProcAddress( uintptr_t handle, const char *sym ) {
-#ifndef __EMSCRIPTEN__
 	const char *error;
 	void *ret = dlsym( (void *)handle, sym );
 	if ((error = dlerror()) != NULL)  {
 		Sys_Printf( "dlsym '%s' failed: %s\n", sym, error );
 	}
 	return ret;
-#else
-	Sys_Printf( "dlsym '%s' failed: not available\n", sym );
-	return NULL;
-#endif
 }
+#endif
 
+#ifndef __EMSCRIPTEN__
 /*
 =================
 Sys_DLL_Unload
 =================
 */
 void Sys_DLL_Unload( uintptr_t handle ) {
-#ifndef __EMSCRIPTEN__
 	dlclose( (void *)handle );
-#else
 	return;
-#endif
 }
+#endif
 
 /*
 ================

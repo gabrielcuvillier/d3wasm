@@ -61,6 +61,7 @@ int idSysLocal::GetProcessorId( void ) {
 	return Sys_GetProcessorId();
 }
 
+#ifndef __EMSCRIPTEN__
 void idSysLocal::FPU_SetFTZ( bool enable ) {
 	Sys_FPU_SetFTZ( enable );
 }
@@ -68,6 +69,7 @@ void idSysLocal::FPU_SetFTZ( bool enable ) {
 void idSysLocal::FPU_SetDAZ( bool enable ) {
 	Sys_FPU_SetDAZ( enable );
 }
+#endif
 
 bool idSysLocal::LockMemory( void *ptr, int bytes ) {
 	return Sys_LockMemory( ptr, bytes );
@@ -77,6 +79,7 @@ bool idSysLocal::UnlockMemory( void *ptr, int bytes ) {
 	return Sys_UnlockMemory( ptr, bytes );
 }
 
+#ifndef __EMSCRIPTEN__
 uintptr_t idSysLocal::DLL_Load( const char *dllName ) {
 	return Sys_DLL_Load( dllName );
 }
@@ -92,6 +95,7 @@ void idSysLocal::DLL_Unload( uintptr_t dllHandle ) {
 void idSysLocal::DLL_GetFileName( const char *baseName, char *dllName, int maxLength ) {
 	idStr::snPrintf( dllName, maxLength, "%s" BUILD_LIBRARY_SUFFIX, baseName );
 }
+#endif
 
 sysEvent_t idSysLocal::GenerateMouseButtonEvent( int button, bool down ) {
 	sysEvent_t ev;

@@ -372,7 +372,9 @@ public:
 	virtual void			ResetReadCount( void ) { readCount = 0; }
 	virtual void			AddToReadCount( int c ) { readCount += c; }
 	virtual int				GetReadCount( void ) { return readCount; }
+#ifndef __EMSCRIPTEN__
 	virtual void			FindDLL( const char *basename, char dllPath[ MAX_OSPATH ] );
+#endif
 	virtual void			ClearDirCache( void );
 	virtual bool			HasD3XP( void );
 	virtual bool			RunningD3XP( void );
@@ -3596,6 +3598,7 @@ int idFileSystemLocal::GetFileChecksum( idFile *file ) {
 	return ret;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =================
 idFileSystemLocal::FindDLL
@@ -3627,6 +3630,7 @@ void idFileSystemLocal::FindDLL( const char *name, char _dllPath[ MAX_OSPATH ] )
 	}
 	idStr::snPrintf( _dllPath, MAX_OSPATH, dllPath.c_str() );
 }
+#endif
 
 /*
 ================

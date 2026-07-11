@@ -212,12 +212,16 @@ private:
 	static const char*	HandleGuiCommand( const char *cmd );
 	const char*			HandleGuiCommandInternal( const char *cmd );
 	void				SendVersionDLUpdate( int state );
+#ifndef __EMSCRIPTEN__
 	void				HandleDownloads( void );
+#endif
 	void				Idle( void );
 	int					UpdateTime( int clamp );
 	void				ReadLocalizedServerString( const idBitMsg &msg, char* out, int maxLen );
 	bool				CheckTimeout( void );
+#ifndef __EMSCRIPTEN__
 	void				ProcessDownloadInfoMessage( const netadr_t from, const idBitMsg &msg );
+#endif
 	int					GetDownloadRequest( const int checksums[ MAX_PURE_PAKS ], int count );
 };
 

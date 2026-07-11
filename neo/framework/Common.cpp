@@ -263,7 +263,9 @@ private:
 
   void LoadGameDLL(void);
 
+#ifndef __EMSCRIPTEN__
   void LoadGameDLLbyName(const char* dll, idStr& s);
+#endif
 
   void UnloadGameDLL(void);
 
@@ -783,6 +785,8 @@ void idCommonLocal::Quit(void) {
   if ( !com_errorEntered ) {
     Shutdown();
   }
+
+  Sys_Printf("Quitting program...\n");
 
   Sys_Quit();
 }
@@ -2269,6 +2273,7 @@ void idCommonLocal::Async(void) {
   }
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =================
 idCommonLocal::LoadGameDLLbyName
@@ -2294,6 +2299,7 @@ void idCommonLocal::LoadGameDLLbyName(const char* dll, idStr& s) {
     gameDLL = sys->DLL_Load(s);
   }
 }
+#endif
 
 /*
 =================

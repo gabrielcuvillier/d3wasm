@@ -195,6 +195,7 @@ int Sys_GetSystemRam( void ) {
 	return mb;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Sys_DoStartProcess
@@ -205,7 +206,6 @@ if the command contains spaces, system() is used. Otherwise the more straightfor
 ==================
 */
 void Sys_DoStartProcess( const char *exeName, bool dofork ) {
-#ifndef __EMSCRIPTEN__
 	bool use_system = false;
 	if ( strchr( exeName, ' ' ) ) {
 		use_system = true;
@@ -256,11 +256,10 @@ void Sys_DoStartProcess( const char *exeName, bool dofork ) {
 		// terminate
 		_exit( 0 );
 	}
-#else
-	_exit( 0 );
-#endif
 }
+#endif
 
+#ifndef __EMSCRIPTEN__
 /*
 =================
 Sys_OpenURL
@@ -307,6 +306,7 @@ void idSysLocal::OpenURL( const char *url, bool quit ) {
 	idStr::snPrintf( cmdline, 1024, "%s '%s' &",  script_path, url );
 	sys->StartProcess( cmdline, quit );
 }
+#endif
 
 #ifdef __EMSCRIPTEN__
 /*
