@@ -33,6 +33,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "ui/Window.h"
 #include "ui/Winvar.h"
 #include "ui/UserInterfaceLocal.h"
+#include "ui/RenderWindow.h"
+#include "renderer/ModelManager.h"
 
 #include "ui/GuiScript.h"
 
@@ -401,22 +403,6 @@ bool idGuiScript::Parse(idParser *src) {
 		src->Error("incorrect number of parameters for script %s", commandList[i].name );
 	}
 
-	// Preload LocalSounds
-	if (handler == Script_LocalSound) {
-		idWinStr *parm = dynamic_cast<idWinStr*>((parms)[0].var);
-		if (parm) {
-			declManager->FindSound( parm->c_str() );
-		}
-	}
-
-	if (handler == Script_RunScript) {
-		idWinStr *parm = dynamic_cast<idWinStr*>((parms)[0].var);
-		if (parm) {
-			game->PrecacheScriptReferencesForFunction(parm->c_str());
-		}
-	}
-	//
-
 	return true;
 }
 
@@ -455,6 +441,7 @@ void idGuiScript::FixupParms(idWindow *win) {
 	if (handler == &Script_Set) {
 		bool precacheBackground = false;
 		bool precacheSounds = false;
+		bool precacheModels = false;
 		idWinStr *str = dynamic_cast<idWinStr*>(parms[0].var);
 		assert(str);
 		idWinVar *dest = win->GetWinVarByName(*str, true);
@@ -466,7 +453,10 @@ void idGuiScript::FixupParms(idWindow *win) {
 			if ( dynamic_cast<idWinBackground *>(dest) != NULL ) {
 				precacheBackground = true;
 			}
-		} else if ( idStr::Icmp( str->c_str(), "cmd" ) == 0 ) {
+			else if (dynamic_cast<idRenderWindow*>(dest) != NULL) {
+				precacheModels = true;
+			}
+ 		} else if ( idStr::Icmp( str->c_str(), "cmd" ) == 0 ) {
 			precacheSounds = true;
 		}
 		int parmCount = parms.Num();
@@ -518,6 +508,11 @@ void idGuiScript::FixupParms(idWindow *win) {
 							declManager->FindSound( token.c_str() );
 						}
 					}
+				}
+			} else if ( precacheModels ) {
+				const idDecl* decl = declManager->FindType( DECL_MODELDEF, str->c_str(), false );
+				if ( decl ) {
+					renderModelManager->FindModel( str->c_str() );
 				}
 			}
 		}
@@ -589,6 +584,20 @@ void idGuiScript::FixupParms(idWindow *win) {
 		}
 		//
 
+	} else if (handler == &Script_LocalSound) {
+		int c = parms.Num();
+		for (int i = 0; i < c; i++) {
+			parms[i].var->Init(parms[i].var->c_str(), win);
+			// Preload LocalSounds
+			declManager->FindSound( parms[i].var->c_str() );
+		}
+	} else if (handler == &Script_RunScript) {
+		int c = parms.Num();
+		for (int i = 0; i < c; i++) {
+			parms[i].var->Init(parms[i].var->c_str(), win);
+			// Preload Scripts
+			game->PrecacheScriptReferencesForFunction(parms[i].var->c_str());
+		}
 	} else {
 		int c = parms.Num();
 		for (int i = 0; i < c; i++) {
