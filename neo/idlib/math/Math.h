@@ -261,7 +261,7 @@ ID_INLINE float idMath::InvSqrt16( float x ) {
 }
 
 ID_INLINE float idMath::InvSqrt( float x ) {
-
+#ifndef __EMSCRIPTEN__
 	dword a = ((union _flint*)(&x))->i;
 	union _flint seed;
 
@@ -273,9 +273,15 @@ ID_INLINE float idMath::InvSqrt( float x ) {
 	r = r * ( 1.5f - r * r * y );
 	r = r * ( 1.5f - r * r * y );
 	return (float) r;
+#else
+	if (x == 0.0f)
+		return INFINITY;
+	return 1.0f / sqrtf(x);
+#endif
 }
 
 ID_INLINE double idMath::InvSqrt64( float x ) {
+#ifndef __EMSCRIPTEN__
 	dword a = ((union _flint*)(&x))->i;
 	union _flint seed;
 
@@ -288,6 +294,11 @@ ID_INLINE double idMath::InvSqrt64( float x ) {
 	r = r * ( 1.5f - r * r * y );
 	r = r * ( 1.5f - r * r * y );
 	return r;
+#else
+	if (x == 0.0f)
+		return INFINITY;
+	return 1.0f / sqrt(x);
+#endif
 }
 
 ID_INLINE float idMath::Sqrt16( float x ) {
@@ -295,11 +306,19 @@ ID_INLINE float idMath::Sqrt16( float x ) {
 }
 
 ID_INLINE float idMath::Sqrt( float x ) {
+#ifndef __EMSCRIPTEN__
 	return x * InvSqrt( x );
+#else
+	return sqrtf(x);
+#endif
 }
 
 ID_INLINE double idMath::Sqrt64( float x ) {
+#ifndef __EMSCRIPTEN__
 	return x * InvSqrt64( x );
+#else
+	return sqrt(x);
+#endif
 }
 
 ID_INLINE float idMath::Sin( float a ) {
@@ -494,13 +513,13 @@ ID_INLINE float idMath::ASin16( float a ) {
 		if ( a <= -1.0f ) {
 			return -HALF_PI;
 		}
-		a = fabs( a );
-		return ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrt( 1.0f - a ) - HALF_PI;
+		a = fabsf( a );
+		return ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrtf( 1.0f - a ) - HALF_PI;
 	} else {
 		if ( a >= 1.0f ) {
 			return HALF_PI;
 		}
-		return HALF_PI - ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrt( 1.0f - a );
+		return HALF_PI - ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrtf( 1.0f - a );
 	}
 }
 
@@ -529,13 +548,13 @@ ID_INLINE float idMath::ACos16( float a ) {
 		if ( a <= -1.0f ) {
 			return PI;
 		}
-		a = fabs( a );
-		return PI - ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrt( 1.0f - a );
+		a = fabsf( a );
+		return PI - ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrtf( 1.0f - a );
 	} else {
 		if ( a >= 1.0f ) {
 			return 0.0f;
 		}
-		return ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrt( 1.0f - a );
+		return ( ( ( -0.0187293f * a + 0.0742610f ) * a - 0.2121144f ) * a + 1.5707288f ) * sqrtf( 1.0f - a );
 	}
 }
 
@@ -750,9 +769,13 @@ ID_INLINE int idMath::Abs( int x ) {
 }
 
 ID_INLINE float idMath::Fabs( float f ) {
+#ifndef __EMSCRIPTEN__
 	int tmp = *reinterpret_cast<int *>( &f );
 	tmp &= 0x7FFFFFFF;
 	return *reinterpret_cast<float *>( &tmp );
+#else
+	return fabsf(f);
+#endif
 }
 
 ID_INLINE float idMath::Floor( float f ) {
@@ -825,7 +848,7 @@ ID_INLINE float idMath::ClampFloat( float min, float max, float value ) {
 
 ID_INLINE float idMath::AngleNormalize360( float angle ) {
 	if ( ( angle >= 360.0f ) || ( angle < 0.0f ) ) {
-		angle -= floor( angle / 360.0f ) * 360.0f;
+		angle -= floorf( angle / 360.0f ) * 360.0f;
 	}
 	return angle;
 }
