@@ -2284,7 +2284,7 @@ void idBeam::ReadFromSnapshot( const idBitMsgDelta &msg ) {
 	}
 }
 
-
+#ifndef __EMSCRIPTEN__
 /*
 ===============================================================================
 
@@ -2346,7 +2346,7 @@ void idLiquid::Event_Touch( idEntity *other, trace_t *trace ) {
 	model->IntersectBounds( other->GetPhysics()->GetBounds().Translate( pos ), -10.0f );
 */
 }
-
+#endif
 
 /*
 ===============================================================================
