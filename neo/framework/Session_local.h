@@ -201,7 +201,7 @@ public:
 
 	int					numClients;				// from serverInfo
 
-#ifndef __EMSCRIPTEN__
+#ifndef NO_CMDDEMO
 	int					logIndex;
 	logCmd_t			loggedUsercmds[MAX_LOGGED_USERCMDS];
 	int					statIndex;
@@ -216,7 +216,7 @@ public:
 	idFile *			savegameFile;		// this is the savegame file to load from
 	int					savegameVersion;
 
-#ifndef __EMSCRIPTEN__
+#ifndef NO_CMDDEMO
 	idFile *			cmdDemoFile;		// if non-zero, we are reading commands from a file
 #endif
 
@@ -274,17 +274,22 @@ public:
 	void				DrawCmdGraph();
 #endif
 	void				Draw();
-
+#ifndef NO_CMDDEMO
 	void				WriteCmdDemo( const char *name, bool save = false);
 	void				StartPlayingCmdDemo( const char *demoName);
 	void				TimeCmdDemo( const char *demoName);
 	void				SaveCmdDemoToFile(idFile *file);
 	void				LoadCmdDemoFromFile(idFile *file);
+#endif
+#ifndef NO_RENDERDEMO_WRITE
 	void				StartRecordingRenderDemo( const char *name );
 	void				StopRecordingRenderDemo();
+#endif
 	void				StartPlayingRenderDemo( idStr name );
 	void				StopPlayingRenderDemo();
+#ifndef NO_RENDERDEMO_WRITE
 	void				CompressDemoFile( const char *scheme, const char *name );
+#endif
 	void				TimeRenderDemo( const char *name, bool twice = false );
 
 	void				AdvanceRenderDemo( bool singleFrameOnly );
@@ -293,8 +298,9 @@ public:
 	void				FinishCmdLoad();
 	void				LoadLoadingGui(const char *mapName);
 
+#ifndef NO_RENDERDEMO_WRITE
 	void				DemoShot( const char *name );
-
+#endif
 	int					GetBytesNeededForMapLoad( const char *mapName );
 	void				SetBytesNeededForMapLoad( const char *mapName, int bytesNeeded );
 

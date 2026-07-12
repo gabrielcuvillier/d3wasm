@@ -61,7 +61,9 @@ public:
 	virtual const char *		Activate( bool activate, int time );
 	virtual void				Trigger( int time );
 	virtual void				ReadFromDemoFile( class idDemoFile *f );
+#ifndef NO_RENDERDEMO_WRITE
 	virtual void				WriteToDemoFile( class idDemoFile *f );
+#endif
 	virtual bool				WriteToSaveGame( idFile *savefile ) const;
 	virtual bool				ReadFromSaveGame( idFile *savefile );
 	virtual void				SetKeyBindingNames( void );

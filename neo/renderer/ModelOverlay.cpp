@@ -374,6 +374,7 @@ void idRenderModelOverlay::ReadFromDemoFile( idDemoFile *f ) {
 	// FIXME: implement
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ====================
 idRenderModelOverlay::WriteToDemoFile
@@ -382,3 +383,4 @@ idRenderModelOverlay::WriteToDemoFile
 void idRenderModelOverlay::WriteToDemoFile( idDemoFile *f ) const {
 	// FIXME: implement
 }
+#endif

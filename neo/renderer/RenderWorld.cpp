@@ -276,10 +276,12 @@ void idRenderWorldLocal::UpdateEntityDef( qhandle_t entityHandle, const renderEn
 	R_AxisToModelMatrix( def->parms.axis, def->parms.origin, def->modelMatrix );
 
 	def->lastModifiedFrameNum = tr.frameCount;
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo && def->archived ) {
 		WriteFreeEntity( entityHandle );
 		def->archived = false;
 	}
+#endif
 
 	// optionally immediately issue any callbacks
 	if ( !r_useEntityCallbacks.GetBool() && def->parms.callback ) {
@@ -315,9 +317,11 @@ void idRenderWorldLocal::FreeEntityDef( qhandle_t entityHandle ) {
 
 	R_FreeEntityDefDerivedData( def, false, false );
 
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo && def->archived ) {
 		WriteFreeEntity( entityHandle );
 	}
+#endif
 
 	// if we are playing a demo, these will have been freed
 	// in R_FreeEntityDefDerivedData(), otherwise the gui
@@ -427,10 +431,12 @@ void idRenderWorldLocal::UpdateLightDef( qhandle_t lightHandle, const renderLigh
 
 	light->parms = *rlight;
 	light->lastModifiedFrameNum = tr.frameCount;
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo && light->archived ) {
 		WriteFreeLight( lightHandle );
 		light->archived = false;
 	}
+#endif
 
 	if ( light->lightHasMoved ) {
 		light->parms.prelightModel = NULL;
@@ -467,9 +473,11 @@ void idRenderWorldLocal::FreeLightDef( qhandle_t lightHandle ) {
 
 	R_FreeLightDefDerivedData( light );
 
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo && light->archived ) {
 		WriteFreeLight( lightHandle );
 	}
+#endif
 
 	delete light;
 	lightDefs[lightHandle] = NULL;
@@ -758,9 +766,11 @@ void idRenderWorldLocal::RenderScene( const renderView_t *renderView ) {
 
 	// now write delete commands for any modified-but-not-visible entities, and
 	// add the renderView command to the demo
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo ) {
 		WriteRenderView( renderView );
 	}
+#endif
 
 #if 0
 	for ( int i = 0 ; i < entityDefs.Num() ; i++ ) {

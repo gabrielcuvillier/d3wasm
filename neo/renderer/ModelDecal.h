@@ -91,7 +91,9 @@ public:
 	idRenderModelDecal *		Next( void ) const { return nextDecal; }
 
 	void						ReadFromDemoFile( class idDemoFile *f );
+#ifndef NO_RENDERDEMO_WRITE
 	void						WriteToDemoFile( class idDemoFile *f ) const;
+#endif
 
 private:
 	static const int			MAX_DECAL_VERTS = 40;

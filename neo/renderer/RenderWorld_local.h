@@ -223,8 +223,10 @@ public:
 	//--------------------------
 	// RenderWorld_demo.cpp
 
+#ifndef NO_RENDERDEMO_WRITE
 	void					StartWritingDemo( idDemoFile *demo );
 	void					StopWritingDemo();
+#endif
 	bool					ProcessDemoCommand( idDemoFile *readDemo, renderView_t *demoRenderView, int *demoTimeOffset );
 
 	void					WriteLoadMap();

@@ -49,7 +49,7 @@ typedef struct {
 	char	mapname[256];
 } demoHeader_t;
 
-
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ==============
 StartWritingDemo
@@ -85,6 +85,7 @@ void		idRenderWorldLocal::StartWritingDemo( idDemoFile *demo ) {
 void idRenderWorldLocal::StopWritingDemo() {
 //	writeDemo = NULL;
 }
+#endif
 
 /*
 ==============
@@ -260,6 +261,7 @@ bool		idRenderWorldLocal::ProcessDemoCommand( idDemoFile *readDemo, renderView_t
 	return false;
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 WriteLoadMap
@@ -472,6 +474,7 @@ void	idRenderWorldLocal::WriteRenderLight( qhandle_t handle, const renderLight_t
 		common->Printf( "write DC_UPDATE_LIGHTDEF: %i\n", handle );
 	}
 }
+#endif
 
 /*
 ================
@@ -531,6 +534,7 @@ void	idRenderWorldLocal::ReadRenderLight( ) {
 	}
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 WriteRenderEntity
@@ -632,6 +636,7 @@ void	idRenderWorldLocal::WriteRenderEntity( qhandle_t handle, const renderEntity
 		common->Printf( "write DC_UPDATE_ENTITYDEF: %i = %s\n", handle, ent->hModel ? ent->hModel->Name() : "NULL" );
 	}
 }
+#endif
 
 /*
 ================

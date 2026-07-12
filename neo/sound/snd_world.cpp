@@ -249,6 +249,7 @@ idSoundEmitter *idSoundWorldLocal::AllocSoundEmitter() {
 	return emitter;
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ===================
 idSoundWorldLocal::StartWritingDemo
@@ -276,6 +277,7 @@ idSoundWorldLocal::StopWritingDemo
 void idSoundWorldLocal::StopWritingDemo() {
 	writeDemo = NULL;
 }
+#endif
 
 /*
 ===================

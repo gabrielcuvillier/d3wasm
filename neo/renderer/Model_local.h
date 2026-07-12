@@ -85,7 +85,9 @@ public:
 	virtual int					NearestJoint( int surfaceNum, int a, int b, int c ) const;
 	virtual idBounds			Bounds( const struct renderEntity_s *ent ) const;
 	virtual void				ReadFromDemoFile( class idDemoFile *f );
+#ifndef NO_RENDERDEMO_WRITE
 	virtual void				WriteToDemoFile( class idDemoFile *f );
+#endif
 	virtual float				DepthHack() const;
 
 	void						MakeDefaultModel();

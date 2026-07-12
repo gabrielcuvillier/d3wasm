@@ -52,7 +52,9 @@ public:
 	void				CopyRegs( idRegister *src );
 	void				Enable( bool b ) { enabled = b; }
 	void				ReadFromDemoFile( idDemoFile *f );
+#ifndef NO_RENDERDEMO_WRITE
 	void				WriteToDemoFile( idDemoFile *f );
+#endif
 	void				WriteToSaveGame( idFile *savefile );
 	void				ReadFromSaveGame( idFile *savefile );
 };
@@ -90,7 +92,9 @@ public:
 	void				GetFromRegs( float *registers );
 	void				Reset();
 	void				ReadFromDemoFile( idDemoFile *f );
+#ifndef NO_RENDERDEMO_WRITE
 	void				WriteToDemoFile( idDemoFile *f );
+#endif
 	void				WriteToSaveGame( idFile *savefile );
 	void				ReadFromSaveGame( idFile *savefile );
 

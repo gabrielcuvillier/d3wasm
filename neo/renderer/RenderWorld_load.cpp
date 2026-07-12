@@ -526,10 +526,12 @@ bool idRenderWorldLocal::InitFromMap( const char *name ) {
 	mapName = name;
 	mapTimeStamp = currentTimeStamp;
 
+#ifndef NO_RENDERDEMO_WRITE
 	// if we are writing a demo, archive the load command
 	if ( session->writeDemo ) {
 		WriteLoadMap();
 	}
+#endif
 
 	if ( !src->ReadToken( &token ) || token.Icmp( PROC_FILE_ID ) ) {
 		common->Printf( "idRenderWorldLocal::InitFromMap: bad id '%s' instead of '%s'\n", token.c_str(), PROC_FILE_ID );

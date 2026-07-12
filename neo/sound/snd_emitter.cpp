@@ -658,6 +658,7 @@ int idSoundEmitterLocal::StartSound( const idSoundShader *shader, const s_channe
 		common->Printf( "StartSound %ims (%i,%i,%s) = ", soundWorld->gameMsec, index, (int)channel, shader->GetName() );
 	}
 
+#ifndef NO_RENDERDEMO_WRITE
 	if ( soundWorld && soundWorld->writeDemo ) {
 		soundWorld->writeDemo->WriteInt( DS_SOUND );
 		soundWorld->writeDemo->WriteInt( SCMD_START );
@@ -669,6 +670,7 @@ int idSoundEmitterLocal::StartSound( const idSoundShader *shader, const s_channe
 		soundWorld->writeDemo->WriteFloat( diversity );
 		soundWorld->writeDemo->WriteInt( soundShaderFlags );
 	}
+#endif
 
 	// build the channel parameters by taking the shader parms and optionally overriding
 	soundShaderParms_t	chanParms;

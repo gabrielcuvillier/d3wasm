@@ -96,8 +96,9 @@ public:
 	}
 	void FixupParms(idWindow *win);
 	void ReadFromDemoFile( class idDemoFile *f ) {};
+#ifndef NO_RENDERDEMO_WRITE
 	void WriteToDemoFile( class idDemoFile *f ) {};
-
+#endif
 	void WriteToSaveGame( idFile *savefile );
 	void ReadFromSaveGame( idFile *savefile );
 };

@@ -352,9 +352,11 @@ void idSessionLocal::Clear() {
   sw = NULL;
   menuSoundWorld = NULL;
   readDemo = NULL;
+#ifndef NO_RENDERDEMO_WRITE
   writeDemo = NULL;
+#endif
   renderdemoVersion = 0;
-#ifndef __EMSCRIPTEN__
+#ifndef NO_CMDDEMO
   cmdDemoFile = NULL;
 #endif
 
@@ -600,6 +602,7 @@ static idStr FindUnusedFileName(const char* format) {
   return filename;
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 Session_DemoShot_f
@@ -614,7 +617,9 @@ static void Session_DemoShot_f(const idCmdArgs& args) {
     sessLocal.DemoShot(va("demos/shot_%s.demo", args.Argv(1)));
   }
 }
+#endif
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 Session_RecordDemo_f
@@ -629,6 +634,7 @@ static void Session_RecordDemo_f(const idCmdArgs& args) {
     sessLocal.StartRecordingRenderDemo(va("demos/%s.demo", args.Argv(1)));
   }
 }
+#endif
 
 /*
 ================
@@ -640,6 +646,7 @@ static void Session_Died_f(const idCmdArgs& args) {
   sessLocal.SetGUI(sessLocal.guiRestartMenu, NULL);
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 Session_CompressDemo_f
@@ -665,6 +672,7 @@ Session_StopRecordingDemo_f
 static void Session_StopRecordingDemo_f(const idCmdArgs& args) {
   sessLocal.StopRecordingRenderDemo();
 }
+#endif
 
 /*
 ================
@@ -701,6 +709,7 @@ static void Session_TimeDemoQuit_f(const idCmdArgs& args) {
   }
 }
 
+#ifndef NO_CMDDEMO
 /*
 ================
 Session_WriteCmdDemo_f
@@ -736,6 +745,7 @@ Session_TimeCmdDemo_f
 static void Session_TimeCmdDemo_f(const idCmdArgs& args) {
   sessLocal.TimeCmdDemo(args.Argv(1));
 }
+#endif
 
 /*
 ================
@@ -750,13 +760,13 @@ static void Session_Disconnect_f(const idCmdArgs& args) {
   }
 }
 
+#ifndef NO_CMDDEMO
 /*
 ================
 Session_ExitCmdDemo_f
 ================
 */
 static void Session_ExitCmdDemo_f(const idCmdArgs& args) {
-#ifndef __EMSCRIPTEN__
   if ( !sessLocal.cmdDemoFile ) {
     common->Printf("not reading from a cmdDemo\n");
     return;
@@ -764,9 +774,10 @@ static void Session_ExitCmdDemo_f(const idCmdArgs& args) {
   fileSystem->CloseFile(sessLocal.cmdDemoFile);
   common->Printf("Command demo exited at logIndex %i\n", sessLocal.logIndex);
   sessLocal.cmdDemoFile = NULL;
-#endif
 }
+#endif
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idSessionLocal::StartRecordingRenderDemo
@@ -822,6 +833,7 @@ void idSessionLocal::StopRecordingRenderDemo() {
   delete writeDemo;
   writeDemo = NULL;
 }
+#endif
 
 /*
 ================
@@ -867,6 +879,7 @@ void idSessionLocal::StopPlayingRenderDemo() {
   }
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idSessionLocal::DemoShot
@@ -882,6 +895,7 @@ void idSessionLocal::DemoShot(const char* demoName) {
 
   StopRecordingRenderDemo();
 }
+#endif
 
 /*
 ================
@@ -981,7 +995,7 @@ void idSessionLocal::TimeRenderDemo(const char* demoName, bool twice) {
 }
 
 
-
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idSessionLocal::CompressDemoFile
@@ -1033,6 +1047,7 @@ void idSessionLocal::CompressDemoFile(const char* scheme, const char* demoName) 
   common->SetRefreshOnPrint(false);
 
 }
+#endif
 
 
 /*
@@ -1107,13 +1122,13 @@ void idSessionLocal::MoveToNewMap(const char* mapName) {
   SetGUI(NULL, NULL);
 }
 
+#ifndef NO_CMDDEMO
 /*
 ==============
 SaveCmdDemoFromFile
 ==============
 */
 void idSessionLocal::SaveCmdDemoToFile(idFile* file) {
-#ifndef __EMSCRIPTEN__
   mapSpawnData.serverInfo.WriteToFileHandle(file);
 
   for ( int i = 0; i < MAX_ASYNC_CLIENTS; i++ ) {
@@ -1127,7 +1142,6 @@ void idSessionLocal::SaveCmdDemoToFile(idFile* file) {
     numClients = 1;
   }
   file->Write(loggedUsercmds, numClients * logIndex * sizeof(loggedUsercmds[0]));
-#endif
 }
 
 /*
@@ -1155,7 +1169,6 @@ This should still work after disconnecting from a level
 ==============
 */
 void idSessionLocal::WriteCmdDemo(const char* demoName, bool save) {
-#ifndef __EMSCRIPTEN__
   if ( !demoName[0] ) {
     common->Printf("idSessionLocal::WriteCmdDemo: no name specified\n");
     return;
@@ -1192,7 +1205,6 @@ void idSessionLocal::WriteCmdDemo(const char* demoName, bool save) {
   }
 
   fileSystem->CloseFile(cmdDemoFile);
-#endif
 }
 
 /*
@@ -1209,7 +1221,6 @@ idSessionLocal::StartPlayingCmdDemo
 ===============
 */
 void idSessionLocal::StartPlayingCmdDemo(const char* demoName) {
-#ifndef __EMSCRIPTEN__
   // exit any current game
   Stop();
 
@@ -1238,7 +1249,6 @@ void idSessionLocal::StartPlayingCmdDemo(const char* demoName) {
 
   // run one frame to get the view angles correct
   RunGameTic();
-#endif
 }
 
 /*
@@ -1247,7 +1257,6 @@ idSessionLocal::TimeCmdDemo
 ===============
 */
 void idSessionLocal::TimeCmdDemo(const char* demoName) {
-#ifndef __EMSCRIPTEN__
   StartPlayingCmdDemo(demoName);
   ClearWipe();
   UpdateScreen();
@@ -1276,8 +1285,8 @@ void idSessionLocal::TimeCmdDemo(const char* demoName) {
   int endTime = Sys_Milliseconds();
   sec = ( endTime - startTime ) / 1000.0;
   common->Printf("%i seconds of game, replayed in %5.1f seconds\n", count / 60, sec);
-#endif
 }
+#endif
 
 /*
 ===============
@@ -1296,16 +1305,18 @@ void idSessionLocal::UnloadMap() {
     game->MapShutdown();
   }
 
-#ifndef __EMSCRIPTEN__
+#ifndef NO_CMDDEMO
   if ( cmdDemoFile ) {
     fileSystem->CloseFile(cmdDemoFile);
     cmdDemoFile = NULL;
   }
 #endif
 
+#ifndef NO_RENDERDEMO_WRITE
   if ( writeDemo ) {
     StopRecordingRenderDemo();
   }
+#endif
 
   mapSpawned = false;
 }
@@ -1634,7 +1645,7 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
 
   usercmdGen->Clear();
 
-#ifndef __EMSCRIPTEN__
+#ifndef NO_CMDDEMO
   // start saving commands for possible writeCmdDemo usage
   logIndex = 0;
   statIndex = 0;
@@ -2350,10 +2361,12 @@ void idSessionLocal::Draw() {
       renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, declManager->FindMaterial("_white"));
     }
 
+#ifndef NO_RENDERDEMO_WRITE
     // save off the 2D drawing from the game
     if ( writeDemo ) {
       renderSystem->WriteDemoPics();
     }
+#endif
   }
   else {
 #if ID_CONSOLE_LOCK
@@ -2474,9 +2487,11 @@ bool idSessionLocal::emsessionframe_pre() {
       minTic = latchedTicNumber;
     }
   }
+#ifndef NO_RENDERDEMO_WRITE
   else if ( writeDemo ) {
     minTic = lastGameTic + USERCMD_PER_DEMO_FRAME;    // demos are recorded at 30 hz
   }
+#endif
 
   // fixedTic lets us run a forced number of usercmd each frame without timing
   if ( com_fixedTic.GetInteger()) {
@@ -2561,6 +2576,7 @@ bool idSessionLocal::emsessionframe_last() {
 
   // never use more than USERCMD_PER_DEMO_FRAME,
   // which makes it go into slow motion when recording
+#ifndef NO_RENDERDEMO_WRITE
   if ( writeDemo ) {
     int fixedTic = USERCMD_PER_DEMO_FRAME;
     // we should have waited long enough
@@ -2570,7 +2586,9 @@ bool idSessionLocal::emsessionframe_last() {
     // we may need to dump older commands
     lastGameTic = latchedTicNumber - fixedTic;
   }
-  else if ( com_fixedTic.GetInteger() > 0 ) {
+  else
+#endif
+  if ( com_fixedTic.GetInteger() > 0 ) {
     // this may cause commands run in a previous frame to
     // be run again if we are going at above the real time rate
     lastGameTic = latchedTicNumber - com_fixedTic.GetInteger();
@@ -2663,7 +2681,7 @@ bool idSessionLocal::RunGameTic() {
   logCmd_t logCmd;
   usercmd_t cmd;
 
-#ifndef __EMSCRIPTEN__
+#ifndef NO_CMDDEMO
   // if we are doing a command demo, read or write from the file
   if ( cmdDemoFile ) {
     if ( !cmdDemoFile->Read(&logCmd, sizeof(logCmd))) {
@@ -2704,7 +2722,7 @@ bool idSessionLocal::RunGameTic() {
   int end = Sys_Milliseconds();
   time_gameFrame += end - start;  // note time used for com_speeds
 
-#ifndef __EMSCRIPTEN__
+#ifndef NO_CMDDEMO
   // check for constency failure from a recorded command
   if ( cmdDemoFile ) {
     if ( ret.consistencyHash != logCmd.consistencyHash ) {
@@ -2793,28 +2811,35 @@ void idSessionLocal::Init() {
   cmdSystem->AddCommand("devmap", Session_DevMap_f, CMD_FL_SYSTEM, "loads a map in developer mode",
                         idCmdSystem::ArgCompletion_MapName);
 
-#ifndef __EMSCRIPTEN__
+  cmdSystem->AddCommand("died", Session_Died_f, CMD_FL_SYSTEM, "");
+
+#ifndef NO_CMDDEMO
   cmdSystem->AddCommand("writeCmdDemo", Session_WriteCmdDemo_f, CMD_FL_SYSTEM, "writes a command demo");
   cmdSystem->AddCommand("playCmdDemo", Session_PlayCmdDemo_f, CMD_FL_SYSTEM, "plays back a command demo");
   cmdSystem->AddCommand("timeCmdDemo", Session_TimeCmdDemo_f, CMD_FL_SYSTEM, "times a command demo");
   cmdSystem->AddCommand("exitCmdDemo", Session_ExitCmdDemo_f, CMD_FL_SYSTEM, "exits a command demo");
 #endif
-  cmdSystem->AddCommand("died", Session_Died_f, CMD_FL_SYSTEM, "");
+#ifndef NO_RENDERDEMO_WRITE
   cmdSystem->AddCommand("recordDemo", Session_RecordDemo_f, CMD_FL_SYSTEM, "records a demo");
   cmdSystem->AddCommand("stopRecording", Session_StopRecordingDemo_f, CMD_FL_SYSTEM, "stops demo recording");
+#endif
   cmdSystem->AddCommand("playDemo", Session_PlayDemo_f, CMD_FL_SYSTEM, "plays back a demo",
                         idCmdSystem::ArgCompletion_DemoName);
   cmdSystem->AddCommand("timeDemo", Session_TimeDemo_f, CMD_FL_SYSTEM, "times a demo",
                         idCmdSystem::ArgCompletion_DemoName);
   cmdSystem->AddCommand("timeDemoQuit", Session_TimeDemoQuit_f, CMD_FL_SYSTEM, "times a demo and quits",
                         idCmdSystem::ArgCompletion_DemoName);
+#ifndef NO_RENDERDEMO_WRITE
   cmdSystem->AddCommand("compressDemo", Session_CompressDemo_f, CMD_FL_SYSTEM, "compresses a demo file",
                         idCmdSystem::ArgCompletion_DemoName);
+#endif
 
   cmdSystem->AddCommand("disconnect", Session_Disconnect_f, CMD_FL_SYSTEM, "disconnects from a game");
 
+#ifndef NO_RENDERDEMO_WRITE
   cmdSystem->AddCommand("demoShot", Session_DemoShot_f, CMD_FL_SYSTEM, "writes a screenshot for a demo");
   //cmdSystem->AddCommand("testGUI", Session_TestGUI_f, CMD_FL_SYSTEM, "tests a gui");
+#endif
 
   cmdSystem->AddCommand("saveGame", SaveGame_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "saves a game");
   cmdSystem->AddCommand("loadGame", LoadGame_f, CMD_FL_SYSTEM | CMD_FL_CHEAT, "loads a game",

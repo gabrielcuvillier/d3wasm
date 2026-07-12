@@ -60,7 +60,9 @@ public:
 		enabled = b;
 	}
 	void ReadFromDemoFile(idDemoFile *f);
+#ifndef NO_RENDERDEMO_WRITE
 	void WriteToDemoFile(idDemoFile *f);
+#endif
 
 };
 
@@ -80,8 +82,9 @@ public:
 	void GetFromRegs(float *registers, idTypedDict *state);
 	void Reset();
 	void ReadFromDemoFile(idDemoFile *f);
+#ifndef NO_RENDERDEMO_WRITE
 	void WriteToDemoFile(idDemoFile *f);
-
+#endif
 };
 
 #endif

@@ -2203,6 +2203,7 @@ void idRenderModelStatic::ReadFromDemoFile( class idDemoFile *f ) {
 	this->FinishSurfaces();
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idRenderModelStatic::WriteToDemoFile
@@ -2244,6 +2245,7 @@ void idRenderModelStatic::WriteToDemoFile( class idDemoFile *f ) {
 		}
 	}
 }
+#endif
 
 /*
 ================

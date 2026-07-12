@@ -1144,10 +1144,12 @@ void R_RenderView( viewDef_t *parms ) {
 		}
 	}
 
+#ifndef NO_RENDERDEMO_WRITE
 	// write everything needed to the demo file
 	if ( session->writeDemo ) {
 		static_cast<idRenderWorldLocal *>(parms->renderWorld)->WriteVisibleDefs( tr.viewDef );
 	}
+#endif
 
 	// add the rendering commands for this viewDef
 	R_AddDrawViewCmd( parms );

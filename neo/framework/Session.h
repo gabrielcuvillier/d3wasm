@@ -163,7 +163,9 @@ public:
 	// The renderer and sound system will write changes to writeDemo.
 	// Demos can be recorded and played at the same time when splicing.
 	idDemoFile *	readDemo;
+#ifndef NO_RENDERDEMO_WRITE
 	idDemoFile *	writeDemo;
+#endif
 	int				renderdemoVersion;
 };
 

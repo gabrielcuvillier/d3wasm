@@ -169,6 +169,7 @@ void idRegister::ReadFromDemoFile(idDemoFile *f) {
 	name = f->ReadHashString();
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 =================
 idRegister::WriteToDemoFile
@@ -182,6 +183,7 @@ void idRegister::WriteToDemoFile( idDemoFile *f ) {
 		f->WriteUnsignedShort( regs[i] );
 	f->WriteHashString( name );
 }
+#endif
 
 /*
 =================
@@ -358,6 +360,7 @@ void idRegisterList::ReadFromDemoFile(idDemoFile *f) {
 	}
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ====================
 idRegisterList::ReadFromSaveGame
@@ -371,6 +374,7 @@ void idRegisterList::WriteToDemoFile(idDemoFile *f) {
 		regs[i]->WriteToDemoFile(f);
 	}
 }
+#endif
 
 /*
 =====================

@@ -306,7 +306,9 @@ public:
 
 	// Writing to and reading from a demo file.
 	virtual void				ReadFromDemoFile( class idDemoFile *f ) = 0;
+#ifndef NO_RENDERDEMO_WRITE
 	virtual void				WriteToDemoFile( class idDemoFile *f ) = 0;
+#endif
 };
 
 #endif /* !__MODEL_H__ */

@@ -57,6 +57,7 @@ void idGuiModel::Clear() {
 	AdvanceSurf();
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idGuiModel::WriteToDemo
@@ -103,6 +104,7 @@ void idGuiModel::WriteToDemo( idDemoFile *demo ) {
 		demo->WriteHashString( surf->material->GetName() );
 	}
 }
+#endif
 
 /*
 ================

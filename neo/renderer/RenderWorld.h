@@ -390,9 +390,11 @@ public:
 
 	//-------------- Demo Control  -----------------
 
+#ifndef NO_RENDERDEMO_WRITE
 	// Writes a loadmap command to the demo, and clears archive counters.
 	virtual void			StartWritingDemo( idDemoFile *demo ) = 0;
 	virtual void			StopWritingDemo() = 0;
+#endif
 
 	// Returns true when demoRenderView has been filled in.
 	// adds/updates/frees entityDefs and lightDefs based on the current demo file

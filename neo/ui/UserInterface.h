@@ -105,7 +105,9 @@ public:
 	virtual void				Trigger( int time ) = 0;
 
 	virtual	void				ReadFromDemoFile( class idDemoFile *f ) = 0;
+#ifndef NO_RENDERDEMO_WRITE
 	virtual	void				WriteToDemoFile( class idDemoFile *f ) = 0;
+#endif
 
 	virtual bool				WriteToSaveGame( idFile *savefile ) const = 0;
 	virtual bool				ReadFromSaveGame( idFile *savefile ) = 0;

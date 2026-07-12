@@ -3233,6 +3233,7 @@ void idWindow::ReadFromDemoFile( class idDemoFile *f, bool rebuild ) {
 #endif /* WRITE_GUIS */
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idWindow::WriteToDemoFile
@@ -3317,6 +3318,7 @@ void idWindow::WriteToDemoFile( class idDemoFile *f ) {
 	}
 #endif /* WRITE_GUIS */
 }
+#endif
 
 /*
 ===============

@@ -230,9 +230,11 @@ public:
 	// background music
 	virtual	void			PlayShaderDirectly( const char *name, int channel = -1 ) = 0;
 
+#ifndef NO_RENDERDEMO_WRITE
 	// dumps the current state and begins archiving commands
 	virtual void			StartWritingDemo( idDemoFile *demo ) = 0;
 	virtual void			StopWritingDemo() = 0;
+#endif
 
 	// read a sound command from a demo file
 	virtual void			ProcessDemoCommand( idDemoFile *demo ) = 0;

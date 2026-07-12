@@ -82,7 +82,9 @@ public:
 	static void					RemoveOverlaySurfacesFromModel( idRenderModel *baseModel );
 
 	void						ReadFromDemoFile( class idDemoFile *f );
+#ifndef NO_RENDERDEMO_WRITE
 	void						WriteToDemoFile( class idDemoFile *f ) const;
+#endif
 
 private:
 	idList<overlayMaterial_t *>	materials;

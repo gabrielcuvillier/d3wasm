@@ -590,11 +590,13 @@ void idRenderSystemLocal::BeginFrame( int windowWidth, int windowHeight ) {
 	cmd->buffer = (int)0;
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 void idRenderSystemLocal::WriteDemoPics() {
 	session->writeDemo->WriteInt( DS_RENDER );
 	session->writeDemo->WriteInt( DC_GUI_MODEL );
 	guiModel->WriteToDemo( session->writeDemo );
 }
+#endif
 
 void idRenderSystemLocal::DrawDemoPics() {
 	demoGuiModel->EmitFullScreen();
@@ -649,6 +651,7 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 	// we can now release the vertexes used this frame
 	vertexCache.EndFrame();
 
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo ) {
 		session->writeDemo->WriteInt( DS_RENDER );
 		session->writeDemo->WriteInt( DC_END_FRAME );
@@ -656,6 +659,7 @@ void idRenderSystemLocal::EndFrame( int *frontEndMsec, int *backEndMsec ) {
 			common->Printf( "write DC_END_FRAME\n" );
 		}
 	}
+#endif
 }
 
 /*
@@ -713,6 +717,7 @@ void	idRenderSystemLocal::CropRenderSize( int width, int height, bool makePowerO
 		common->Error( "CropRenderSize: bad sizes" );
 	}
 
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo ) {
 		session->writeDemo->WriteInt( DS_RENDER );
 		session->writeDemo->WriteInt( DC_CROP_RENDER );
@@ -724,6 +729,7 @@ void	idRenderSystemLocal::CropRenderSize( int width, int height, bool makePowerO
 			common->Printf( "write DC_CROP_RENDER\n" );
 		}
 	}
+#endif
 
 	// convert from virtual SCREEN_WIDTH/SCREEN_HEIGHT coordinates to physical OpenGL pixels
 	renderView_t renderView;
@@ -795,6 +801,7 @@ void idRenderSystemLocal::UnCrop() {
 
 	currentRenderCrop--;
 
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo ) {
 		session->writeDemo->WriteInt( DS_RENDER );
 		session->writeDemo->WriteInt( DC_UNCROP_RENDER );
@@ -803,6 +810,7 @@ void idRenderSystemLocal::UnCrop() {
 			common->Printf( "write DC_UNCROP\n" );
 		}
 	}
+#endif
 }
 
 /*
@@ -818,6 +826,7 @@ void idRenderSystemLocal::CaptureRenderToImage( const char *imageName ) {
 	guiModel->EmitFullScreen();
 	guiModel->Clear();
 
+#ifndef NO_RENDERDEMO_WRITE
 	if ( session->writeDemo ) {
 		session->writeDemo->WriteInt( DS_RENDER );
 		session->writeDemo->WriteInt( DC_CAPTURE_RENDER );
@@ -827,6 +836,7 @@ void idRenderSystemLocal::CaptureRenderToImage( const char *imageName ) {
 			common->Printf( "write DC_CAPTURE_RENDER: %s\n", imageName );
 		}
 	}
+#endif
 
 	// look up the image before we create the render command, because it
 	// may need to sync to create the image
@@ -843,7 +853,7 @@ void idRenderSystemLocal::CaptureRenderToImage( const char *imageName ) {
 	cmd->image = image;
 
 #ifdef WEBGL
-	// Hack: as we don't use any specific framebuffer for the capture, the main frainbuffer is used.
+	// Hack: as we don't use any specific framebuffer for the capture, the main framebuffer is used.
 	// So we need to clear the view manually to prevent having the capture as an artifact.
 	// The caller has to re-issue the view commands... Not super good, but it works for now
 	setBufferCommand_t* cmd2 = (setBufferCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );

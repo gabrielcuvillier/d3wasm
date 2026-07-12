@@ -25,6 +25,8 @@ include(GNUInstallDirs OPTIONAL RESULT_VARIABLE GNUINSTALLDIRS)
 # Enforce some options for Emscripten
 if (EMSCRIPTEN)
     add_compile_definitions(WEBGL)
+    add_compile_definitions(NO_RENDERDEMO_WRITE)
+    add_compile_definitions(NO_CMDDEMO)
     add_compile_options(-fno-exceptions)
     add_compile_options(-sSTRICT=1)
     set(CMAKE_EXECUTABLE_SUFFIX ".html") # use the HTML suffix (will emit .html, .js and .wasm)
@@ -70,11 +72,6 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang" OR EMSCRIPTE
     set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL}")
 
     add_compile_options(-fno-math-errno -fno-trapping-math)
-
-    CHECK_CXX_COMPILER_FLAG("-ffp-contract=off" cxx_has_fp-contract)
-    if(cxx_has_fp-contract)
-        add_compile_options(-ffp-contract=off)
-    endif()
 
     # LTO management
     set(ENABLE_LTO OFF CACHE BOOL "Enable LTO")

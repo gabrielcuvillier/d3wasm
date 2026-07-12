@@ -529,6 +529,7 @@ void idRenderModelDecal::ReadFromDemoFile( idDemoFile *f ) {
 	// FIXME: implement
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ====================
 idRenderModelDecal::WriteToDemoFile
@@ -537,3 +538,4 @@ idRenderModelDecal::WriteToDemoFile
 void idRenderModelDecal::WriteToDemoFile( idDemoFile *f ) const {
 	// FIXME: implement
 }
+#endif

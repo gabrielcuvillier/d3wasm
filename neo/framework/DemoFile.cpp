@@ -33,14 +33,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "framework/DemoFile.h"
 
-idCVar idDemoFile::com_compressDemos( "com_compressDemos", "1", CVAR_SYSTEM | CVAR_INTEGER | CVAR_ARCHIVE, "Compression scheme for demo files\n0: None    (Fast, large files)\n1: LZW     (Fast to compress, Fast to decompress, medium/small files)\n2: LZSS    (Slow to compress, Fast to decompress, small files)\n3: Huffman (Fast to compress, Slow to decompress, medium files)\nSee also: The 'CompressDemo' command" );
-#ifndef __EMSCRIPTEN__
-idCVar idDemoFile::com_preloadDemos( "com_preloadDemos", "0", CVAR_SYSTEM | CVAR_BOOL | CVAR_ARCHIVE, "Load the whole demo in to RAM before running it" );
-idCVar idDemoFile::com_logDemos( "com_logDemos", "0", CVAR_SYSTEM | CVAR_BOOL, "Write demo.log with debug information in it" );
-#else
-idCVar idDemoFile::com_preloadDemos( "com_preloadDemos", "1", CVAR_SYSTEM | CVAR_BOOL | CVAR_ROM, "Load the whole demo in to RAM before running it" );
-idCVar idDemoFile::com_logDemos( "com_logDemos", "0", CVAR_SYSTEM | CVAR_BOOL | CVAR_ROM, "Write demo.log with debug information in it" );
-#endif
+idCVar idDemoFile::com_compressDemos( "com_compressDemos", "1", EM_CVAR_FLAGS(CVAR_SYSTEM | CVAR_INTEGER | CVAR_ARCHIVE), "Compression scheme for demo files\n0: None    (Fast, large files)\n1: LZW     (Fast to compress, Fast to decompress, medium/small files)\n2: LZSS    (Slow to compress, Fast to decompress, small files)\n3: Huffman (Fast to compress, Slow to decompress, medium files)\nSee also: The 'CompressDemo' command" );
+idCVar idDemoFile::com_preloadDemos( "com_preloadDemos", "0", EM_CVAR_FLAGS(CVAR_SYSTEM | CVAR_BOOL | CVAR_ARCHIVE), "Load the whole demo in to RAM before running it" );
+idCVar idDemoFile::com_logDemos( "com_logDemos", "0", EM_CVAR_FLAGS(CVAR_SYSTEM | CVAR_BOOL), "Write demo.log with debug information in it" );
+
 #define DEMO_MAGIC GAME_NAME " RDEMO"
 
 /*
@@ -153,6 +149,7 @@ void idDemoFile::Log(const char *p) {
 	}
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idDemoFile::OpenForWriting
@@ -181,6 +178,7 @@ bool idDemoFile::OpenForWriting( const char *fileName ) {
 
 	return true;
 }
+#endif
 
 /*
 ================
@@ -248,6 +246,7 @@ const char *idDemoFile::ReadHashString() {
 	return demoStrings[index]->c_str();
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idDemoFile::WriteHashString
@@ -274,6 +273,7 @@ void idDemoFile::WriteHashString( const char *str ) {
 	WriteInt( cmd );
 	WriteString( str );
 }
+#endif
 
 /*
 ================
@@ -293,6 +293,7 @@ void idDemoFile::ReadDict( idDict &dict ) {
 	}
 }
 
+#ifndef NO_RENDERDEMO_WRITE
 /*
 ================
 idDemoFile::WriteDict
@@ -308,6 +309,7 @@ void idDemoFile::WriteDict( const idDict &dict ) {
 		WriteHashString( dict.GetKeyVal( i )->GetValue() );
 	}
 }
+#endif
 
 /*
  ================

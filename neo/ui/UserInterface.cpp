@@ -542,6 +542,8 @@ void idUserInterfaceLocal::ReadFromDemoFile( class idDemoFile *f ) {
 	}
 }
 
+#ifndef NO_RENDERDEMO_WRITE
+
 void idUserInterfaceLocal::WriteToDemoFile( class idDemoFile *f ) {
 	idStr work;
 	f->WriteDict( state );
@@ -552,6 +554,7 @@ void idUserInterfaceLocal::WriteToDemoFile( class idDemoFile *f ) {
 	f->WriteFloat( cursorX );
 	f->WriteFloat( cursorY );
 }
+#endif
 
 bool idUserInterfaceLocal::WriteToSaveGame( idFile *savefile ) const {
 	int len;

@@ -277,7 +277,9 @@ public:
 	virtual void HandleBuddyUpdate(idWindow *buddy) {};
 	virtual void StateChanged( bool redraw );
 	virtual void ReadFromDemoFile( class idDemoFile *f, bool rebuild = true );
+#ifndef NO_RENDERDEMO_WRITE
 	virtual void WriteToDemoFile( class idDemoFile *f );
+#endif
 
 	// SaveGame support
 	void			WriteSaveGameString( const char *string, idFile *savefile );
