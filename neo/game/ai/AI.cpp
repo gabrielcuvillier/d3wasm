@@ -3183,7 +3183,8 @@ int idAI::ReactionTo( const idEntity *ent ) {
 	if ( actor->team != team ) {
 		if ( actor->fl.notarget ) {
 			// don't attack on sight when attacker is notargeted
-			return ATTACK_ON_DAMAGE | ATTACK_ON_ACTIVATE;
+			//return ATTACK_ON_DAMAGE | ATTACK_ON_ACTIVATE;
+			return ATTACK_IGNORE;
 		}
 		return ATTACK_ON_SIGHT | ATTACK_ON_DAMAGE | ATTACK_ON_ACTIVATE;
 	}
