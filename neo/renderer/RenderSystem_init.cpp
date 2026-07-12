@@ -843,9 +843,6 @@ void R_ReportImageDuplication_f( const idCmdArgs &args ) {
 R_RenderingFPS
 ================
 */
-#ifdef __EMSCRIPTEN__
-#include "emscripten.h"
-#endif
 static float R_RenderingFPS( const renderView_t *renderView ) {
 	qglFinish();
 
@@ -861,7 +858,7 @@ static float R_RenderingFPS( const renderView_t *renderView ) {
 		renderSystem->EndFrame( NULL, NULL );
 		qglFinish();
 #ifdef __EMSCRIPTEN__
-		emscripten_sleep(0);
+		common->ForceRefreshScreen(false);
 #endif
 		count++;
 		end = Sys_Milliseconds();
