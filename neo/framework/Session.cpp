@@ -1937,8 +1937,9 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
   if ( !autosave ) {
     renderSystem->CropRenderSize(320, 240, false);
     game->Draw(0);
-    renderSystem->CaptureRenderToFile(previewFile, true);
+    renderSystem->CaptureRenderToFile(previewFile, true, true);
     renderSystem->UnCrop();
+    cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("async_screenshot\n"));
   }
 
   // Write description, which is just a text file with
