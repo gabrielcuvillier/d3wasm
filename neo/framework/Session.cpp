@@ -44,7 +44,7 @@ If you have questions concerning this license or the applicable additional terms
 #define CDKEY_FILEPATH "../" BASE_GAMEDIR "/" CDKEY_FILE
 #define XPKEY_FILEPATH "../" BASE_GAMEDIR "/" XPKEY_FILE
 
-idCVar  idSessionLocal::com_showAngles("com_showAngles", "0", CVAR_SYSTEM | CVAR_BOOL, "");
+idCVar  idSessionLocal::com_showAngles("com_showAngles", "0", EM_CVAR_FLAGS(CVAR_SYSTEM | CVAR_BOOL), "");
 idCVar  idSessionLocal::com_minTics("com_minTics", "1", CVAR_SYSTEM, "");
 idCVar  idSessionLocal::com_showTics("com_showTics", "0", CVAR_SYSTEM | CVAR_BOOL, "");
 idCVar  idSessionLocal::com_fixedTic("com_fixedTic", "0", CVAR_SYSTEM | CVAR_INTEGER | CVAR_ARCHIVE, "", -1, 10);
@@ -2243,6 +2243,7 @@ Graphs yaw angle for testing smoothness
 static const int ANGLE_GRAPH_HEIGHT = 128;
 static const int ANGLE_GRAPH_STRETCH = 3;
 
+#ifndef __EMSCRIPTEN__
 void idSessionLocal::DrawCmdGraph() {
   if ( !com_showAngles.GetBool()) {
     return;
@@ -2259,6 +2260,7 @@ void idSessionLocal::DrawCmdGraph() {
     renderSystem->DrawStretchPic(i * ANGLE_GRAPH_STRETCH, 480 - h, 1, h, 0, 0, 1, 1, whiteMaterial);
   }
 }
+#endif
 
 /*
 ===============
@@ -2387,8 +2389,10 @@ void idSessionLocal::Draw() {
   // draw the wipe material on top of this if it hasn't completed yet
   DrawWipeModel();
 
+#ifndef __EMSCRIPTEN__
   // draw debug graphs
   DrawCmdGraph();
+#endif
 
   // draw the half console / notify console on top of everything
   if ( !fullConsole ) {

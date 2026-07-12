@@ -270,7 +270,9 @@ public:
 	//=====================================
 	void				Clear();
 
+#ifndef __EMSCRIPTEN__
 	void				DrawCmdGraph();
+#endif
 	void				Draw();
 
 	void				WriteCmdDemo( const char *name, bool save = false);
