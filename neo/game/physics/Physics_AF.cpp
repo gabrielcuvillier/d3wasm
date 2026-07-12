@@ -1502,6 +1502,7 @@ idAFConstraint_UniversalJointFriction::Rotate
 void idAFConstraint_UniversalJointFriction::Rotate( const idRotation &rotation ) {
 }
 
+#ifndef __EMSCRIPTEN__
 
 //===============================================================
 //
@@ -1563,6 +1564,7 @@ void idAFConstraint_CylindricalJoint::DebugDraw( void ) {
 	assert( 0 );	// FIXME: implement
 }
 
+#endif
 
 //===============================================================
 //
@@ -2452,6 +2454,7 @@ void idAFConstraint_Slider::Restore( idRestoreGame *saveFile ) {
 	saveFile->ReadMat3( relAxis );
 }
 
+#ifndef __EMSCRIPTEN__
 
 //===============================================================
 //
@@ -2513,6 +2516,7 @@ void idAFConstraint_Line::DebugDraw( void ) {
 	assert( 0 );	// FIXME: implement
 }
 
+#endif
 
 //===============================================================
 //
@@ -2677,7 +2681,6 @@ void idAFConstraint_Plane::Restore( idRestoreGame *saveFile ) {
 	saveFile->ReadVec3( anchor2 );
 	saveFile->ReadVec3( planeNormal );
 }
-
 
 //===============================================================
 //
@@ -2967,7 +2970,6 @@ void idAFConstraint_Spring::Restore( idRestoreGame *saveFile ) {
 	saveFile->ReadFloat( maxLength );
 }
 
-
 //===============================================================
 //
 //	idAFConstraint_Contact
@@ -3149,7 +3151,6 @@ void idAFConstraint_Contact::DebugDraw( void ) {
 	gameRenderWorld->DebugLine( colorWhite, contact.point - 2.0f * x, contact.point + 2.0f * x );
 	gameRenderWorld->DebugLine( colorWhite, contact.point - 2.0f * y, contact.point + 2.0f * y );
 }
-
 
 //===============================================================
 //
