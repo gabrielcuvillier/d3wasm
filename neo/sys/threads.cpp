@@ -70,27 +70,10 @@ void Sys_Sleep(int msec) {
 Sys_Milliseconds
 ================
 */
-#ifdef NOMT
-#include <sys/time.h>
-
-static bool InitTicks( struct timeval *st ) {
-  gettimeofday(st, NULL);
-  return true;
-}
-#endif
+#include <SDL.h>
 
 unsigned int Sys_Milliseconds() {
-#ifdef NOMT
-  static struct timeval start;
-  static const bool   started = InitTicks(&start);
-
-  struct timeval now;
-  gettimeofday(&now, NULL);
-  const Uint32 ticks=(now.tv_sec-start.tv_sec)*1000+(now.tv_usec-start.tv_usec)/1000;
-  return(ticks);
-#else
 	return SDL_GetTicks();
-#endif
 }
 
 /*
