@@ -1600,6 +1600,22 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "model", kv );
 	}
 
+	kv = dict->MatchPrefix( "broken" );
+	while( kv ) {
+		if ( kv->GetValue().Length() ) {
+			common->DPrintf("Preaching broken light model %s\n", kv->GetValue().c_str() );
+			declManager->MediaPrint( "Precaching model %s\n", kv->GetValue().c_str() );
+			// precache model/animations
+			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( kv->GetValue() );
+				// precache .cm files only
+				collisionModelManager->LoadModel( kv->GetValue(), true );
+			}
+		}
+		kv = dict->MatchPrefix( "broken", kv );
+	}
+
 	kv = dict->MatchPrefix( "lightning_model" );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
