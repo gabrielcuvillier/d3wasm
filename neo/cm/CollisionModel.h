@@ -147,8 +147,10 @@ public:
 	virtual void			ModelInfo( cmHandle_t model ) = 0;
 	// Lists all loaded models.
 	virtual void			ListModels( void ) = 0;
+#ifndef __EMSCRIPTEN__
 	// Writes a collision model file for the given map entity.
 	virtual bool			WriteCollisionModelForMapEntity( const idMapEntity *mapEnt, const char *filename, const bool testTraceModel = true ) = 0;
+#endif
 };
 
 extern idCollisionModelManager *		collisionModelManager;

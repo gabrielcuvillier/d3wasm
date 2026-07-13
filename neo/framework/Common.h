@@ -143,9 +143,10 @@ public:
 								// Writes the user's configuration to a file
 	virtual void				WriteConfigToFile( const char *filename ) = 0;
 
+#ifndef __EMSCRIPTEN__
 								// Writes cvars with the given flags to a file.
 	virtual void				WriteFlaggedCVarsToFile( const char *filename, int flags, const char *setCmd ) = 0;
-
+#endif
 								// Begins redirection of console output to the given buffer.
 	virtual void				BeginRedirect( char *buffer, int buffersize, void (*flush)( const char * ) ) = 0;
 

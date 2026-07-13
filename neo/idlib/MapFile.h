@@ -195,7 +195,9 @@ public:
 							// which is what the game and dmap want, but the editor will want to always
 							// load a .map file
 	bool					Parse( const char *filename, bool ignoreRegion = false, bool osPath = false );
+#ifndef __EMSCRIPTEN__
 	bool					Write( const char *fileName, const char *ext, bool fromBasePath = true );
+#endif
 							// get the number of entities in the map
 	int						GetNumEntities( void ) const { return entities.Num(); }
 							// get the specified entity

@@ -57,7 +57,7 @@ Writing of collision model file
 void CM_GetNodeBounds( idBounds *bounds, cm_node_t *node );
 int CM_GetNodeContents( cm_node_t *node );
 
-
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idCollisionModelManagerLocal::WriteNodes
@@ -307,6 +307,7 @@ bool idCollisionModelManagerLocal::WriteCollisionModelForMapEntity( const idMapE
 	return true;
 }
 
+#endif
 
 /*
 ===============================================================================

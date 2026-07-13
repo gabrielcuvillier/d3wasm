@@ -1886,6 +1886,7 @@ void idImageManager::StartBuild() {
 	ddsHash.Free();
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idImageManager::FinishBuild
@@ -1927,7 +1928,9 @@ void idImageManager::FinishBuild( bool removeDups ) {
 	ddsList.Clear();
 	ddsHash.Free();
 }
+#endif
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idImageManager::AddDDSCommand
@@ -1951,6 +1954,7 @@ void idImageManager::AddDDSCommand( const char *cmd ) {
 		ddsList.Append( cmd );
 	}
 }
+#endif
 
 /*
 ===============

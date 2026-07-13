@@ -159,7 +159,9 @@ public:
 
   virtual void WriteConfigToFile(const char* filename);
 
+#ifndef __EMSCRIPTEN__
   virtual void WriteFlaggedCVarsToFile(const char* filename, int flags, const char* setCmd);
+#endif
 
   virtual void BeginRedirect(char* buffer, int buffersize, void (* flush)(const char*));
 
@@ -232,11 +234,13 @@ public:
   // localization
   void InitLanguageDict(void);
 
+#ifndef __EMSCRIPTEN__
   void LocalizeGui(const char* fileName, idLangDict& langDict);
 
   void LocalizeMapData(const char* fileName, idLangDict& langDict);
 
   void LocalizeSpecificMapData(const char* fileName, idLangDict& langDict, const idLangDict& replaceArgs);
+#endif
 
   void SetMachineSpec(void);
 
@@ -589,6 +593,7 @@ void idCommonLocal::ClearWarnings(const char* reason) {
   warningList.Clear();
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 idCommonLocal::DumpWarnings
@@ -632,6 +637,7 @@ void idCommonLocal::DumpWarnings(void) {
 
   }
 }
+#endif
 
 /*
 ==================
@@ -941,6 +947,7 @@ bool idCommonLocal::AddStartupCommands(void) {
   return added;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 idCommonLocal::WriteFlaggedCVarsToFile
@@ -957,6 +964,7 @@ void idCommonLocal::WriteFlaggedCVarsToFile(const char* filename, int flags, con
   cvarSystem->WriteFlaggedVariables(flags, setCmd, f);
   fileSystem->CloseFile(f);
 }
+#endif
 
 /*
 ==================
@@ -1457,6 +1465,7 @@ void idCommonLocal::InitLanguageDict(void) {
   Sys_InitScanTable();
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idCommonLocal::LocalizeSpecificMapData
@@ -1625,6 +1634,7 @@ void idCommonLocal::LocalizeGui(const char* fileName, idLangDict& langDict) {
     fileSystem->FreeFile((void*) buffer);
   }
 }
+#endif
 
 /*
 =================

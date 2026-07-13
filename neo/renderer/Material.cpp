@@ -2360,6 +2360,7 @@ void idMaterial::Print() const {
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idMaterial::Save
@@ -2368,6 +2369,7 @@ idMaterial::Save
 bool idMaterial::Save( const char *fileName ) {
 	return ReplaceSourceFileText();
 }
+#endif
 
 /*
 ===============

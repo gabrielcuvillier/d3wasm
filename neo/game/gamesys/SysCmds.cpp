@@ -1544,6 +1544,7 @@ static void Cmd_WeaponSplat_f( const idCmdArgs &args ) {
 	player->weapon.GetEntity()->BloodSplat( 2.0f );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_SaveSelected_f
@@ -1782,6 +1783,7 @@ static void Cmd_SaveRagdolls_f( const idCmdArgs &args ) {
 	// write out the map file
 	mapFile->Write( mapName, ".map" );
 }
+#endif
 
 /*
 ==================
@@ -1828,6 +1830,7 @@ static void Cmd_GameError_f( const idCmdArgs &args ) {
 	gameLocal.Error( "game error" );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_SaveLights_f
@@ -1942,29 +1945,31 @@ static void Cmd_SaveParticles_f( const idCmdArgs &args ) {
 	// write out the map file
 	mapFile->Write( mapName, ".map" );
 }
+#endif
 
-
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_DisasmScript_f
 ==================
 */
-//static void Cmd_DisasmScript_f( const idCmdArgs &args ) {
-//	gameLocal.program.Disassemble();
-//}
+static void Cmd_DisasmScript_f( const idCmdArgs &args ) {
+	gameLocal.program.Disassemble();
+}
 
 /*
 ==================
 Cmd_TestSave_f
 ==================
 */
-/*static void Cmd_TestSave_f( const idCmdArgs &args ) {
+static void Cmd_TestSave_f( const idCmdArgs &args ) {
 	idFile *f;
 
 	f = fileSystem->OpenFileWrite( "test.sav" );
 	gameLocal.SaveGame( f );
 	fileSystem->CloseFile( f );
-}*/
+}
+#endif
 
 /*
 ==================
@@ -2270,8 +2275,10 @@ so it can perform tab completion
 */
 void idGameLocal::InitConsoleCommands( void ) {
 	cmdSystem->AddCommand( "listTypeInfo",			ListTypeInfo_f,				CMD_FL_GAME,				"list type info" );
+#ifndef __EMSCRIPTEN__
 	cmdSystem->AddCommand( "writeGameState",		WriteGameState_f,			CMD_FL_GAME,				"write game state" );
-	//cmdSystem->AddCommand( "testSaveGame",			TestSaveGame_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"test a save game for a level" );
+	cmdSystem->AddCommand( "testSaveGame",			TestSaveGame_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"test a save game for a level" );
+#endif
 	cmdSystem->AddCommand( "game_memory",			idClass::DisplayInfo_f,		CMD_FL_GAME,				"displays game class info" );
 	cmdSystem->AddCommand( "listClasses",			idClass::ListClasses_f,		CMD_FL_GAME,				"lists game classes" );
 	cmdSystem->AddCommand( "listThreads",			idThread::ListThreads_f,	CMD_FL_GAME|CMD_FL_CHEAT,	"lists script threads" );

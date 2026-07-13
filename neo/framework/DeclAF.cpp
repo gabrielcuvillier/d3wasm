@@ -639,6 +639,7 @@ bool idDeclAF::RebuildTextSource( void ) {
 	return true;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idDeclAF::Save
@@ -650,6 +651,7 @@ bool idDeclAF::Save( void ) {
 	modified = false;
 	return true;
 }
+#endif
 
 /*
 ================

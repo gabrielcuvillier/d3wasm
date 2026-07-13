@@ -158,7 +158,9 @@ public:
 
 	virtual void			Finish( const getJointTransform_t GetJointTransform, const idJointMat *frame, void *model ) const;
 
+#ifndef __EMSCRIPTEN__
 	bool					Save( void );
+#endif
 
 	void					NewBody( const char *name );
 	void					RenameBody( const char *oldName, const char *newName );

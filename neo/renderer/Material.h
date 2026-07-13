@@ -355,8 +355,10 @@ public:
 	virtual void		FreeData( void );
 	virtual void		Print( void ) const;
 
+#ifndef __EMSCRIPTEN__
 	//BSM Nerve: Added for material editor
 	bool				Save( const char *fileName = NULL );
+#endif
 
 						// returns the internal image name for stage 0, which can be used
 						// for the renderer CaptureRenderToImage() call

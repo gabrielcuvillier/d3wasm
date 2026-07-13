@@ -645,6 +645,7 @@ bool idDeclParticle::RebuildTextSource( void ) {
 	return true;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idDeclParticle::Save
@@ -658,6 +659,7 @@ bool idDeclParticle::Save( const char *fileName ) {
 	ReplaceSourceFileText();
 	return true;
 }
+#endif
 
 /*
 ====================================================================================

@@ -65,7 +65,9 @@ public:
 	static void						PrintType( const void *typePtr, const char *typeName );
 	static void						WriteTypeToFile( idFile *fp, const void *typePtr, const char *typeName );
 	static void						InitTypeVariables( const void *typePtr, const char *typeName, int value );
+#ifndef __EMSCRIPTEN__
 	static void						WriteGameState( const char *fileName );
+#endif
 	static void						CompareGameState( const char *fileName );
 
 private:
@@ -1175,6 +1177,7 @@ void idTypeInfoTools::WriteClass_r( const void *classPtr, const char *className,
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idTypeInfoTools::WriteGameState
@@ -1216,6 +1219,7 @@ void idTypeInfoTools::WriteGameState( const char *fileName ) {
 
 	common->Printf( "%d entities written\n", num );
 }
+#endif
 
 /*
 ================
@@ -1308,6 +1312,7 @@ void idTypeInfoTools::CompareGameState( const char *fileName ) {
 	src = NULL;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 WriteGameState_f
@@ -1325,6 +1330,7 @@ void WriteGameState_f( const idCmdArgs &args ) {
 
 	idTypeInfoTools::WriteGameState( fileName );
 }
+#endif
 
 /*
 ================

@@ -343,8 +343,10 @@ public:
 	void			ModelInfo( cmHandle_t model );
 	// list all loaded models
 	void			ListModels( void );
+#ifndef __EMSCRIPTEN__
 	// write a collision model file for the map entity
 	bool			WriteCollisionModelForMapEntity( const idMapEntity *mapEnt, const char *filename, const bool testTraceModel = true );
+#endif
 
 private:			// CollisionMap_translate.cpp
 	int				TranslateEdgeThroughEdge( idVec3 &cross, idPluecker &l1, idPluecker &l2, float *fraction );

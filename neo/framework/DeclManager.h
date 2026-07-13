@@ -119,7 +119,9 @@ public:
 	virtual void			GetText( char *text ) const = 0;
 	virtual int				GetTextLength( void ) const = 0;
 	virtual void			SetText( const char *text ) = 0;
+#ifndef __EMSCRIPTEN__
 	virtual bool			ReplaceSourceFileText( void ) = 0;
+#endif
 	virtual bool			SourceFileChanged( void ) const = 0;
 	virtual void			MakeDefault( void ) = 0;
 	virtual bool			EverReferenced( void ) const = 0;
@@ -183,10 +185,11 @@ public:
 							// Sets new decl text.
 	void					SetText( const char *text ) { base->SetText( text ); }
 
+#ifndef __EMSCRIPTEN__
 							// Saves out new text for the decl.
 							// Used by decl editors to replace the decl text in the source file.
 	bool					ReplaceSourceFileText( void ) { return base->ReplaceSourceFileText(); }
-
+#endif
 							// Returns true if the source file changed since it was loaded and parsed.
 	bool					SourceFileChanged( void ) const { return base->SourceFileChanged(); }
 

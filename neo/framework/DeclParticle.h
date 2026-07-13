@@ -207,7 +207,9 @@ public:
 	virtual bool			Parse( const char *text, const int textLength );
 	virtual void			FreeData( void );
 
+#ifndef __EMSCRIPTEN__
 	bool					Save( const char *fileName = NULL );
+#endif
 
 	idList<idParticleStage *>stages;
 	idBounds				bounds;

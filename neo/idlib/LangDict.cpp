@@ -113,6 +113,7 @@ bool idLangDict::Load( const char *fileName, bool clear /* _D3XP */ ) {
 	return true;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idLangDict::Save
@@ -144,6 +145,7 @@ void idLangDict::Save( const char *fileName ) {
 	outFile->WriteFloatString( "\n}\n" );
 	idLib::fileSystem->CloseFile( outFile );
 }
+#endif
 
 /*
 ============

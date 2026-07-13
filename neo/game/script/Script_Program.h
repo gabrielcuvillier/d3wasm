@@ -489,8 +489,10 @@ public:
 	void										CompileFile( const char *filename );
 	void										BeginCompilation( void );
 	void										FinishCompilation( void );
+#ifndef _EMSCRIPTEN__
 	void										DisassembleStatement( idFile *file, int instructionPointer ) const;
 	void										Disassemble( void ) const;
+#endif
 	void										FreeData( void );
 
 	const char									*GetFilename( int num );

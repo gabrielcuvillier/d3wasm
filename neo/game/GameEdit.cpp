@@ -997,6 +997,7 @@ const idDict *idGameEdit::MapGetEntityDict( const char *name ) const {
 	return NULL;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idGameEdit::MapSave
@@ -1008,6 +1009,7 @@ void idGameEdit::MapSave( const char *path ) const {
 		mapFile->Write( (path) ? path : mapFile->GetName(), ".map");
 	}
 }
+#endif
 
 /*
 ================

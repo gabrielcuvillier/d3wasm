@@ -824,6 +824,7 @@ bool idMapFile::Parse( const char *filename, bool ignoreRegion, bool osPath ) {
 	return true;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idMapFile::Write
@@ -861,6 +862,7 @@ bool idMapFile::Write( const char *fileName, const char *ext, bool fromBasePath 
 
 	return true;
 }
+#endif
 
 /*
 ===============

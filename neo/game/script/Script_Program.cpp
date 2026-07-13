@@ -1681,6 +1681,7 @@ void idProgram::BeginCompilation( void ) {
 #endif
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==============
 idProgram::DisassembleStatement
@@ -1743,6 +1744,7 @@ void idProgram::Disassemble( void ) const {
 
 	fileSystem->CloseFile( file );
 }
+#endif
 
 /*
 ==============

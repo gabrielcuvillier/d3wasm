@@ -104,9 +104,11 @@ bool idDemoFile::OpenForReading( const char *fileName ) {
 		f = new idFile_Memory( va( "preloaded(%s)", fileName ), (const char *)fileImage, fileLength );
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( com_logDemos.GetBool() ) {
 		fLog = fileSystem->OpenFileWrite( "demoread.log" );
 	}
+#endif
 
 	writing = false;
 

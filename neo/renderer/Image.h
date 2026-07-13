@@ -338,8 +338,10 @@ public:
 
 	// used to clear and then write the dds conversion batch file
 	void				StartBuild();
+#ifndef __EMSCRIPTEN__
 	void				FinishBuild( bool removeDups = false );
 	void				AddDDSCommand( const char *cmd );
+#endif
 
 	void				PrintMemInfo( MemInfo_t *mi );
 

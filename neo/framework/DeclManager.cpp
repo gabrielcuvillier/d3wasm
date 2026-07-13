@@ -118,7 +118,9 @@ public:
 	virtual void				GetText( char *text ) const;
 	virtual int					GetTextLength( void ) const;
 	virtual void				SetText( const char *text );
+#ifndef __EMSCRIPTEN__
 	virtual bool				ReplaceSourceFileText( void );
+#endif
 	virtual bool				SourceFileChanged( void ) const;
 	virtual void				MakeDefault( void );
 	virtual bool				EverReferenced( void ) const;
@@ -1961,6 +1963,7 @@ void idDeclLocal::SetTextLocal( const char *text, const int length ) {
 	textLength = length;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =================
 idDeclLocal::ReplaceSourceFileText
@@ -2045,6 +2048,7 @@ bool idDeclLocal::ReplaceSourceFileText( void ) {
 
 	return true;
 }
+#endif
 
 /*
 =================

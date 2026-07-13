@@ -618,6 +618,7 @@ void idAASFileLocal::Clear( void ) {
 	clusters.Clear();
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idAASFileLocal::Write
@@ -749,6 +750,7 @@ bool idAASFileLocal::Write( const idStr &fileName, unsigned int mapFileCRC ) {
 
 	return true;
 }
+#endif
 
 /*
 ================

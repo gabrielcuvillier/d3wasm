@@ -54,7 +54,9 @@ public:
 
 	void					Clear( void );
 	bool					Load( const char *fileName, bool clear = true );
+#ifndef __EMSCRIPTEN__
 	void					Save( const char *fileName );
+#endif
 
 	const char *			AddString( const char *str );
 	const char *			GetString( const char *str ) const;
