@@ -562,11 +562,8 @@ unzReOpen
 unzSetOffset64
 UpdateGuiParms(idUserInterface*, idDict const*)
 writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)
-WriteGameState_f(idCmdArgs const&)
-idPhysics_Parametric_SavePState(idSaveGame*, parametricPState_s const&)
-idPhysics_Monster_SavePState(idSaveGame*, monsterPState_s const&)
-idPhysics_Player_SavePState(idSaveGame*, playerPState_s const&)
-idPhysics_RigidBody_SavePState(idSaveGame*, rigidBodyPState_s const&)
-idPhysics_Parametric_SavePState(idSaveGame*, parametricPState_s const&)
-idPhysics_AF_SavePState(idSaveGame*, AFPState_s const&)
-idPhysics_RigidBody_SavePState(idSaveGame*, rigidBodyPState_s const&)
+idRestoreGame::Read*
+idRestoreGame::CallRestore_r(idTypeInfo const*, idClass*)
+idRestoreGame::RestoreObjects()
+id*::Restore(idRestoreGame*)
+id*::ReadFromSaveGame(idFile*)
