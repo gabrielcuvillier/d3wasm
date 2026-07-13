@@ -79,52 +79,19 @@ getVX(idFile*)
 idAASFileLocal::Load(idStr const&, unsigned int)
 idAASFileManagerLocal::LoadAAS(char const*, unsigned int)
 idAASLocal::Init(idStr const&, unsigned int)
-idActivator::Save(idSaveGame*) const
 idActor::FinishSetup()
-idActor::Save(idSaveGame*) const
 idActor::SetupHead()
 idActor::Spawn()
-idAF::Save(idSaveGame*) const
-idAFAttachment::Save(idSaveGame*) const
 idAFAttachment::SetBody(idEntity*, char const*, jointHandle_t)
-idAFBody::Save(idSaveGame*)
-idAFConstraint::Save(idSaveGame*) const
-idAFConstraint_BallAndSocketJoint::Save(idSaveGame*) const
-idAFConstraint_ConeLimit::Save(idSaveGame*) const
-idAFConstraint_Fixed::Save(idSaveGame*) const
-idAFConstraint_Hinge::Save(idSaveGame*) const
-idAFConstraint_HingeSteering::Save(idSaveGame*) const
-idAFConstraint_PyramidLimit::Save(idSaveGame*) const
-idAFConstraint_Slider::Save(idSaveGame*) const
-idAFConstraint_Spring::Save(idSaveGame*) const
-idAFConstraint_UniversalJoint::Save(idSaveGame*) const
-idAFEntity_Base::Save(idSaveGame*) const
-idAFEntity_ClawFourFingers::Save(idSaveGame*) const
-idAFEntity_Generic::Save(idSaveGame*) const
-idAFEntity_Gibbable::Save(idSaveGame*) const
-idAFEntity_SteamPipe::Save(idSaveGame*) const
-idAFEntity_WithAttachedHead::Save(idSaveGame*) const
 idAFEntity_WithAttachedHead::SetupHead()
 idAFEntity_WithAttachedHead::Spawn()
-idAI::Save(idSaveGame*) const
 idAnim::AddFrameCommand(idDeclModelDef const*, int, idLexer&, idDict const*)
-idAnimated::Save(idSaveGame*) const
-idAnimatedEntity::Save(idSaveGame*) const
 idAnimatedEntity::SetModel(char const*)
-idAnimator::Save(idSaveGame*) const
 idAnimator::SetModel(char const*)
-idAnimBlend::Save(idSaveGame*) const
 idAnimManager::GetAnim(char const*)
 idAnimManager::ReloadAnims()
-idAnimState::Save(idSaveGame*) const
-idBarrel::Save(idSaveGame*) const
-idBeam::Save(idSaveGame*) const
-idBFGProjectile::Save(idSaveGame*) const
-idBrittleFracture::Save(idSaveGame*) const
 idCameraAnim::LoadAnim()
-idCameraAnim::Save(idSaveGame*) const
 idCameraAnim::Spawn()
-idCameraView::Save(idSaveGame*) const
 idChoiceWindow::ParseInternalVar(char const*, idParser*)
 idCinematicLocal::InitFromFile(char const*, bool)
 idClass::CallSpawn()
@@ -132,9 +99,6 @@ idClass::CallSpawnFunc(idTypeInfo*)
 idClipModel::CheckModel(char const*)
 idClipModel::idClipModel(char const*)
 idClipModel::LoadModel(char const*)
-idClipModel::Restore(idRestoreGame*)
-idClipModel::Save(idSaveGame*) const
-idClipModel::SaveTraceModels(idSaveGame*)
 idCmdSystem::ArgCompletion_ConfigName(idCmdArgs const&, void (*)(char const*))
 idCmdSystem::ArgCompletion_DemoName(idCmdArgs const&, void (*)(char const*))
 idCmdSystem::ArgCompletion_FileName(idCmdArgs const&, void (*)(char const*))
@@ -153,7 +117,6 @@ idCollisionModelManagerLocal::LoadCollisionModelFile(char const*, unsigned int)
 idCollisionModelManagerLocal::LoadMap(idMapFile const*)
 idCollisionModelManagerLocal::LoadModel(char const*, bool)
 idCollisionModelManagerLocal::LoadRenderModel(char const*)
-idCombatNode::Save(idSaveGame*) const
 idCommonLocal::Error*
 idCommonLocal::FatalError*
 idCommonLocal::ForceRefreshScreen(bool)
@@ -169,7 +132,6 @@ idCommonLocal::Quit()
 idCommonLocal::Shutdown()
 idCommonLocal::WriteConfigToFile(char const*)
 idCommonLocal::WriteConfiguration()
-idCommonLocal::WriteFlaggedCVarsToFile(char const*, int, char const*)
 idCompiler::CheckToken(char const*)
 idCompiler::CompileFile(char const*, idStr, bool)
 idCompiler::Error*
@@ -187,9 +149,6 @@ idConsoleLocal::LoadGraphics()
 idConsoleLocal::LoadHistory()
 idConsoleLocal::ProcessEvent(sysEvent_t const*, bool)
 idConsoleLocal::SaveHistory()
-idCVarSystemLocal::WriteFlaggedVariables(int, char const*, idFile*) const
-idDamagable::Save(idSaveGame*) const
-idDebris::Save(idSaveGame*) const
 idDeclEntityDef::Parse(char const*, int)
 idDeclFile::LoadAndParse()
 idDeclFile::Reload(bool)
@@ -200,7 +159,6 @@ idDeclLocal::MakeDefault()
 idDeclLocal::ParseLocal()
 idDeclLocal::Purge()
 idDeclLocal::Reload()
-idDeclLocal::ReplaceSourceFileText()
 idDeclManagerLocal::BeginLevelLoad()
 idDeclManagerLocal::CreateNewDecl(declType_t, char const*, char const*)
 idDeclManagerLocal::DeclByIndex(declType_t, int, bool)
@@ -214,7 +172,6 @@ idDeclManagerLocal::RegisterDeclFolder(char const*, char const*, declType_t)
 idDeclManagerLocal::Reload(bool)
 idDeclManagerLocal::ReloadDecls_f(idCmdArgs const&)
 idDeclManagerLocal::TouchDecl_f(idCmdArgs const&)
-idDeclManagerLocal::WritePrecacheCommands(idFile*)
 idDeclModelDef::Parse(char const*, int)
 idDeclModelDef::ParseAnim(idLexer&, int)
 idDeclParticle::Parse(char const*, int)
@@ -228,25 +185,15 @@ idDemoFile::ReadHashString()
 idDeviceContext::FindFont(char const*)
 idDeviceContext::Init()
 idDeviceContext::SetupFonts()
-idDoor::Save(idSaveGame*) const
-idEarthQuake::Save(idSaveGame*) const
 idEditField::AutoComplete()
 idEditWindow::InitScroller(bool)
 idEditWindow::ParseInternalVar(char const*, idParser*)
 idEditWindow::PostParse()
-idElevator::Save(idSaveGame*) const
-idEntity::Restore(idRestoreGame*)
-idEntity::Save(idSaveGame*) const
 idEntity::Spawn()
-idEntityFx::Save(idSaveGame*) const
-idEntityPtr<*>::Save(idSaveGame*) const
-idEvent::Save(idSaveGame*)
-idEvent::SaveTrace(idSaveGame*, trace_s const&)
 idEventLoop::Init()
 idEventLoop::ProcessEvent(sysEvent_t)
 idEventLoop::RunEventLoop(bool)
 idEventLoop::Shutdown()
-idExplodingBarrel::Save(idSaveGame*) const
 idFieldWindow::ParseInternalVar(char const*, idParser*)
 idFile::Printf*
 idFile::ReadBool(bool&)
@@ -261,6 +208,7 @@ idFile::ReadUnsignedInt(unsigned int&)
 idFile::ReadUnsignedShort(unsigned short&)
 idFile::ReadVec2(idVec2&)
 idFile::ReadVec3(idVec3&)
+idFile::ReadVec4(idVec4&)
 idFile::ReadVec6(idVec6&)
 idFile::Rewind()
 idFile::VPrintf*
@@ -328,15 +276,6 @@ idFileSystemLocal::Startup()
 idFileSystemLocal::TouchFile_f(idCmdArgs const&)
 idFileSystemLocal::TouchFileList_f(idCmdArgs const&)
 idFileSystemLocal::WriteFile(char const*, void const*, int, char const*)
-idForce_Constant::Save(idSaveGame*) const
-idForce_Field::Save(idSaveGame*) const
-idForceField::Save(idSaveGame*) const
-idFuncAASObstacle::Save(idSaveGame*) const
-idFuncAASPortal::Save(idSaveGame*) const
-idFuncEmitter::Save(idSaveGame*) const
-idFuncPortal::Save(idSaveGame*) const
-idFuncRadioChatter::Save(idSaveGame*) const
-idFuncSmoke::Save(idSaveGame*) const
 idGameEdit::ParseSpawnArgsToRenderEntity(idDict const*, renderEntity_s*)
 idGameLocal::CacheDictionaryMedia(idDict const*)
 idGameLocal::Error* const
@@ -353,41 +292,26 @@ idGameLocal::PrecacheScriptReferencesForFile(char const*)
 idGameLocal::PrecacheScriptReferencesForFunction(char const*)
 idGameLocal::PrecacheScriptReferencesForNamespace(char const*)
 idGameLocal::PrecacheScriptReferencesForTypeDef(char const*)
-idGameLocal::SaveGame(idFile*)
 idGameLocal::SpawnEntityDef(idDict const&, idEntity**, bool)
 idGameLocal::SpawnMapEntities()
 idGameLocal::SpawnPlayer(int)
-idGuidedProjectile::Save(idSaveGame*) const
 idGuiModel::ReadFromDemo(idDemoFile*)
 idGuiScript::FixupParms(idWindow*)
 idGuiScript::Parse(idParser*)
-idGuiScript::ReadFromSaveGame(idFile*)
-idGuiScript::WriteToSaveGame(idFile*)
 idGuiScriptList::FixupParms(idWindow*)
-idGuiScriptList::ReadFromSaveGame(idFile*)
-idGuiScriptList::WriteToSaveGame(idFile*)
-idIK::Save(idSaveGame*) const
-idIK_Walk::Save(idSaveGame*) const
 idImage::ActuallyLoadImage(bool)
 idImage::Reload(bool)
 idImageManager::EndLevelLoad()
 idImageManager::ImageFromFile(char const*, textureFilter_t, bool, textureRepeat_t, textureDepth_t, cubeFiles_t)
 idImageManager::ReloadAllImages()
-idInterpreter::Save(idSaveGame*) const
-idInventory::Save(idSaveGame*) const
-idItem::Save(idSaveGame*) const
-idItemPowerup::Save(idSaveGame*) const
-idKeyInput::WriteBindings(idFile*)
 idLangDict::Load(char const*, bool)
 idLexer::Error*
 idLexer::idLexer(char const*, int, bool)
 idLexer::LoadFile(char const*, bool)
 idLib::Error*
-idLight::Save(idSaveGame*) const
 idListWindow::ParseInternalVar(char const*, idParser*)
 idMapFile::NeedsReload()
 idMapFile::Parse(char const*, bool, bool)
-idMapFile::Write(char const*, char const*, bool)
 idMarkerWindow::Activate(bool, idStr&)
 idMarkerWindow::ParseInternalVar(char const*, idParser*)
 idMaterial::AddImplicitStages(textureRepeat_t)
@@ -401,53 +325,24 @@ idMD5Anim::Reload()
 idMD5Mesh::ParseMesh(idLexer&, int, idJointMat const*)
 idMoveable::Save(idSaveGame*) const
 idMoveable::Spawn()
-idMoveableItem::Save(idSaveGame*) const
-idMover::Save(idSaveGame*) const
-idMover_Binary::Save(idSaveGame*) const
-idMover_Periodic::Save(idSaveGame*) const
-idMoveState::Save(idSaveGame*) const
 idMultiplayerGame::Precache()
 idMultiplayerGame::Reset()
 idMultiplayerGame::SetMapShot()
-idObjective::Save(idSaveGame*) const
-idObjectiveComplete::Save(idSaveGame*) const
 idParser::Directive_include()
 idParser::Error*
 idParser::LoadFile(char const*, bool)
 idParser::ReadDirective()
 idParser::ReadToken(idToken*)
-idPhantomObjects::Save(idSaveGame*) const
-idPhysics::Save(idSaveGame*) const
-idPhysics_Actor::Save(idSaveGame*) const
-idPhysics_AF::Save(idSaveGame*) const
-idPhysics_Base::Save(idSaveGame*) const
-idPhysics_Monster::Save(idSaveGame*) const
-idPhysics_Parametric::Save(idSaveGame*) const
-idPhysics_Player::Save(idSaveGame*) const
-idPhysics_RigidBody::Save(idSaveGame*) const
-idPhysics_Static::Save(idSaveGame*) const
-idPhysics_StaticMulti::Save(idSaveGame*) const
-idPlat::Save(idSaveGame*) const
-idPlayer::Save(idSaveGame*) const
 idPlayer::Spawn()
 idPlayer::UpdatePDAInfo(bool)
-idPlayerStart::Save(idSaveGame*) const
-idPlayerView::Save(idSaveGame*) const
 idProgram::CompileFile(char const*)
 idProgram::CompileText(char const*, char const*, bool)
-idProgram::Restore(idRestoreGame*)
-idProgram::Save(idSaveGame*) const
 idProgram::ScanFileForCalls(char const*, bool (*)(char const*), int (*)(char const*), void (*)(char const*, char const*, char const*, char const*, char const*, char const*, int))
 idProgram::ScanFunctionForCalls(function_t const*, bool (*)(char const*), int (*)(char const*), void (*)(char const*, char const*, char const*, char const*, char const*, char const*, int))
 idProgram::ScanNamespaceForCalls(idVarDef const*, bool (*)(char const*), int (*)(char const*), void (*)(char const*, char const*, char const*, char const*, char const*, char const*, int))
 idProgram::ScanTypeDefForCalls(idTypeDef const*, bool (*)(char const*), int (*)(char const*), void (*)(char const*, char const*, char const*, char const*, char const*, char const*, int))
 idProgram::Startup(char const*)
-idProjectile::Save(idSaveGame*) const
-idRegister::ReadFromSaveGame(idFile*)
-idRegister::WriteToSaveGame(idFile*)
 idRegisterList::AddReg(char const*, int, idParser*, idWindow*, idWinVar*)
-idRegisterList::ReadFromSaveGame(idFile*)
-idRegisterList::WriteToSaveGame(idFile*)
 idRenderModelManagerLocal::CheckModel(char const*)
 idRenderModelManagerLocal::EndLevelLoad()
 idRenderModelManagerLocal::FindModel(char const*)
@@ -456,7 +351,6 @@ idRenderModelManagerLocal::PrintModel_f(idCmdArgs const&)
 idRenderModelManagerLocal::ReloadModels(bool)
 idRenderModelManagerLocal::ReloadModels_f(idCmdArgs const&)
 idRenderModelManagerLocal::TouchModel_f(idCmdArgs const&)
-idRenderModelManagerLocal::WritePrecacheCommands(idFile*)
 idRenderModelMD5::InitFromFile(char const*)
 idRenderModelMD5::LoadModel()
 idRenderModelMD5::TouchData()
@@ -488,54 +382,7 @@ idRenderWorldLocal::ReadRenderEntity()
 idRenderWorldLocal::ReadRenderLight()
 idRenderWorldLocal::TouchWorldModels()
 idRestoreGame::Error*
-idRestoreGame::ReadClipModel(idClipModel*&)
-idRotater::Save(idSaveGame*) const
 idSampleDecoderLocal::DecodeOGG(idSoundSample*, int, int, float*)
-idSaveGame::CallSave_r(idTypeInfo const*, idClass const*)
-idSaveGame::Close()
-idSaveGame::Write(void*, int)
-idSaveGame::WriteAngles(idAngles const&)
-idSaveGame::WriteBool(bool)
-idSaveGame::WriteBounds(idBounds const&)
-idSaveGame::WriteBuildNumber(int)
-idSaveGame::WriteByte(unsigned char)
-idSaveGame::WriteClipModel(idClipModel const*)
-idSaveGame::WriteContactInfo(contactInfo_t const&)
-idSaveGame::WriteDict(idDict const*)
-idSaveGame::WriteFloat(float)
-idSaveGame::WriteFX(idDeclFX const*)
-idSaveGame::WriteInt(int)
-idSaveGame::WriteJoint(jointHandle_t)
-idSaveGame::WriteMat3(idMat3 const&)
-idSaveGame::WriteMaterial(idMaterial const*)
-idSaveGame::WriteModel(idRenderModel const*)
-idSaveGame::WriteModelDef(idDeclModelDef const*)
-idSaveGame::WriteObject(idClass const*)
-idSaveGame::WriteObjectList()
-idSaveGame::WriteParticle(idDeclParticle const*)
-idSaveGame::WriteRefSound(refSound_t const&)
-idSaveGame::WriteRenderEntity(renderEntity_s const&)
-idSaveGame::WriteRenderLight(renderLight_s const&)
-idSaveGame::WriteRenderView(renderView_s const&)
-idSaveGame::WriteShort(short)
-idSaveGame::WriteSignedChar(signed char)
-idSaveGame::WriteSkin(idDeclSkin const*)
-idSaveGame::WriteSoundCommands()
-idSaveGame::WriteSoundShader(idSoundShader const*)
-idSaveGame::WriteStaticObject(idClass const&)
-idSaveGame::WriteString(char const*)
-idSaveGame::WriteTraceModel(idTraceModel const&)
-idSaveGame::WriteUsercmd(usercmd_t const&)
-idSaveGame::WriteUserInterface(idUserInterface const*, bool)
-idSaveGame::WriteVec2(idVec2 const&)
-idSaveGame::WriteVec3(idVec3 const&)
-idSaveGame::WriteVec4(idVec4 const&)
-idSaveGame::WriteVec6(idVec6 const&)
-idSaveGame::WriteWinding(idWinding const&)
-idSaveGame::WriteTrace(trace_s const&)
-idScriptObject::Restore(idRestoreGame*)
-idScriptObject::Save(idSaveGame*) const
-idSecurityCamera::Save(idSaveGame*) const
 idServerScan::GUIUpdateSelected()
 idSessionLocal::AdvanceRenderDemo(bool)
 idSessionLocal::ClearCDKey(bool*)
@@ -578,13 +425,8 @@ idSessionLocal::UnloadMap()
 idSessionLocal::UpdateMPLevelShot()
 idSessionLocal::UpdateScreen(bool)
 idSessionLocal::WriteCDKey()
-idShaking::Save(idSaveGame*) const
-idSimpleWindow::ReadFromSaveGame(idFile*)
-idSimpleWindow::WriteToSaveGame(idFile*)
 idSliderWindow::InitWithDefaults(char const*, idRectangle const&, idVec4 const&, idVec4 const&, char const*, char const*, bool, bool)
 idSliderWindow::ParseInternalVar(char const*, idParser*)
-idSoulCubeMissile::Save(idSaveGame*) const
-idSound::Save(idSaveGame*) const
 idSoundCache::EndLevelLoad()
 idSoundCache::FindSound(idStr const&, bool)
 idSoundCache::ReloadSounds(bool)
@@ -597,42 +439,18 @@ idSoundShader::TouchData() const
 idSoundSystemLocal::EndLevelLoad(char const*)
 idSoundSystemLocal::Init()
 idSoundWorldLocal::ProcessDemoCommand(idDemoFile*)
-idSoundWorldLocal::ReadFromSaveGame(idFile*)
-idSoundWorldLocal::ReadFromSaveGameSoundChannel(idFile*, idSoundChannel*)
-idSoundWorldLocal::ReadFromSaveGameSoundShaderParams(idFile*, soundShaderParms_t*)
-idSoundWorldLocal::WriteToSaveGame(idFile*)
-idSoundWorldLocal::WriteToSaveGameSoundChannel(idFile*, idSoundChannel*)
-idSoundWorldLocal::WriteToSaveGameSoundShaderParams(idFile*, soundShaderParms_t*)
-idStaticEntity::Save(idSaveGame*) const
-idTarget_FadeEntity::Save(idSaveGame*) const
-idTarget_SetFov::Save(idSaveGame*) const
-idTarget_SetInfluence::Save(idSaveGame*) const
-idTarget_Tip::Save(idSaveGame*) const
-idTextEntity::Save(idSaveGame*) const
 idThread::Error*
-idThread::Save(idSaveGame*) const
-idTrigger::Save(idSaveGame*) const
-idTrigger_Count::Save(idSaveGame*) const
-idTrigger_EntityName::Save(idSaveGame*) const
-idTrigger_Hurt::Save(idSaveGame*) const
-idTrigger_Multi::Save(idSaveGame*) const
-idTrigger_Timer::Save(idSaveGame*) const
-idTrigger_Touch::Save(idSaveGame*)
-idTypeInfoTools::WriteGameState(char const*)
 idUserInterfaceLocal::Activate(bool, int)
 idUserInterfaceLocal::HandleEvent(sysEvent_t const*, int, bool*)
 idUserInterfaceLocal::InitFromFile(char const*, bool, bool)
 idUserInterfaceLocal::ReadFromDemoFile(idDemoFile*)
 idUserInterfaceLocal::Redraw(int)
 idUserInterfaceLocal::StateChanged(int, bool)
-idUserInterfaceLocal::WriteToSaveGame(idFile*) const
 idUserInterfaceManagerLocal::CheckGui(char const*) const
 idUserInterfaceManagerLocal::FindGui(char const*, bool, bool, bool)
 idUserInterfaceManagerLocal::Init()
 idUserInterfaceManagerLocal::Reload(bool)
 idUserInterfaceManagerLocal::Touch(char const*)
-idUserInterfaceManagerLocal::WritePrecacheCommands(idFile*)
-idVacuumSeparatorEntity::Save(idSaveGame*) const
 idWaveFile::Close()
 idWaveFile::CloseOGG()
 idWaveFile::Open(char const*, waveformatex_s*)
@@ -640,10 +458,7 @@ idWaveFile::OpenOGG(char const*, waveformatex_s*)
 idWaveFile::Read(unsigned char*, int, int*)
 idWaveFile::ReadMMIO()
 idWaveFile::ResetFile()
-idWeapon::Save(idSaveGame*) const
 idWinBackground::Update()
-idWinBackground::WriteToSaveGame(idFile*)
-idWinBool::WriteToSaveGame(idFile*)
 idWindow::Activate(bool, idStr&)
 idWindow::FixupParms()
 idWindow::HandleEvent(sysEvent_t const*, bool*)
@@ -654,22 +469,12 @@ idWindow::ParseInternalVar(char const*, idParser*)
 idWindow::ParseRegEntry(char const*, idParser*)
 idWindow::ParseScript(idParser*, idGuiScriptList&, int*, bool)
 idWindow::ParseScriptEntry(char const*, idParser*)
-idWindow::ReadFromSaveGame(idFile*)
 idWindow::Redraw(float, float)
 idWindow::RunTimeEvents(int)
 idWindow::SetupBackground()
 idWindow::SetupFromState()
 idWindow::StateChanged(bool)
 idWindow::UpdateWinVars()
-idWindow::WriteSaveGameString(char const*, idFile*)
-idWindow::WriteSaveGameTransition(idTransitionData&, idFile*)
-idWindow::WriteToSaveGame(idFile*)
-idWinFloat::WriteToSaveGame(idFile*)
-idWinInt::WriteToSaveGame(idFile*)
-idWinRectangle::WriteToSaveGame(idFile*)
-idWinStr::WriteToSaveGame(idFile*)
-idWinVec2::WriteToSaveGame(idFile*)
-idWinVec4::WriteToSaveGame(idFile*)
 idWorldspawn::Spawn()
 LoadGame_f(idCmdArgs const&)
 LoadTGA(char const*, unsigned char**, int*, int*, long long*)
