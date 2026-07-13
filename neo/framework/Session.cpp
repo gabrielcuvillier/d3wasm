@@ -1896,6 +1896,7 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
   descriptionFile = gameFile;
   descriptionFile.SetFileExtension(".txt");
 
+#ifndef __EMSCRIPTEN__
   // Open savegame file
   idFile* fileOut = fileSystem->OpenFileWrite(gameFile);
   if ( fileOut == NULL ) {
@@ -1906,6 +1907,10 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
     }
     return false;
   }
+#else
+  // On emscripten, save to memory first, it is *considerably* faster
+  idFile_Memory* fileOut = new idFile_Memory();
+#endif
 
   // Write SaveGame Header:
   // Game Name / Version / Map Name / Persistant Player Info
@@ -1930,6 +1935,27 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
   // let the game save its state
   game->SaveGame(fileOut);
 
+#ifndef __EMSCRIPTEN__
+#else
+  // Now really save the file to disk, using one big write
+  idFile* fileOutReal = fileSystem->OpenFileWrite(gameFile);
+  if ( fileOutReal == NULL ) {
+    common->Warning("Failed to open save file '%s'\n", gameFile.c_str());
+    if ( pauseWorld ) {
+      soundSystem->SetPlayingSoundWorld(pauseWorld);
+      pauseWorld->UnPause();
+    }
+    // close the sava game file
+    fileSystem->CloseFile(fileOut);
+    return false;
+  }
+
+  fileOutReal->Write(fileOut->GetDataPtr(), fileOut->Length());
+
+  fileSystem->CloseFile(fileOutReal);
+
+#endif
+
   // close the sava game file
   fileSystem->CloseFile(fileOut);
 
@@ -1939,7 +1965,9 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
     game->Draw(0);
     renderSystem->CaptureRenderToFile(previewFile, true, true);
     renderSystem->UnCrop();
+#ifndef __EMSCRIPTEN__
     cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("async_screenshot\n"));
+#endif
   }
 
   // Write description, which is just a text file with

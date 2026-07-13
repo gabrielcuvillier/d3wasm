@@ -902,9 +902,14 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 
 	R_StaticFree( data );
 
-	if (!async) {
+#ifndef __EMSCRIPTEN__
+#else
+	if (!async)
+	{
+#endif
 		R_WriteTGA( fileName, data2, rc->width, rc->height, true );
 		R_StaticFree( data2 );
+#ifndef __EMSCRIPTEN__
 	} else {
 		asyncScreenshot_t sc;
 		sc.filename = fileName;
@@ -914,6 +919,7 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 		sc.flipVertical = true;
 		async_screenshot.Append(sc);
 	}
+#endif
 }
 
 
