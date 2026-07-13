@@ -910,6 +910,7 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 		R_WriteTGA( fileName, data2, rc->width, rc->height, true );
 		R_StaticFree( data2 );
 #ifndef __EMSCRIPTEN__
+#else
 	} else {
 		asyncScreenshot_t sc;
 		sc.filename = fileName;
