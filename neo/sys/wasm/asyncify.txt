@@ -323,8 +323,6 @@ idMaterial::ReloadImages(bool) const
 idMD5Anim::LoadAnim(char const*)
 idMD5Anim::Reload()
 idMD5Mesh::ParseMesh(idLexer&, int, idJointMat const*)
-idMoveable::Save(idSaveGame*) const
-idMoveable::Spawn()
 idMultiplayerGame::Precache()
 idMultiplayerGame::Reset()
 idMultiplayerGame::SetMapShot()
