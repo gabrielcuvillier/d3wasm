@@ -919,6 +919,7 @@ void idRenderSystemLocal::CaptureRenderToFile( const char *fileName, bool fixAlp
 		sc.height = rc->height;
 		sc.flipVertical = true;
 		async_screenshot.Append(sc);
+		cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("async_screenshot\n"));
 	}
 #endif
 }
