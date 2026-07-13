@@ -226,10 +226,29 @@ static void Sess_WritePrecache_f(const idCmdArgs& args) {
   }
   idStr str = args.Argv(1);
   str.DefaultFileExtension(".cfg");
+#ifndef __EMSCRIPTEN__
   idFile* f = fileSystem->OpenFileWrite(str, "fs_configpath");
+  if (!f)
+    return;
+#else
+  idFile_Memory* f = new idFile_Memory();
+#endif
+
   declManager->WritePrecacheCommands(f);
   renderModelManager->WritePrecacheCommands(f);
   uiManager->WritePrecacheCommands(f);
+
+#ifndef __EMSCRIPTEN__
+#else
+  idFile *realf = fileSystem->OpenFileWrite( str, "fs_configpath");
+  if ( !realf ) {
+    common->Warning( "couldn't open %s", str.c_str() );
+    fileSystem->CloseFile( f );
+    return;
+  }
+  realf->Write(f->GetDataPtr(), f->Length());
+  fileSystem->CloseFile(realf);
+#endif
 
   fileSystem->CloseFile(f);
 }
@@ -1938,8 +1957,8 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
 #ifndef __EMSCRIPTEN__
 #else
   // Now really save the file to disk, using one big write
-  idFile* fileOutReal = fileSystem->OpenFileWrite(gameFile);
-  if ( fileOutReal == NULL ) {
+  idFile* realf = fileSystem->OpenFileWrite(gameFile);
+  if ( realf == NULL ) {
     common->Warning("Failed to open save file '%s'\n", gameFile.c_str());
     if ( pauseWorld ) {
       soundSystem->SetPlayingSoundWorld(pauseWorld);
@@ -1949,11 +1968,8 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
     fileSystem->CloseFile(fileOut);
     return false;
   }
-
-  fileOutReal->Write(fileOut->GetDataPtr(), fileOut->Length());
-
-  fileSystem->CloseFile(fileOutReal);
-
+  realf->Write(fileOut->GetDataPtr(), fileOut->Length());
+  fileSystem->CloseFile(realf);
 #endif
 
   // close the sava game file
@@ -1965,9 +1981,6 @@ bool idSessionLocal::SaveGame(const char* saveName, bool autosave) {
     game->Draw(0);
     renderSystem->CaptureRenderToFile(previewFile, true, true);
     renderSystem->UnCrop();
-#ifndef __EMSCRIPTEN__
-    cmdSystem->BufferCommandText(CMD_EXEC_APPEND, va("async_screenshot\n"));
-#endif
   }
 
   // Write description, which is just a text file with
@@ -2046,9 +2059,23 @@ bool idSessionLocal::LoadGame(const char* saveName) {
   // only allow loads from the game directory because we don't want a base game to load
   idStr game = cvarSystem->GetCVarString("fs_game");
   savegameFile = fileSystem->OpenFileRead(in, true, game.Length() ? game : NULL);
+#ifndef __EMSCRIPTEN__
+#else
+  // Hijack the savegame file into memory instead
+  byte* fileSaveData = (byte *)Mem_Alloc( savegameFile->Length() );
+  common->DPrintf("Loading savegame from memory %d\n", savegameFile->Length());
+  savegameFile->Read( fileSaveData, savegameFile->Length() );
+  idFile* memFile = new idFile_Memory( va( "preloaded(%s)", savegameFile->GetName() ), (const char *)fileSaveData, savegameFile->Length() );
+  fileSystem->CloseFile( savegameFile );
+  savegameFile = memFile;
+#endif
 
   if ( savegameFile == NULL ) {
     common->Warning("Couldn't open savegame file %s", in.c_str());
+#ifndef __EMSCRIPTEN__
+#else
+    Mem_Free(fileSaveData);
+#endif
     return false;
   }
 
@@ -2066,6 +2093,10 @@ bool idSessionLocal::LoadGame(const char* saveName) {
 
     loadingSaveGame = false;
     fileSystem->CloseFile(savegameFile);
+#ifndef __EMSCRIPTEN__
+#else
+    Mem_Free(fileSaveData);
+#endif
     savegameFile = NULL;
     return false;
   }
@@ -2089,6 +2120,10 @@ bool idSessionLocal::LoadGame(const char* saveName) {
     common->Warning("Savegame Version mismatch: aborting loadgame and starting level with persistent data");
     loadingSaveGame = false;
     fileSystem->CloseFile(savegameFile);
+#ifndef __EMSCRIPTEN__
+#else
+    Mem_Free(fileSaveData);
+#endif
     savegameFile = NULL;
   }
 
@@ -2118,6 +2153,10 @@ bool idSessionLocal::LoadGame(const char* saveName) {
 
   if ( loadingSaveGame ) {
     fileSystem->CloseFile(savegameFile);
+#ifndef __EMSCRIPTEN__
+#else
+    Mem_Free(fileSaveData);
+#endif
     loadingSaveGame = false;
     savegameFile = NULL;
   }

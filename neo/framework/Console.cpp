@@ -479,14 +479,18 @@ Save the console contents out to a file
 void idConsoleLocal::Dump( const char *fileName ) {
 	int		l, x, i;
 	short *	line;
-	idFile *f;
+
 	char	buffer[LINE_WIDTH + 3];
 
-	f = fileSystem->OpenFileWrite( fileName );
+#ifndef __EMSCRIPTEN__
+	idFile* f = fileSystem->OpenFileWrite( fileName );
 	if ( !f ) {
 		common->Warning( "couldn't open %s", fileName );
 		return;
 	}
+#else
+	idFile_Memory* f = new idFile_Memory();
+#endif
 
 	// skip empty lines
 	l = current - TOTAL_LINES + 1;
@@ -521,12 +525,29 @@ void idConsoleLocal::Dump( const char *fileName ) {
 		buffer[x+3] = 0;
 		f->Write( buffer, strlen( buffer ) );
 	}
-
+#ifndef __EMSCRIPTEN__
+#else
+	idFile *realf = fileSystem->OpenFileWrite( fileName );
+	if ( !realf ) {
+		common->Warning( "couldn't open %s", fileName );
+		fileSystem->CloseFile( f );
+		return;
+	}
+	realf->Write(f->GetDataPtr(), f->Length());
+	fileSystem->CloseFile(realf);
+#endif
 	fileSystem->CloseFile( f );
 }
 
 void idConsoleLocal::SaveHistory() {
-	idFile *f = fileSystem->OpenFileWrite( "consolehistory.dat" );
+#ifndef __EMSCRIPTEN__
+	idFile* f = fileSystem->OpenFileWrite( "consolehistory.dat" );
+	if (!f) {
+		return;
+	}
+#else
+	idFile_Memory* f = new idFile_Memory();
+#endif
 	for ( int i=0; i < COMMAND_HISTORY; ++i ) {
 		// make sure the history is in the right order
 		int line = (nextHistoryLine + i) % COMMAND_HISTORY;
@@ -535,6 +556,17 @@ void idConsoleLocal::SaveHistory() {
 			f->WriteString(s);
 		}
 	}
+
+#ifndef __EMSCRIPTEN__
+#else
+	idFile* realf = fileSystem->OpenFileWrite( "consolehistory.dat" );
+	if ( !realf ) {
+		fileSystem->CloseFile(f);
+		return;
+	}
+	realf->Write(f->GetDataPtr(), f->Length());
+	fileSystem->CloseFile(realf);
+#endif
 	fileSystem->CloseFile(f);
 }
 

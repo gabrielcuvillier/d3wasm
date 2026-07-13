@@ -1001,6 +1001,19 @@ f->Printf( "// %s\n", out.c_str() );
 
   idKeyInput::WriteBindings(f);
   cvarSystem->WriteFlaggedVariables(CVAR_ARCHIVE, "seta", f);
+
+#ifndef __EMSCRIPTEN__
+#else
+  idFile* realf = fileSystem->OpenFileWrite(filename, "fs_configpath");
+  if ( !realf ) {
+    Printf("Couldn't write %s.\n", filename);
+    fileSystem->CloseFile(f);
+    return;
+  }
+  realf->Write(f->GetDataPtr(), f->Length());
+  fileSystem->CloseFile(realf);
+#endif
+
   fileSystem->CloseFile(f);
 }
 
