@@ -47,7 +47,7 @@ class idMat3;
 class idMat4;
 class idCQuat;
 
-class idQuat {
+class ALIGN16(idQuat) {
 public:
 	float			x;
 	float			y;
