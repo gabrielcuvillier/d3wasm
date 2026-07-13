@@ -972,7 +972,6 @@ idCommonLocal::WriteConfigToFile
 ==================
 */
 void idCommonLocal::WriteConfigToFile(const char* filename) {
-  idFile* f;
 #ifdef ID_WRITE_VERSION
   ID_TIME_T t;
 char *curtime;
@@ -981,11 +980,15 @@ idFile_Memory compressed( "compressed" );
 idBase64 out;
 #endif
 
-  f = fileSystem->OpenFileWrite(filename, "fs_configpath");
+#ifndef __EMSCRIPTEN__
+  idFile* f = fileSystem->OpenFileWrite(filename, "fs_configpath");
   if ( !f ) {
     Printf("Couldn't write %s.\n", filename);
     return;
   }
+#else
+  idFile_Memory* f = new idFile_Memory();
+#endif
 
 #ifdef ID_WRITE_VERSION
   assert( config_compressor );
