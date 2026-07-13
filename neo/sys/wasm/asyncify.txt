@@ -1,8 +1,11 @@
 *OPFS*
 *wasmfs*
+__fseeko
+__fseeko_unlocked
 __fstat
 __fstatat
 __fwritex
+__lseek
 __stdio_close
 __stdio_read
 __stdio_seek

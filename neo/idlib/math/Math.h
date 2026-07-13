@@ -309,7 +309,7 @@ ID_INLINE float idMath::Sqrt( float x ) {
 #ifndef __EMSCRIPTEN__
 	return x * InvSqrt( x );
 #else
-	return sqrtf(x);
+	return (x>= 0)? sqrtf(x) : 0.0f;
 #endif
 }
 
@@ -317,7 +317,7 @@ ID_INLINE double idMath::Sqrt64( float x ) {
 #ifndef __EMSCRIPTEN__
 	return x * InvSqrt64( x );
 #else
-	return sqrt(x);
+	return (x>= 0)? sqrt(x) : 0.0f;
 #endif
 }
 
@@ -764,8 +764,12 @@ ID_INLINE int idMath::BitReverse( int x ) {
 }
 
 ID_INLINE int idMath::Abs( int x ) {
+#ifndef __EMSCRIPTEN__
    int y = x >> 31;
    return ( ( x ^ y ) - y );
+#else
+	return abs(x);
+#endif
 }
 
 ID_INLINE float idMath::Fabs( float f ) {
