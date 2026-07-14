@@ -1744,7 +1744,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
 			declManager->MediaPrint( "Precaching head %s\n", kv->GetValue().c_str() );
-			common->Printf( "Precaching head %s\n", kv->GetValue().c_str() );
 			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
 				// precache the render model
 				renderModelManager->FindModel( kv->GetValue() );
