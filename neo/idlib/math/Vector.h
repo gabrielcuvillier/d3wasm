@@ -810,7 +810,7 @@ ID_INLINE bool idVec3::ProjectAlongPlane( const idVec3 &normal, const float epsi
 //
 //===============================================================
 
-class ALIGN16(idVec4) {
+class idVec4 {
 public:
 	float			x;
 	float			y;

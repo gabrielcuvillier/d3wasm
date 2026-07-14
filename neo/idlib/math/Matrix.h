@@ -55,7 +55,7 @@ class idMat4;
 //
 //===============================================================
 
-class ALIGN16(idMat2) {
+class idMat2 {
 public:
 					idMat2( void );
 					explicit idMat2( const idVec2 &x, const idVec2 &y );
@@ -769,7 +769,7 @@ ID_INLINE float *idMat3::ToFloatPtr( void ) {
 //
 //===============================================================
 
-class ALIGN16(idMat4) {
+class idMat4 {
 public:
 					idMat4( void );
 					explicit idMat4( const idVec4 &x, const idVec4 &y, const idVec4 &z, const idVec4 &w );
@@ -1468,7 +1468,7 @@ ID_INLINE float *idMat5::ToFloatPtr( void ) {
 //
 //===============================================================
 
-class ALIGN16(idMat6) {
+class idMat6 {
 public:
 					idMat6( void );
 					explicit idMat6( const idVec6 &v0, const idVec6 &v1, const idVec6 &v2, const idVec6 &v3, const idVec6 &v4, const idVec6 &v5 );

@@ -71,7 +71,7 @@ class idMat3;
 #define PLANETYPE_ZEROZ				8
 #define PLANETYPE_NONAXIAL			9
 
-class ALIGN16(idPlane) {
+class idPlane {
 public:
 					idPlane( void );
 					idPlane( float a, float b, float c, float d );
