@@ -681,11 +681,7 @@ idFile_Memory::~idFile_Memory
 =================
 */
 idFile_Memory::~idFile_Memory( void ) {
-	if ( filePtr && allocated > 0 && maxSize == 0 ) {
-		Mem_Free( filePtr );
-		filePtr = 0;
-		allocated = 0;
-	}
+	SafeClose();
 }
 
 /*
@@ -695,6 +691,11 @@ idFile_Memory::SafeClose
 */
 void idFile_Memory::SafeClose( void ) {
 	// Done in destructor
+	if ( filePtr && allocated > 0 && maxSize == 0 ) {
+		Mem_Free( filePtr );
+		filePtr = 0;
+		allocated = 0;
+	}
 }
 
 /*

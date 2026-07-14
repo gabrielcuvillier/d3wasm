@@ -151,6 +151,7 @@ public:
 	const char *			GetDataPtr( void ) const { return filePtr; }
 							// set the file granularity
 	void					SetGranularity( int g ) { assert( g > 0 ); granularity = g; }
+	void					SetForceOwnership( bool b ) { allocated = b; }
 
 private:
 	idStr					name;			// name of the file
