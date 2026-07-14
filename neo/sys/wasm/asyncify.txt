@@ -76,6 +76,8 @@ getU1(idFile*)
 getU2(idFile*)
 getU4(idFile*)
 getVX(idFile*)
+id*::ReadFromSaveGame(idFile*)
+id*::Restore(idRestoreGame*)
 idAASFileLocal::Load(idStr const&, unsigned int)
 idAASFileManagerLocal::LoadAAS(char const*, unsigned int)
 idAASLocal::Init(idStr const&, unsigned int)
@@ -371,7 +373,10 @@ idRenderWorldLocal::ProcessDemoCommand(idDemoFile*, renderView_s*, int*)
 idRenderWorldLocal::ReadRenderEntity()
 idRenderWorldLocal::ReadRenderLight()
 idRenderWorldLocal::TouchWorldModels()
+idRestoreGame::CallRestore_r(idTypeInfo const*, idClass*)
 idRestoreGame::Error*
+idRestoreGame::Read*
+idRestoreGame::RestoreObjects()
 idSampleDecoderLocal::DecodeOGG(idSoundSample*, int, int, float*)
 idServerScan::GUIUpdateSelected()
 idSessionLocal::AdvanceRenderDemo(bool)
@@ -554,8 +559,3 @@ unzReOpen
 unzSetOffset64
 UpdateGuiParms(idUserInterface*, idDict const*)
 writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)
-idRestoreGame::Read*
-idRestoreGame::CallRestore_r(idTypeInfo const*, idClass*)
-idRestoreGame::RestoreObjects()
-id*::Restore(idRestoreGame*)
-id*::ReadFromSaveGame(idFile*)
