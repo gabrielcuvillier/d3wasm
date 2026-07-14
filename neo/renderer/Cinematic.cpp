@@ -90,7 +90,6 @@ private:
 	float					frameRate;
 
 	byte *					image;
-	byte *					fileImage;
 
 	bool					looping;
 	bool					dirty;
@@ -269,7 +268,6 @@ idCinematicLocal::idCinematicLocal
 */
 idCinematicLocal::idCinematicLocal() {
 	image = NULL;
-	fileImage = NULL;
 	status = FMV_EOF;
 	buf = NULL;
 	iFile = NULL;
