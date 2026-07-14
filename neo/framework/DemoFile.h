@@ -76,7 +76,6 @@ private:
 	static idCompressor *AllocCompressor( int type );
 
 	bool			writing;
-	byte *			fileImage;
 	idFile *		f;
 	idCompressor *	compressor;
 

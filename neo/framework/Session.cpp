@@ -2062,20 +2062,18 @@ bool idSessionLocal::LoadGame(const char* saveName) {
 #ifndef __EMSCRIPTEN__
 #else
   // Hijack the savegame file into memory instead
-  byte* fileSaveData = (byte *)Mem_Alloc( savegameFile->Length() );
-  common->DPrintf("Loading savegame from memory %d\n", savegameFile->Length());
-  savegameFile->Read( fileSaveData, savegameFile->Length() );
-  idFile* memFile = new idFile_Memory( va( "preloaded(%s)", savegameFile->GetName() ), (const char *)fileSaveData, savegameFile->Length() );
+  common->DPrintf("Preloading savegame: %s\n", in.c_str());
+  int l = savegameFile->Length();
+  byte* fileSaveData = (byte *)Mem_Alloc( l );
+  int read = savegameFile->Read( fileSaveData, l);
   fileSystem->CloseFile( savegameFile );
+  idFile_Memory* memFile = new idFile_Memory( va( "preloaded(%s)", in.c_str() ), (const char *)fileSaveData, l );
+  memFile->SetForceOwnership(true);
   savegameFile = memFile;
 #endif
 
   if ( savegameFile == NULL ) {
     common->Warning("Couldn't open savegame file %s", in.c_str());
-#ifndef __EMSCRIPTEN__
-#else
-    Mem_Free(fileSaveData);
-#endif
     return false;
   }
 
@@ -2093,10 +2091,6 @@ bool idSessionLocal::LoadGame(const char* saveName) {
 
     loadingSaveGame = false;
     fileSystem->CloseFile(savegameFile);
-#ifndef __EMSCRIPTEN__
-#else
-    Mem_Free(fileSaveData);
-#endif
     savegameFile = NULL;
     return false;
   }
@@ -2120,10 +2114,6 @@ bool idSessionLocal::LoadGame(const char* saveName) {
     common->Warning("Savegame Version mismatch: aborting loadgame and starting level with persistent data");
     loadingSaveGame = false;
     fileSystem->CloseFile(savegameFile);
-#ifndef __EMSCRIPTEN__
-#else
-    Mem_Free(fileSaveData);
-#endif
     savegameFile = NULL;
   }
 
@@ -2153,10 +2143,6 @@ bool idSessionLocal::LoadGame(const char* saveName) {
 
   if ( loadingSaveGame ) {
     fileSystem->CloseFile(savegameFile);
-#ifndef __EMSCRIPTEN__
-#else
-    Mem_Free(fileSaveData);
-#endif
     loadingSaveGame = false;
     savegameFile = NULL;
   }

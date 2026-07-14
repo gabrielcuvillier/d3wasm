@@ -34,7 +34,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "framework/DemoFile.h"
 
 idCVar idDemoFile::com_compressDemos( "com_compressDemos", "1", EM_CVAR_FLAGS(CVAR_SYSTEM | CVAR_INTEGER | CVAR_ARCHIVE), "Compression scheme for demo files\n0: None    (Fast, large files)\n1: LZW     (Fast to compress, Fast to decompress, medium/small files)\n2: LZSS    (Slow to compress, Fast to decompress, small files)\n3: Huffman (Fast to compress, Slow to decompress, medium files)\nSee also: The 'CompressDemo' command" );
-idCVar idDemoFile::com_preloadDemos( "com_preloadDemos", "0", EM_CVAR_FLAGS(CVAR_SYSTEM | CVAR_BOOL | CVAR_ARCHIVE), "Load the whole demo in to RAM before running it" );
+idCVar idDemoFile::com_preloadDemos( "com_preloadDemos", EM_CVAR_VAL("0","1"), CVAR_SYSTEM | CVAR_BOOL | CVAR_ARCHIVE, "Load the whole demo in to RAM before running it" );
 idCVar idDemoFile::com_logDemos( "com_logDemos", "0", EM_CVAR_FLAGS(CVAR_SYSTEM | CVAR_BOOL), "Write demo.log with debug information in it" );
 
 #define DEMO_MAGIC GAME_NAME " RDEMO"
@@ -48,7 +48,6 @@ idDemoFile::idDemoFile() {
 	f = NULL;
 	fLog = NULL;
 	log = false;
-	fileImage = NULL;
 	compressor = NULL;
 	writing = false;
 }
@@ -98,10 +97,13 @@ bool idDemoFile::OpenForReading( const char *fileName ) {
 	fileLength = f->Length();
 
 	if ( com_preloadDemos.GetBool() ) {
-		fileImage = (byte *)Mem_Alloc( fileLength );
+		common->DPrintf("Preloading demo: %s\n", fileName);
+		byte* fileImage = (byte *)Mem_Alloc( fileLength );
 		f->Read( fileImage, fileLength );
 		fileSystem->CloseFile( f );
-		f = new idFile_Memory( va( "preloaded(%s)", fileName ), (const char *)fileImage, fileLength );
+		idFile_Memory* filemem = new idFile_Memory( va( "preloaded(%s)", fileName ), (const char *)fileImage, fileLength );
+		filemem->SetForceOwnership(true);
+		f = filemem;
 	}
 
 #ifndef __EMSCRIPTEN__
@@ -193,16 +195,15 @@ void idDemoFile::Close() {
 	}
 
 	if ( f ) {
+		if (dynamic_cast<idFile_Memory*>(f)) {
+			common->DPrintf("Unloading demo: %s\n", f->GetName());
+		}
 		fileSystem->CloseFile( f );
 		f = NULL;
 	}
 	if ( fLog ) {
 		fileSystem->CloseFile( fLog );
 		fLog = NULL;
-	}
-	if ( fileImage ) {
-		Mem_Free( fileImage );
-		fileImage = NULL;
 	}
 	if ( compressor ) {
 		delete compressor;
