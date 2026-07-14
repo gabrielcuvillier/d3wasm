@@ -1740,6 +1740,19 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "def", kv );
 	}
 
+	kv = dict->MatchPrefix( "def_head", NULL );
+	while( kv ) {
+		if ( kv->GetValue().Length() ) {
+			declManager->MediaPrint( "Precaching head %s\n", kv->GetValue().c_str() );
+			common->Printf( "Precaching head %s\n", kv->GetValue().c_str() );
+			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( kv->GetValue() );
+			}
+		}
+		kv = dict->MatchPrefix( "def_head", kv );
+	}
+
 	kv = dict->MatchPrefix( "pda_name", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
