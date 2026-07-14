@@ -1321,6 +1321,29 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 			if ( mapEnt->epairs.GetString( "classname", "", &classname ) ) {
 				FindEntityDef( classname, false );
 			}
+
+			const idKeyValue *kv;
+			kv = mapEnt->epairs.MatchPrefix( "call" );
+			while( kv != NULL ) {
+				function_t* func = gameLocal.program.FindFunction( kv->GetValue() );
+				if ( func ) {
+					common->Printf( "ent %d found namespacce %s\n", i, func->def->scope->Name() );
+					gameLocal.PrecacheScriptReferencesForNamespace(func->def->scope->Name());
+				}
+				kv =  mapEnt->epairs.MatchPrefix( "call", kv );
+			}
+			kv = mapEnt->epairs.MatchPrefix( "scriptobject" );
+			while( kv != NULL ) {
+				common->Printf( "found scriptobject %s\n", kv->GetValue().c_str() );
+				gameLocal.PrecacheScriptReferencesForTypeDef(kv->GetValue());
+				kv =  mapEnt->epairs.MatchPrefix( "scriptobject", kv );
+			}
+			kv = mapEnt->epairs.MatchPrefix( "spawnfunc" );
+			while( kv != NULL ) {
+				common->Printf( "found spawnfunc %s\n", kv->GetValue().c_str() );
+				gameLocal.PrecacheScriptReferencesForFunction(kv->GetValue());
+				kv =  mapEnt->epairs.MatchPrefix( "spawnfunc", kv );
+			}
 		}
 	}
 
