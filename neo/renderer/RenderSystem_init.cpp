@@ -858,7 +858,7 @@ static float R_RenderingFPS( const renderView_t *renderView ) {
 		renderSystem->EndFrame( NULL, NULL );
 		qglFinish();
 #ifdef __EMSCRIPTEN__
-		common->ForceRefreshScreen(false);
+		common->ForceRefreshScreen(0);
 #endif
 		count++;
 		end = Sys_Milliseconds();
