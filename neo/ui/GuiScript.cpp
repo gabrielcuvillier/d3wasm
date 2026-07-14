@@ -441,7 +441,6 @@ void idGuiScript::FixupParms(idWindow *win) {
 	if (handler == &Script_Set) {
 		bool precacheBackground = false;
 		bool precacheSounds = false;
-		bool precacheModels = false;
 		idWinStr *str = dynamic_cast<idWinStr*>(parms[0].var);
 		assert(str);
 		idWinVar *dest = win->GetWinVarByName(*str, true);
@@ -452,9 +451,6 @@ void idGuiScript::FixupParms(idWindow *win) {
 
 			if ( dynamic_cast<idWinBackground *>(dest) != NULL ) {
 				precacheBackground = true;
-			}
-			else if (dynamic_cast<idRenderWindow*>(dest) != NULL) {
-				precacheModels = true;
 			}
  		} else if ( idStr::Icmp( str->c_str(), "cmd" ) == 0 ) {
 			precacheSounds = true;
@@ -508,11 +504,6 @@ void idGuiScript::FixupParms(idWindow *win) {
 							declManager->FindSound( token.c_str() );
 						}
 					}
-				}
-			} else if ( precacheModels ) {
-				const idDecl* decl = declManager->FindType( DECL_MODELDEF, str->c_str(), false );
-				if ( decl ) {
-					renderModelManager->FindModel( str->c_str() );
 				}
 			}
 		}

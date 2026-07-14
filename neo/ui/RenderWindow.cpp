@@ -32,7 +32,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "ui/DeviceContext.h"
 #include "ui/Window.h"
 #include "ui/UserInterfaceLocal.h"
-
+#include "renderer/ModelManager.h"
 #include "ui/RenderWindow.h"
 
 idRenderWindow::idRenderWindow(idDeviceContext *d, idUserInterfaceLocal *g) : idWindow(d, g) {
@@ -177,6 +177,9 @@ void idRenderWindow::Draw(int time, float x_, float y_) {
 
 void idRenderWindow::PostParse() {
 	idWindow::PostParse();
+	if (modelName.Length()) {
+		renderModelManager->FindModel( modelName.c_str() );
+	}
 }
 
 //
