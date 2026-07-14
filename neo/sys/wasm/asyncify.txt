@@ -434,6 +434,8 @@ idSoundShader::TouchData() const
 idSoundSystemLocal::EndLevelLoad(char const*)
 idSoundSystemLocal::Init()
 idSoundWorldLocal::ProcessDemoCommand(idDemoFile*)
+idSoundWorldLocal::ReadFromSaveGameSoundChannel(idFile*, idSoundChannel*)
+idSoundWorldLocal::ReadFromSaveGameSoundShaderParams(idFile*, soundShaderParms_t*)
 idThread::Error*
 idUserInterfaceLocal::Activate(bool, int)
 idUserInterfaceLocal::HandleEvent(sysEvent_t const*, int, bool*)
