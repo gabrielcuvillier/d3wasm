@@ -177,6 +177,7 @@ void idRenderModelManagerLocal::TouchModel_f( const idCmdArgs &args ) {
 
 	common->Printf( "touchModel %s\n", model );
 	session->UpdateScreen();
+	common->ForceRefreshScreen(0);
 	idRenderModel *m = renderModelManager->CheckModel( model );
 	if ( !m ) {
 		common->Printf( "...not found\n" );

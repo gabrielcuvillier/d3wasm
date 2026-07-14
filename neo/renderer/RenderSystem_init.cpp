@@ -1575,6 +1575,7 @@ void R_TouchGui_f( const idCmdArgs &args ) {
 
 	common->Printf( "touchGui %s\n", gui );
 	session->UpdateScreen();
+	common->ForceRefreshScreen(0);
 	uiManager->Touch( gui );
 }
 

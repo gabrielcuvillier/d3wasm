@@ -2062,6 +2062,7 @@ void idFileSystemLocal::TouchFileList_f( const idCmdArgs &args ) {
 			while( src.ReadToken( &token ) ) {
 				common->Printf( "%s\n", token.c_str() );
 				session->UpdateScreen();
+				common->ForceRefreshScreen(0);
 				idFile *f = fileSystemLocal.OpenFileRead( token );
 				if ( f ) {
 					fileSystemLocal.CloseFile( f );

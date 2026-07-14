@@ -686,6 +686,7 @@ void idConsoleLocal::KeyDownEvent( int key ) {
 
 		session->UpdateScreen();// force an update, because the command
 								// may take some time
+		common->ForceRefreshScreen(0);
 		return;
 	}
 
