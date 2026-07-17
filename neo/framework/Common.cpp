@@ -2186,9 +2186,7 @@ void idCommonLocal::GUIFrame(bool execCmd, bool network) {
 
 void idCommonLocal::ForceRefreshScreen(bool vsync) {
 #ifdef __EMSCRIPTEN__
-  if (vsync) {
-    emscripten_sleep(vsync ? USERCMD_MSEC : 0);
-  }
+  emscripten_sleep(vsync ? USERCMD_MSEC : 0);
 #endif
 }
 
