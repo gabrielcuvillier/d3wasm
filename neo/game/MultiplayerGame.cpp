@@ -3221,6 +3221,7 @@ bool idMultiplayerGame::WantRespawn( idPlayer *p ) {
 	return p->forceRespawn && !p->wantSpectate && playerState[ p->entityNumber ].ingame;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idMultiplayerGame::VoiceChat
@@ -3332,6 +3333,7 @@ void idMultiplayerGame::ProcessVoiceChat( int clientNum, bool team, int index ) 
 		ProcessChatMessage( clientNum, team, name, spawnArgs->GetString( text_key ), NULL );
 	}
 }
+#endif
 
 /*
 ================

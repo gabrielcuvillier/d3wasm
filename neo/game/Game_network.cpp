@@ -808,7 +808,9 @@ void idGameLocal::ServerProcessReliableMessage( int clientNum, const idBitMsg &m
 		case GAME_RELIABLE_MESSAGE_VCHAT: {
 			int index = msg.ReadInt();
 			bool team = msg.ReadBits( 1 ) != 0;
+#ifndef __EMSCRIPTEN__
 			mpGame.ProcessVoiceChat( clientNum, team, index );
+#endif
 			break;
 		}
 		case GAME_RELIABLE_MESSAGE_KILL: {
