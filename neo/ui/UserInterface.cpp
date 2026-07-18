@@ -53,12 +53,20 @@ idUserInterfaceManager *	uiManager = &uiManagerLocal;
 void idUserInterfaceManagerLocal::Init() {
 	screenRect = idRectangle(0, 0, 640, 480);
 	dc.Init();
+	guiCacheIndex.Clear();
+	guiCacheSources.Clear();
+	guiCacheTimestamps.Clear();
+	guiCacheNames.Clear();
 }
 
 void idUserInterfaceManagerLocal::Shutdown() {
 	guis.DeleteContents( true );
 	demoGuis.DeleteContents( true );
 	dc.Shutdown();
+	guiCacheIndex.Clear();
+	guiCacheSources.Clear();
+	guiCacheTimestamps.Clear();
+	guiCacheNames.Clear();
 }
 
 void idUserInterfaceManagerLocal::Touch( const char *name ) {
@@ -289,10 +297,33 @@ bool idUserInterfaceLocal::InitFromFile( const char *qpath, bool rebuild, bool c
 
 	idParser src( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
 
-	//Load the timestamp so reload guis will work correctly
-	fileSystem->ReadFile(qpath, NULL, &timeStamp);
+	int index = -1;
 
-	src.LoadFile( qpath );
+	const int key = uiManagerLocal.guiCacheIndex.GenerateKey(qpath);
+	for ( int i = uiManagerLocal.guiCacheIndex.First( key ); i != -1; i = uiManagerLocal.guiCacheIndex.Next( i ) ) {
+		if (uiManagerLocal.guiCacheNames[i] == qpath) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1) {
+		char* buffer = 0;
+		int l = fileSystem->ReadFile(qpath, ( void** )&buffer, &timeStamp);
+		if (l != -1) {
+			index = uiManagerLocal.guiCacheNames.Append(qpath);
+			uiManagerLocal.guiCacheIndex.Add(key, index);
+			//Load the timestamp so reload guis will work correctly
+			uiManagerLocal.guiCacheSources.Append(buffer);
+			uiManagerLocal.guiCacheTimestamps.Append(timeStamp);
+			fileSystem->FreeFile(buffer);
+		}
+	}
+
+	if (index != -1) {
+		timeStamp = uiManagerLocal.guiCacheTimestamps[index];
+		src.LoadMemory(uiManagerLocal.guiCacheSources[index].c_str(), uiManagerLocal.guiCacheSources[index].Length(), qpath);
+	}
 
 	if ( src.IsLoaded() ) {
 		idToken token;

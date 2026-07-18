@@ -147,4 +147,9 @@ private:
 	idList<idUserInterfaceLocal*> guis;
 	idList<idUserInterfaceLocal*> demoGuis;
 
+public:
+	idHashIndex					guiCacheIndex;
+	idList<idStr>				guiCacheNames;
+	idList<idStr>				guiCacheSources;
+	idList<ID_TIME_T>			guiCacheTimestamps;
 };
