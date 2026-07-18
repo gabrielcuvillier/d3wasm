@@ -71,13 +71,15 @@ void idWorldspawn::Spawn( void ) {
 	// load script
 	scriptname = gameLocal.GetMapName();
 	scriptname.SetFileExtension( ".script" );
+#ifndef __EMSCRIPTEN__
 	if ( fileSystem->ReadFile( scriptname, NULL, NULL ) > 0 ) {
 		gameLocal.program.CompileFile( scriptname );
-
+#else
+	{
+#endif
 		// call the main function by default
 		func = gameLocal.program.FindFunction( "main" );
 		if ( func != NULL ) {
-			gameLocal.PrecacheScriptReferencesForFile(scriptname);
 			thread = new idThread( func );
 			thread->DelayedStart( 0 );
 		}
@@ -89,8 +91,6 @@ void idWorldspawn::Spawn( void ) {
 		func = gameLocal.program.FindFunction( kv->GetValue() );
 		if ( func == NULL ) {
 			gameLocal.Error( "Function '%s' not found in script for '%s' key on worldspawn", kv->GetValue().c_str(), kv->GetKey().c_str() );
-		} else {
-			gameLocal.PrecacheScriptReferencesForNamespace(func->def->scope->Name());
 		}
 
 		thread = new idThread( func );
