@@ -40,6 +40,9 @@ If you have questions concerning this license or the applicable additional terms
 #include "gamesys/SysCmds.h"
 #include "script/Script_Thread.h"
 #include "ai/AI.h"
+#ifndef __EMSCRIPTEN__
+#include "anim/Anim_Testmodel.h"
+#endif
 #include "Camera.h"
 #include "SmokeParticles.h"
 #include "Player.h"
@@ -47,10 +50,14 @@ If you have questions concerning this license or the applicable additional terms
 #include "Misc.h"
 #include "Trigger.h"
 
+#include "framework/Licensee.h" // DG: for ID__DATE__
+
 #include "Game_local.h"
 
-#ifdef __EMSCRIPTEN__
-#include "emscripten.h"
+#ifndef __EMSCRIPTEN__
+#ifndef GAME_DLL
+#include "tools/compilers/aas/AASFileManager.h"
+#endif
 #endif
 
 const int NUM_RENDER_PORTAL_BITS	= idMath::BitsForInteger( PS_BLOCK_ALL );
@@ -59,6 +66,7 @@ const float	DEFAULT_GRAVITY			= 1066.0f;
 const idVec3	DEFAULT_GRAVITY_VEC3( 0, 0, -DEFAULT_GRAVITY );
 const int	CINEMATIC_SKIP_DELAY	= SEC2MS( 2.0f );
 
+#ifndef __EMSCRIPTEN__
 #ifdef GAME_DLL
 
 idSys *						sys = NULL;
@@ -78,8 +86,7 @@ idCVar *					idCVar::staticVars = NULL;
 
 idCVar com_forceGenericSIMD( "com_forceGenericSIMD", "0", CVAR_BOOL|CVAR_SYSTEM, "force generic platform independent SIMD" );
 
-#else
-#include "tools/compilers/aas/AASFileManager.h"
+#endif
 #endif
 
 idRenderWorld *				gameRenderWorld = NULL;		// all drawing is done to this world
@@ -119,7 +126,9 @@ extern "C" ID_GAME_API gameExport_t *GetGameAPI( gameImport_t *import ) {
 		renderModelManager			= import->renderModelManager;
 		uiManager					= import->uiManager;
 		declManager					= import->declManager;
+#ifndef __EMSCRIPTEN__
 		AASFileManager				= import->AASFileManager;
+#endif
 		collisionModelManager		= import->collisionModelManager;
 	}
 
@@ -157,7 +166,9 @@ void TestGameAPI( void ) {
 	testImport.renderModelManager		= ::renderModelManager;
 	testImport.uiManager				= ::uiManager;
 	testImport.declManager				= ::declManager;
+#ifndef __EMSCRIPTEN__
 	testImport.AASFileManager			= ::AASFileManager;
+#endif
 	testImport.collisionModelManager	= ::collisionModelManager;
 
 	testExport = *GetGameAPI( &testImport );
@@ -201,6 +212,9 @@ void idGameLocal::Clear( void ) {
 	random.SetSeed( 0 );
 	world = NULL;
 	frameCommandThread = NULL;
+#ifndef __EMSCRIPTEN__
+	testmodel = NULL;
+#endif
 	testFx = NULL;
 	clip.Shutdown();
 	pvs.Shutdown();
@@ -393,8 +407,10 @@ void idGameLocal::Shutdown( void ) {
 
 	idAI::FreeObstacleAvoidanceNodes();
 
+#ifndef __EMSCRIPTEN__
 	// shutdown the model exporter
-	//idModelExport::Shutdown();
+	idModelExport::Shutdown();
+#endif
 
 	idEvent::Shutdown();
 
@@ -538,7 +554,9 @@ void idGameLocal::SaveGame( idFile *f ) {
 	// clip
 	// push
 	// pvs
-
+#ifndef __EMSCRIPTEN__
+	testmodel = NULL;
+#endif
 	testFx = NULL;
 
 	savegame.WriteString( sessionCommand );
@@ -934,6 +952,9 @@ void idGameLocal::LoadMap( const char *mapName, int randseed ) {
 
 	camera			= NULL;
 	world			= NULL;
+#ifndef __EMSCRIPTEN__
+	testmodel		= NULL;
+#endif
 	testFx			= NULL;
 
 	lastAIAlertEntity = NULL;
@@ -976,32 +997,6 @@ void idGameLocal::LoadMap( const char *mapName, int randseed ) {
 
 	// cache miscellanious media references
 	FindEntityDef( "preCacheExtras", false );
-
-	// Hack: Look for the personnal PDA before to preload it
-	declManager->FindType(DECL_PDA, "personal", false);
-	// as well as other stuff needed
-	declManager->FindMaterial("itemHighlightShell", false);
-	declManager->FindMaterial("textures/decals/duffysplatgun", false);
-	declManager->FindSkin("skins/models/weapons/0rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/1rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/2rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/3rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/4rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/5rox.skin", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_generic", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_moverCrush", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_crush", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_Gib", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_telefrag", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_explosion", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_fatalfall", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_hardfall", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_softfall", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_noair", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_suicide", false);
-	declManager->FindType(DECL_ENTITYDEF,"damage_painTrigger", false);
-	declManager->FindType(DECL_ENTITYDEF,"projectile_debris", false);
-	declManager->FindType(DECL_ENTITYDEF,"projectile_shrapnel", false);
 
 	if ( !sameMap ) {
 		mapFile->RemovePrimitiveData();
@@ -1074,6 +1069,7 @@ idGameLocal::MapRestart
 ===================
 */
 void idGameLocal::MapRestart( ) {
+
 	idBitMsg	outMsg;
 	byte		msgBuf[MAX_GAME_MESSAGE_SIZE];
 	idDict		newInfo;
@@ -1112,6 +1108,7 @@ void idGameLocal::MapRestart( ) {
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===================
 idGameLocal::MapRestart_f
@@ -1126,6 +1123,7 @@ void idGameLocal::MapRestart_f( const idCmdArgs &args ) {
 
 	gameLocal.MapRestart( );
 }
+#endif
 
 /*
 ===================
@@ -1140,7 +1138,7 @@ bool idGameLocal::NextMap( void ) {
 	int					i;
 
 	if ( !g_mapCycle.GetString()[0] ) {
-		Printf( common->GetLanguageDict()->GetString( "#str_04294" ) );
+		Printf( "%s", common->GetLanguageDict()->GetString( "#str_04294" ) );
 		return false;
 	}
 	if ( fileSystem->ReadFile( g_mapCycle.GetString(), NULL, NULL ) < 0 ) {
@@ -1162,7 +1160,6 @@ bool idGameLocal::NextMap( void ) {
 		Printf( "Couldn't find mapcycle::cycle\n" );
 		return false;
 	}
-	gameLocal.PrecacheScriptReferencesForFunction("mapcycle::cycle");
 	thread = new idThread( func );
 	thread->Start();
 	delete thread;
@@ -1178,6 +1175,7 @@ bool idGameLocal::NextMap( void ) {
 	return ( i != newInfo.GetNumKeyVals() );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===================
 idGameLocal::NextMap_f
@@ -1193,6 +1191,7 @@ void idGameLocal::NextMap_f( const idCmdArgs &args ) {
 	// next map was either voted for or triggered by a server command - always restart
 	gameLocal.MapRestart( );
 }
+#endif
 
 /*
 ===================
@@ -1229,8 +1228,7 @@ void idGameLocal::MapPopulate( void ) {
 idGameLocal::InitFromNewMap
 ===================
 */
-void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorld, idSoundWorld *soundWorld, bool isServer, bool isClient, int randseed ) {
-
+void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorld, idSoundWorld *soundWorld, bool isServer, bool isClient, int randseed) {
 	this->isServer = isServer;
 	this->isClient = isClient;
 	this->isMultiplayer = isServer || isClient;
@@ -1246,6 +1244,8 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	gameRenderWorld = renderWorld;
 	gameSoundWorld = soundWorld;
 
+	PrecacheBeforeMapInit();
+
 	LoadMap( mapName, randseed );
 
 	InitScriptForMap();
@@ -1255,6 +1255,8 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	mpGame.Reset();
 
 	mpGame.Precache();
+
+	PrecacheAfterMapInit();
 
 	// free up any unused animations
 	animationLib.FlushUnusedAnims();
@@ -1274,8 +1276,10 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	idDict si;
 
 	if ( mapFileName.Length() ) {
+		common->DPrintf("ICI\n");
 		MapShutdown();
 	}
+	program.ClearScriptNamesScanList();
 
 	Printf( "----- Game Map Init SaveGame -----\n" );
 
@@ -1283,6 +1287,8 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 
 	gameRenderWorld = renderWorld;
 	gameSoundWorld = soundWorld;
+
+	PrecacheBeforeMapInit();
 
 	idRestoreGame savegame( saveGameFile );
 
@@ -1311,38 +1317,40 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	// precache the player
 	FindEntityDef( "player_doommarine", false );
 
+	// Precache map script namespace, using Worldentity
+	idMapEntity *worldEnt = mapFile->GetEntity( 0 );
+	if (worldEnt) {
+		idStr temp;
+		if (worldEnt->epairs.GetString( "call", "", temp )) {
+			function_t const* func = gameLocal.program.FindFunction( temp );
+			if ( func ) {
+				PrecacheScriptReferencesForNamespace(func->def->scope->Name());
+			}
+		}
+	}
+
+	// Precache map script, using the map name
+	idStr scriptname = gameLocal.GetMapName();
+	scriptname.SetFileExtension( ".script" );
+	if ( fileSystem->ReadFile( scriptname, NULL, NULL ) > 0 ) {
+		// call the main function by default
+		function_t* func = gameLocal.program.FindFunction( "main" );
+		if ( func ) {
+			PrecacheScriptReferencesForFile(scriptname);
+		}
+	}
+
 	// precache any media specified in the map
 	for ( i = 0; i < mapFile->GetNumEntities(); i++ ) {
 		idMapEntity *mapEnt = mapFile->GetEntity( i );
 
 		if ( !InhibitEntitySpawn( mapEnt->epairs ) ) {
+			// precache any media specified in the map entity
 			CacheDictionaryMedia( &mapEnt->epairs );
+			// precache any media referenced by the class
 			const char *classname;
 			if ( mapEnt->epairs.GetString( "classname", "", &classname ) ) {
 				FindEntityDef( classname, false );
-			}
-
-			const idKeyValue *kv;
-			kv = mapEnt->epairs.MatchPrefix( "call" );
-			while( kv != NULL ) {
-				function_t* func = gameLocal.program.FindFunction( kv->GetValue() );
-				if ( func ) {
-					common->Printf( "ent %d found namespacce %s\n", i, func->def->scope->Name() );
-					gameLocal.PrecacheScriptReferencesForNamespace(func->def->scope->Name());
-				}
-				kv =  mapEnt->epairs.MatchPrefix( "call", kv );
-			}
-			kv = mapEnt->epairs.MatchPrefix( "scriptobject" );
-			while( kv != NULL ) {
-				common->Printf( "found scriptobject %s\n", kv->GetValue().c_str() );
-				gameLocal.PrecacheScriptReferencesForTypeDef(kv->GetValue());
-				kv =  mapEnt->epairs.MatchPrefix( "scriptobject", kv );
-			}
-			kv = mapEnt->epairs.MatchPrefix( "spawnfunc" );
-			while( kv != NULL ) {
-				common->Printf( "found spawnfunc %s\n", kv->GetValue().c_str() );
-				gameLocal.PrecacheScriptReferencesForFunction(kv->GetValue());
-				kv =  mapEnt->epairs.MatchPrefix( "spawnfunc", kv );
 			}
 		}
 	}
@@ -1496,6 +1504,17 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 
 	mpGame.Precache();
 
+	PrecacheAfterMapInit();
+
+	for (i = 0; i < num_entities; i++) {
+		idStr entDefName = entities[i]->GetEntityDefName();
+		const idDeclEntityDef *entDef = FindEntityDef(entDefName, false);
+		if (entDef) {
+			// precache any media specified in the entity
+			CacheDictionaryMedia( &entDef->dict );
+		}
+	}
+
 	// free up any unused animations
 	animationLib.FlushUnusedAnims();
 
@@ -1608,6 +1627,17 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		return;
 	}
 
+	idStr spawnclass;
+	kv = dict->FindKey("spawnclass");
+	if (kv && kv->GetValue().Length() ) {
+		spawnclass = kv->GetValue();
+	}
+	idStr classname;
+	kv = dict->FindKey("classname");
+	if (kv && kv->GetValue().Length() ) {
+		classname = kv->GetValue();
+	}
+
 	kv = dict->MatchPrefix( "model" );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
@@ -1623,53 +1653,24 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "model", kv );
 	}
 
-	kv = dict->MatchPrefix( "broken" );
-	while( kv ) {
-		if ( kv->GetValue().Length() ) {
-			common->DPrintf("Preaching broken light model %s\n", kv->GetValue().c_str() );
-			declManager->MediaPrint( "Precaching model %s\n", kv->GetValue().c_str() );
-			// precache model/animations
-			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
-				// precache the render model
-				renderModelManager->FindModel( kv->GetValue() );
-				// precache .cm files only
-				collisionModelManager->LoadModel( kv->GetValue(), true );
-			}
-		}
-		kv = dict->MatchPrefix( "broken", kv );
-	}
-
-	kv = dict->MatchPrefix( "lightning_model" );
-	while( kv ) {
-		if ( kv->GetValue().Length() ) {
-			declManager->MediaPrint( "Precaching model %s\n", kv->GetValue().c_str() );
-			// precache model/animations
-			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
-				// precache the render model
-				renderModelManager->FindModel( kv->GetValue() );
-				// precache .cm files only
-				collisionModelManager->LoadModel( kv->GetValue(), true );
-			}
-		}
-		kv = dict->MatchPrefix( "lightning_model", kv );
-	}
-
 	kv = dict->FindKey( "s_shader" );
 	if ( kv && kv->GetValue().Length() ) {
-		declManager->FindSound( kv->GetValue() );
+		declManager->FindType( DECL_SOUND, kv->GetValue() );
 	}
 
 	kv = dict->MatchPrefix( "snd", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
-			declManager->FindSound( kv->GetValue() );
+			declManager->FindType( DECL_SOUND, kv->GetValue() );
 		}
 		kv = dict->MatchPrefix( "snd", kv );
 	}
 
+	// Handle the case of custom "clipmodel", as some maps use it
 	kv = dict->MatchPrefix( "clipmodel", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
+			common->Printf("Preaching clipmodel %s\n", kv->GetValue().c_str() );
 			declManager->MediaPrint( "Precaching clipmodel %s\n", kv->GetValue().c_str() );
 			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
 				collisionModelManager->LoadModel( kv->GetValue(), true );
@@ -1678,16 +1679,34 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "clipmodel", kv );
 	}
 
+	// Handle the case of "broken" models: might occur for idLight (the so called "broken lights") and idDamagable classes
+	idStr temp;
+	if (dict->GetString( "broken", "", temp ) ) {
+		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+		if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+			// precache the render model
+			renderModelManager->FindModel( temp );
+			// precache .cm files only
+			collisionModelManager->LoadModel( temp, true );
+		}
+	}
+
 	kv = dict->MatchPrefix( "gui", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
 			if ( !idStr::Icmp( kv->GetKey(), "gui_noninteractive" )
 				|| !idStr::Icmpn( kv->GetKey(), "gui_parm", 8 )
-				|| !idStr::Icmp( kv->GetKey(), "gui_inventory" ) ) {
+				|| !idStr::Icmp( kv->GetKey(), "gui_inventory" )
+				// used by d3dm4 map for some reason..
+				|| !idStr::Icmp( kv->GetKey(), "guiColor" )) {
 				// unfortunate flag names, they aren't actually a gui
 			} else {
 				declManager->MediaPrint( "Precaching gui %s\n", kv->GetValue().c_str() );
-				uiManager->FindGui(kv->GetValue(), true);
+				idUserInterface *gui = uiManager->Alloc();
+				if ( gui ) {
+					gui->InitFromFile( kv->GetValue() );
+					uiManager->DeAlloc( gui );
+				}
 			}
 		}
 		kv = dict->MatchPrefix( "gui", kv );
@@ -1704,6 +1723,11 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			declManager->FindType( DECL_MATERIAL, kv->GetValue() );
 		}
 		kv = dict->MatchPrefix( "mtr", kv );
+	}
+
+	// Never used in practice in D3 base game, but the code does support it
+	if (dict->GetString( "shader", "", temp ) ) {
+		declManager->FindType( DECL_MATERIAL, temp );
 	}
 
 	// handles hud icons
@@ -1763,18 +1787,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "def", kv );
 	}
 
-	kv = dict->MatchPrefix( "def_head", NULL );
-	while( kv ) {
-		if ( kv->GetValue().Length() ) {
-			declManager->MediaPrint( "Precaching head %s\n", kv->GetValue().c_str() );
-			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
-				// precache the render model
-				renderModelManager->FindModel( kv->GetValue() );
-			}
-		}
-		kv = dict->MatchPrefix( "def_head", kv );
-	}
-
 	kv = dict->MatchPrefix( "pda_name", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
@@ -1799,6 +1811,103 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "audio", kv );
 	}
 
+	if (spawnclass == "idPlayer") {
+		idStr temp;
+		if (dict->GetString( "mphud", "guis/mphud.gui", temp ) ) {
+			idUserInterface *gui = uiManager->Alloc();
+			if ( gui ) {
+				gui->InitFromFile( temp );
+				uiManager->DeAlloc( gui );
+			}
+		}
+		if (dict->GetString( "hud", "guis/hud.gui", temp ) ) {
+			idUserInterface *gui = uiManager->Alloc();
+			if ( gui ) {
+				gui->InitFromFile( temp );
+				uiManager->DeAlloc( gui );
+			}
+		}
+		if (dict->GetString( "cursor", "guis/cursor.gui", temp ) ) {
+			idUserInterface *gui = uiManager->Alloc();
+			if ( gui ) {
+				gui->InitFromFile( temp );
+				uiManager->DeAlloc( gui );
+			}
+		}
+		if (dict->GetString( "spawn_skin", "", temp ) ) {
+			declManager->FindType( DECL_SKIN, temp );
+		}
+	}
+	if (spawnclass == "idTarget_SetModel") {
+		idStr temp;
+		if (dict->GetString( "newmodel", "", temp ) ) {
+			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( temp );
+				// precache .cm files only
+				collisionModelManager->LoadModel( temp, true );
+			}
+		}
+	}
+	if (spawnclass == "idPlayer" || spawnclass == "idAFEntity_WithAttachedHead" || spawnclass == "idAI") {
+		idStr temp;
+		if (dict->GetString( "def_head", "", temp ) ) {
+			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( temp );
+			}
+		}
+	}
+	if (spawnclass == "idLight" || classname == "light") {
+		idStr temp;
+		if (!dict->GetString( "broken", "", temp ) ) {
+			idStr model;
+			if (dict->GetString( "model", "", model ) ) {
+				int	pos;
+				pos = model.Find( "." );
+				if ( pos < 0 ) {
+					pos = model.Length();
+				}
+				if ( pos > 0 ) {
+					model.Left( pos, temp );
+				}
+				temp += "_broken";
+				if ( pos > 0 ) {
+					temp += &model[ pos ];
+				}
+				if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+					// precache the render model
+					renderModelManager->FindModel( temp );
+					// precache .cm files only
+					collisionModelManager->LoadModel( temp, true );
+				}
+			}
+		}
+		if (dict->GetString( "mat_demonic", "", temp ) ) {
+			declManager->FindType( DECL_MATERIAL, temp );
+		}
+	}
+	if (classname == "monster_boss_guardian_spawner") {
+		idStr temp;
+		// Mostly for the monster_boss_guardian_spawner.def case
+		if (dict->GetString( "lightning_model", "", temp ) ) {
+			common->Printf("Precaching lightning_model %s\n", temp.c_str());
+			// precache model/animations
+			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( temp );
+				// precache .cm files only
+				collisionModelManager->LoadModel( temp, true );
+			} else {
+				common->Printf("Huh? 4\n");
+			}
+		}
+	}
+
+	PrecacheScriptReferences(dict);
+
 	if (gamestate == GAMESTATE_STARTUP) {
 		session->PacifierUpdate();
 	}
@@ -1818,7 +1927,7 @@ void idGameLocal::InitScriptForMap( void ) {
 	// run the main game script function (not the level specific main)
 	const function_t *func = program.FindFunction( SCRIPT_DEFAULTFUNC );
 	if ( func != NULL ) {
-		gameLocal.PrecacheScriptReferencesForFunction(SCRIPT_DEFAULTFUNC);
+		PrecacheScriptReferencesForFunction(SCRIPT_DEFAULTFUNC);
 		idThread *thread = new idThread( func );
 		if ( thread->Start() ) {
 			// thread has finished executing, so delete it
@@ -1838,7 +1947,6 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 
 	// they can connect
 	Printf( "SpawnPlayer: %i\n", clientNum );
-
 	args.SetInt( "spawn_entnum", clientNum );
 	args.Set( "name", va( "player%d", clientNum + 1 ) );
 	args.Set( "classname", isMultiplayer ? "player_doommarine_mp" : "player_doommarine" );
@@ -2166,13 +2274,13 @@ idGameLocal::RunFrame
 ================
 */
 gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds ) {
-	idEntity *	ent;
-	int			num;
-	float		ms;
-	idTimer		timer_think, timer_events, timer_singlethink;
-	gameReturn_t ret;
-	idPlayer	*player;
-	const renderView_t *view;
+	idEntity *			ent;
+	int					num;
+	float				ms;
+	idTimer				timer_think, timer_events, timer_singlethink;
+	gameReturn_t		ret;
+	idPlayer			*player;
+	const renderView_t	*view;
 
 #ifdef _DEBUG
 	if ( isMultiplayer ) {
@@ -2361,9 +2469,11 @@ gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds ) {
 		skipCinematic = false;
 	}
 
+#ifndef __EMSCRIPTEN__
 	// show any debug info for this frame
 	RunDebugInfo();
 	D_DrawDebugLines();
+#endif
 
 	return ret;
 }
@@ -2584,9 +2694,11 @@ void idGameLocal::CallObjectFrameCommand( idEntity *ent, const char *frameComman
 
 	func = ent->scriptObject.GetFunction( frameCommand );
 	if ( !func ) {
-		//if ( !ent->IsType( idTestModel::Type ) ) {
-		//	Error( "Unknown function '%s' called for frame command on entity '%s'", frameCommand, ent->name.c_str() );
-		//}
+#ifndef __EMSCRIPTEN__
+		if ( !ent->IsType( idTestModel::Type ) ) {
+			Error( "Unknown function '%s' called for frame command on entity '%s'", frameCommand, ent->name.c_str() );
+		}
+#endif
 	} else {
 		frameCommandThread->CallFunction( ent, func, true );
 		frameCommandThread->Execute();
@@ -2652,6 +2764,7 @@ void idGameLocal::ShowTargets( void ) {
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idGameLocal::RunDebugInfo
@@ -2791,7 +2904,7 @@ void idGameLocal::RunDebugInfo( void ) {
 	// collision map debug output
 	collisionModelManager->DebugOutput( player->GetEyePosition() );
 }
-
+#endif
 /*
 ==================
 idGameLocal::NumAAS
@@ -3091,7 +3204,6 @@ bool idGameLocal::SpawnEntityDef( const idDict &args, idEntity **ent, bool setDe
 			Warning( "Could not spawn '%s'.  Script function '%s' not found%s.", classname, spawn, error.c_str() );
 			return false;
 		}
-		gameLocal.PrecacheScriptReferencesForFunction(spawn);
 		idThread *thread = new idThread( func );
 		thread->DelayedStart( 0 );
 		return true;
@@ -3194,8 +3306,6 @@ gameState_t	idGameLocal::GameState( void ) const {
 	return gamestate;
 }
 
-#include "framework/Session.h"
-
 /*
 ==============
 idGameLocal::SpawnMapEntities
@@ -3229,6 +3339,28 @@ void idGameLocal::SpawnMapEntities( void ) {
 	// needed by a level
 	mapEnt = mapFile->GetEntity( 0 );
 	args = mapEnt->epairs;
+
+	// Precache map script namespace, using Worldentity
+	idStr temp;
+	if (args.GetString( "call", "", temp )) {
+		function_t const* func = gameLocal.program.FindFunction( temp );
+		if ( func ) {
+			PrecacheScriptReferencesForNamespace(func->def->scope->Name());
+		}
+	}
+
+	// Precache map script, using the map name
+	idStr scriptname = GetMapName();
+	scriptname.SetFileExtension( ".script" );
+	if ( fileSystem->ReadFile( scriptname, NULL, NULL ) > 0 ) {
+		program.CompileFile( scriptname );
+		// call the main function by default
+		function_t* func = gameLocal.program.FindFunction( "main" );
+		if ( func ) {
+			PrecacheScriptReferencesForFile(scriptname);
+		}
+	}
+
 	args.SetInt( "spawn_entnum", ENTITYNUM_WORLD );
 	if ( !SpawnEntityDef( args ) || !entities[ ENTITYNUM_WORLD ] || !entities[ ENTITYNUM_WORLD ]->IsType( idWorldspawn::Type ) ) {
 		Error( "Problem spawning world entity" );
@@ -4353,13 +4485,13 @@ static bool FilterScanCalls(const char *eventname) {
 	       !idStr::Icmp(eventname, "setSkin") ||
 	       !idStr::Icmp(eventname, "cacheSoundShader") ||
 	       !idStr::Icmp(eventname, "startSoundShader") ||
-	       	!idStr::Icmp(eventname, "music") ||
-			!idStr::Icmp(eventname, "attackMelee") ||
-			!idStr::Icmp(eventname, "attackBegin") ||
-			!idStr::Icmp(eventname, "radiusDamage") ||
-			!idStr::Icmp(eventname, "directDamage") ||
-			!idStr::Icmp(eventname, "meleeAttackToJoint") ||
-			!idStr::Icmp(eventname, "launchMissiles") ||
+	       !idStr::Icmp(eventname, "music") ||
+	       !idStr::Icmp(eventname, "attackMelee") ||
+	       !idStr::Icmp(eventname, "attackBegin") ||
+	       !idStr::Icmp(eventname, "radiusDamage") ||
+	       !idStr::Icmp(eventname, "directDamage") ||
+	       !idStr::Icmp(eventname, "meleeAttackToJoint") ||
+	       !idStr::Icmp(eventname, "launchMissiles") ||
 	       !idStr::Icmp(eventname, "setKey");
 }
 
@@ -4404,7 +4536,7 @@ static void ActionScanCalls(const char *funcname,
                             const char *string2,
                             const char *filename,
                             int line) {
-	// Ignore if no string, or if string is a "func_" or "light" entityDef (they are always loaded)
+	// Ignore if no string, or if string is a "func_*"/"target_*" or "light" entityDef (they are always loaded)
 	if (!string1
 		|| strlen(string1) == 0
 	    || !idStr::Icmpn(string1, "func_", strlen("func_"))
@@ -4455,10 +4587,12 @@ static void ActionScanCalls(const char *funcname,
 	} else if (!idStr::Icmp(eventname, "setModel")) {
 		if ( declManager->FindType(DECL_MODELDEF, string1, false) == NULL ) {
 			renderModelManager->FindModel(string1);
+			collisionModelManager->LoadModel(string1, true);
 		}
 	} else if (!idStr::Icmp(eventname, "setSkin")) {
 		declManager->FindType(DECL_SKIN, string1, false);
-	} else if (!idStr::Icmp(eventname, "cacheSoundShader") || !idStr::Icmp(eventname, "startSoundShader")
+	} else if (!idStr::Icmp(eventname, "cacheSoundShader")
+		|| !idStr::Icmp(eventname, "startSoundShader")
 		|| !idStr::Icmp(eventname, "music")) {
 		declManager->FindType(DECL_SOUND, string1, false);
 	} else if (!idStr::Icmp(eventname, "setKey")) {
@@ -4475,15 +4609,13 @@ idGameLocal::ScanFunctionsForEventCalls
 ============
 */
 void idGameLocal::PrecacheScriptReferencesForTypeDef(const char *typeName) {
-	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
-		if (program.ScriptNameAlreadyScanned(typeName)) {
-			return;
-		}
-		idTypeDef const* type = program.FindType(typeName);
-		if (type) {
-			common->DPrintf( "INFO: Precaching assets in script typedef \"%s\"\n", typeName );
-			program.ScanTypeDefForCalls(type, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
-		}
+	if (program.ScriptNameAlreadyScanned(typeName)) {
+		return;
+	}
+	idTypeDef const *type = program.FindType(typeName);
+	if (type) {
+		common->DPrintf("INFO: Precaching assets in script typedef \"%s\"\n", typeName);
+		program.ScanTypeDefForCalls(type, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
 	}
 }
 
@@ -4493,14 +4625,16 @@ idGameLocal::ScanFunctionsForEventCalls
 ============
 */
 void idGameLocal::PrecacheScriptReferencesForNamespace(const char *ns) {
-	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
-		if (program.ScriptNameAlreadyScanned(ns)) {
-			return;
-		}
-		idVarDef *namesp = program.GetDefList(ns);
-		if (namesp) {
-			common->DPrintf( "INFO: Precaching assets in script namespace \"%s\"\n", ns );
-			program.ScanNamespaceForCalls(namesp, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+	if (program.ScriptNameAlreadyScanned(ns)) {
+		return;
+	}
+	idVarDef *namesp = program.GetDefList(ns);
+	if (namesp) {
+		common->DPrintf("INFO: Precaching assets in script namespace \"%s\"\n", ns);
+		program.ScanNamespaceForCalls(namesp, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+
+		if (gamestate == GAMESTATE_STARTUP) {
+			session->PacifierUpdate();
 		}
 	}
 }
@@ -4511,15 +4645,13 @@ idGameLocal::ScanFunctionsForEventCalls
 ============
 */
 void idGameLocal::PrecacheScriptReferencesForFunction(const char *function) {
-	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
-		if (program.ScriptNameAlreadyScanned(function)) {
-			return;
-		}
-		function_t const* func = program.FindFunction(function);
-		if (func) {
-			common->DPrintf( "INFO: Precaching assets in script function \"%s\"\n", function );
-			program.ScanFunctionForCalls(func, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
-		}
+	if (program.ScriptNameAlreadyScanned(function)) {
+		return;
+	}
+	function_t const *func = program.FindFunction(function);
+	if (func) {
+		common->DPrintf("INFO: Precaching assets in script function \"%s\"\n", function);
+		program.ScanFunctionForCalls(func, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
 	}
 }
 
@@ -4529,15 +4661,99 @@ idGameLocal::ScanFunctionsForEventCalls
 ============
 */
 void idGameLocal::PrecacheScriptReferencesForFile(const char *file) {
-	if (GameState() == GAMESTATE_STARTUP || GAMESTATE_NOMAP) {
-		if (program.ScriptNameAlreadyScanned(file)) {
-			return;
-		}
-		common->DPrintf( "INFO: Precaching assets in script file \"%s\"\n", file );
-		program.ScanFileForCalls(file, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+	if (program.ScriptNameAlreadyScanned(file)) {
+		return;
+	}
+	common->DPrintf("INFO: Precaching assets in script file \"%s\"\n", file);
+	program.ScanFileForCalls(file, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
+
+	if (gamestate == GAMESTATE_STARTUP) {
+		session->PacifierUpdate();
 	}
 }
 
+/*
+===========
+idGameLocal::Precache
+============
+*/
+void idGameLocal::PrecacheAfterMapInit() {
+	// hardcoded in idItem::Spawn()
+	declManager->FindMaterial("itemHighlightShell", false);
+	// hardcoded in idWeapon::BloodSplat()
+	declManager->FindMaterial("textures/decals/duffysplatgun", false);
+	// Rocket Launcher skins are not theoretically  hardcoded as they are referenced by weapon_rocketlauncher def
+	// But due to a bug (missing "skin/" suffix), we have to precache them here
+	declManager->FindSkin("skins/models/weapons/0rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/1rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/2rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/3rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/4rox.skin", false);
+	declManager->FindSkin("skins/models/weapons/5rox.skin", false);
+	// hardcoded through default fallback strings (for example in idTarget_Damage::Event_Activate,
+	// idMover::Event_PartBlocked or idPlayer::Kill)
+	FindEntityDef("damage_generic", false);
+	FindEntityDef("damage_moverCrush", false);
+	FindEntityDef("damage_crush", false);
+	FindEntityDef("damage_Gib", false);
+	FindEntityDef("damage_telefrag", false);
+	FindEntityDef("damage_explosion", false);
+	FindEntityDef("damage_fatalfall", false);
+	FindEntityDef("damage_hardfall", false);
+	FindEntityDef("damage_softfall", false);
+	FindEntityDef("damage_noair", false);
+	FindEntityDef("damage_suicide", false);
+	FindEntityDef("damage_painTrigger", false);
+	// hardcoded in idProjectile::Explode()
+	FindEntityDef("projectile_debris", false);
+	FindEntityDef("projectile_shrapnel", false);
+}
+
+/*
+===========
+idGameLocal::PrecacheBeforePlayerSpawn
+============
+*/
+void idGameLocal::PrecacheBeforeMapInit() {
+	// Hardcoded in idPlayerView()
+	declManager->FindMaterial( "textures/decals/tunnel", false);
+	declManager->FindMaterial( "armorViewEffect", false );
+	declManager->FindMaterial( "textures/decals/berserk", false );
+	declManager->FindMaterial( "textures/decals/irblend", false );
+	declManager->FindMaterial( "textures/decals/bloodspray", false );
+	declManager->FindMaterial( "textures/decals/bfgvision", false );
+	declManager->FindMaterial( LAGO_MATERIAL, false );
+	// hadcoded in idPlayer::Spawn()
+	declManager->FindSound( "player_sounds_hitArmor", false );
+	uiManager->FindGui("guis/pda.gui", true, false, true );
+	// hardcoded in idPlayer::GivePDA()
+	declManager->FindType(DECL_PDA, "personal", false);
+}
+
+/*
+===========
+idGameLocal::PrecacheScriptReferences
+============
+*/
+void idGameLocal::PrecacheScriptReferences(const idDict* dict) {
+	if (!dict)
+		return;
+	idStr temp;
+	dict->GetString("classname", "", temp);
+
+	if (dict->GetString("spawnfunc", "", temp)) {
+		PrecacheScriptReferencesForFunction(temp);
+	}
+	if (dict->GetString("scriptobject", "", temp)) {
+		PrecacheScriptReferencesForTypeDef(temp);
+	}
+	if (dict->GetString("weapon_scriptobject", "", temp)) {
+		PrecacheScriptReferencesForTypeDef(temp);
+	}
+	if (dict->GetString("call", "", temp)) {
+		PrecacheScriptReferencesForFunction(temp);
+	}
+}
 
 /*
 ================

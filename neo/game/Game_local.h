@@ -72,6 +72,7 @@ class idActor;
 class idPlayer;
 class idCamera;
 class idWorldspawn;
+class idTestModel;
 class idSmokeParticles;
 class idEntityFx;
 class idTypeInfo;
@@ -251,6 +252,9 @@ public:
 	idPush					push;					// geometric pushing
 	idPVS					pvs;					// potential visible set
 
+#ifndef __EMSCRIPTEN__
+	idTestModel *			testmodel;				// for development testing of models
+#endif
 	idEntityFx *			testFx;					// for development testing of fx
 
 	idStr					sessionCommand;			// a target_sessionCommand can set this to return something to the session
@@ -450,6 +454,10 @@ public:
 	void					PrecacheScriptReferencesForFunction( const char* function );
 	void					PrecacheScriptReferencesForNamespace( const char* ns );
 	void					PrecacheScriptReferencesForFile( const char* type );
+
+	void					PrecacheAfterMapInit();
+	void					PrecacheBeforeMapInit();
+	void					PrecacheScriptReferences(const idDict *dict);
 
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;
