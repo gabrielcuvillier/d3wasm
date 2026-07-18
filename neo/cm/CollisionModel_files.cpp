@@ -561,10 +561,6 @@ bool idCollisionModelManagerLocal::LoadCollisionModelFile( const char *name, uns
 	idLexer *src;
 	unsigned int crc;
 
-	if (gameLocal.GameState() == GAMESTATE_ACTIVE) {
-		return false;
-	}
-
 	// load it
 	fileName = name;
 	fileName.SetFileExtension( CM_FILE_EXT );
