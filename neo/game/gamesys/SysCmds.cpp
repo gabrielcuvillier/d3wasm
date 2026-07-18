@@ -541,6 +541,7 @@ void Cmd_PlayerModel_f( const idCmdArgs &args ) {
 	player->SpawnToPoint( pos, ang );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_Say
@@ -596,7 +597,9 @@ static void Cmd_Say( bool team, const idCmdArgs &args ) {
 		gameLocal.mpGame.ProcessChatMessage( gameLocal.localClientNum, team, name, text, NULL );
 	}
 }
+#endif
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_Say_f
@@ -623,7 +626,9 @@ Cmd_AddChatLine_f
 static void Cmd_AddChatLine_f( const idCmdArgs &args ) {
 	gameLocal.mpGame.AddChatLine( args.Argv( 1 ) );
 }
+#endif
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_Kick_f
@@ -650,6 +655,7 @@ static void Cmd_Kick_f( const idCmdArgs &args ) {
 	cmdSystem->BufferCommandText( CMD_EXEC_NOW, va( "say kicking out client %d '%s^0'\n", player->entityNumber, gameLocal.userInfo[ player->entityNumber ].GetString( "ui_name" ) ) );
 	cmdSystem->BufferCommandText( CMD_EXEC_NOW, va( "kick %d\n", player->entityNumber ) );
 }
+#endif
 
 /*
 ==================
@@ -869,12 +875,14 @@ void Cmd_Remove_f( const idCmdArgs &args ) {
 	delete ent;
 }
 
+#ifndef __EMSCRIPTEN__
+
 /*
 ===================
 Cmd_TestLight_f
 ===================
 */
-/*void Cmd_TestLight_f( const idCmdArgs &args ) {
+void Cmd_TestLight_f( const idCmdArgs &args ) {
 	int			i;
 	idStr		filename;
 	const char *key, *value, *name;
@@ -926,14 +934,14 @@ Cmd_TestLight_f
 	gameLocal.SpawnEntityDef( dict );
 
 	gameLocal.Printf( "Created new light\n");
-}*/
+}
 
 /*
 ===================
 Cmd_TestPointLight_f
 ===================
 */
-/*void Cmd_TestPointLight_f( const idCmdArgs &args ) {
+void Cmd_TestPointLight_f( const idCmdArgs &args ) {
 	const char *key, *value, *name;
 	int			i;
 	idPlayer	*player;
@@ -973,7 +981,7 @@ Cmd_TestPointLight_f
 	gameLocal.SpawnEntityDef( dict );
 
 	gameLocal.Printf( "Created new point light\n");
-}*/
+}
 
 /*
 ==================
@@ -1058,7 +1066,7 @@ void Cmd_ClearLights_f( const idCmdArgs &args ) {
 Cmd_TestFx_f
 ==================
 */
-/*void Cmd_TestFx_f( const idCmdArgs &args ) {
+void Cmd_TestFx_f( const idCmdArgs &args ) {
 	idVec3		offset;
 	const char *name;
 	idPlayer *	player;
@@ -1087,7 +1095,8 @@ Cmd_TestFx_f
 	dict.Set( "test", "1");
 	dict.Set( "fx", name );
 	gameLocal.testFx = ( idEntityFx * )gameLocal.SpawnEntityType( idEntityFx::Type, &dict );
-}*/
+}
+
 
 #define MAX_DEBUGLINES	128
 
@@ -1258,6 +1267,7 @@ static void Cmd_ListDebugLines_f( const idCmdArgs &args ) {
 		gameLocal.Printf( "no debug lines\n" );
 	}
 }
+#endif
 
 #ifndef __EMSCRIPTEN__
 /*
@@ -1337,23 +1347,25 @@ static void Cmd_CollisionModelInfo_f( const idCmdArgs &args ) {
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_ExportModels_f
 ==================
 */
-//static void Cmd_ExportModels_f( const idCmdArgs &args ) {
+static void Cmd_ExportModels_f( const idCmdArgs &args ) {
 
-//}
+}
 
 /*
 ==================
 Cmd_ReexportModels_f
 ==================
 */
-//static void Cmd_ReexportModels_f( const idCmdArgs &args ) {
+static void Cmd_ReexportModels_f( const idCmdArgs &args ) {
 
-//}
+}
+#endif
 
 /*
 ==================
@@ -1442,12 +1454,13 @@ static void Cmd_AASStats_f( const idCmdArgs &args ) {
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_TestDamage_f
 ==================
 */
-/*static void Cmd_TestDamage_f( const idCmdArgs &args ) {
+static void Cmd_TestDamage_f( const idCmdArgs &args ) {
 	idPlayer *player;
 	const char *damageDefName;
 
@@ -1478,14 +1491,14 @@ Cmd_TestDamage_f
 	player->health = player->inventory.maxHealth;
 	player->Damage( NULL, NULL, dir, damageDefName, 1.0f, INVALID_JOINT );
 	player->health = player->inventory.maxHealth;
-}*/
+}
 
 /*
 ==================
 Cmd_TestBoneFx_f
 ==================
 */
-/*static void Cmd_TestBoneFx_f( const idCmdArgs &args ) {
+static void Cmd_TestBoneFx_f( const idCmdArgs &args ) {
 	idPlayer *player;
 	const char *bone, *fx;
 
@@ -1503,14 +1516,14 @@ Cmd_TestBoneFx_f
 	bone = args.Argv( 2 );
 
 	player->StartFxOnBone( fx, bone );
-}*/
+}
 
 /*
 ==================
 Cmd_TestDamage_f
 ==================
 */
-/*static void Cmd_TestDeath_f( const idCmdArgs &args ) {
+static void Cmd_TestDeath_f( const idCmdArgs &args ) {
 	idPlayer *player;
 
 	player = gameLocal.GetLocalPlayer();
@@ -1528,8 +1541,10 @@ Cmd_TestDamage_f
 		player->SpawnGibs( dir, "damage_triggerhurt_1000" );
 	}
 
-}*/
+}
+#endif
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 Cmd_WeaponSplat_f
@@ -1545,6 +1560,7 @@ static void Cmd_WeaponSplat_f( const idCmdArgs &args ) {
 
 	player->weapon.GetEntity()->BloodSplat( 2.0f );
 }
+#endif
 
 #ifndef __EMSCRIPTEN__
 /*
@@ -1785,7 +1801,6 @@ static void Cmd_SaveRagdolls_f( const idCmdArgs &args ) {
 	// write out the map file
 	mapFile->Write( mapName, ".map" );
 }
-#endif
 
 /*
 ==================
@@ -1822,6 +1837,7 @@ static void Cmd_UnbindRagdoll_f( const idCmdArgs &args ) {
 		player->dragEntity.UnbindSelected();
 	}
 }
+#endif
 
 /*
 ==================
@@ -1971,114 +1987,114 @@ static void Cmd_TestSave_f( const idCmdArgs &args ) {
 	gameLocal.SaveGame( f );
 	fileSystem->CloseFile( f );
 }
-#endif
 
 /*
 ==================
 Cmd_RecordViewNotes_f
 ==================
 */
-//static void Cmd_RecordViewNotes_f( const idCmdArgs &args ) {
-//	idPlayer *player;
-//	idVec3 origin;
-//	idMat3 axis;
-//
-//	if ( args.Argc() <= 3 ) {
-//		return;
-//	}
-//
-//	player = gameLocal.GetLocalPlayer();
-//	if ( !player ) {
-//		return;
-//	}
-//
-//	player->GetViewPos( origin, axis );
-//
-//	// Argv(1) = filename for map (viewnotes/mapname/person)
-//	// Argv(2) = note number (person0001)
-//	// Argv(3) = comments
-//
-//	idStr str = args.Argv(1);
-//	str.SetFileExtension( ".txt" );
-//	idFile *file = fileSystem->OpenFileAppend( str );
-//	if ( file ) {
-//		file->WriteFloatString( "\"view\"\t( %s )\t( %s )\r\n", origin.ToString(), axis.ToString() );
-//		file->WriteFloatString( "\"comments\"\t\"%s: %s\"\r\n\r\n", args.Argv(2), args.Argv(3) );
-//		fileSystem->CloseFile( file );
-//	}
-//
-//	idStr viewComments = args.Argv(1);
-//	viewComments.StripLeading("viewnotes/");
-//	viewComments += " -- Loc: ";
-//	viewComments += origin.ToString();
-//	viewComments += "\n";
-//	viewComments += args.Argv(3);
-//	player->hud->SetStateString( "viewcomments", viewComments );
-//	player->hud->HandleNamedEvent( "showViewComments" );
-//}
+static void Cmd_RecordViewNotes_f( const idCmdArgs &args ) {
+	idPlayer *player;
+	idVec3 origin;
+	idMat3 axis;
+
+	if ( args.Argc() <= 3 ) {
+		return;
+	}
+
+	player = gameLocal.GetLocalPlayer();
+	if ( !player ) {
+		return;
+	}
+
+	player->GetViewPos( origin, axis );
+
+	// Argv(1) = filename for map (viewnotes/mapname/person)
+	// Argv(2) = note number (person0001)
+	// Argv(3) = comments
+
+	idStr str = args.Argv(1);
+	str.SetFileExtension( ".txt" );
+	idFile *file = fileSystem->OpenFileAppend( str );
+	if ( file ) {
+		file->WriteFloatString( "\"view\"\t( %s )\t( %s )\r\n", origin.ToString(), axis.ToString() );
+		file->WriteFloatString( "\"comments\"\t\"%s: %s\"\r\n\r\n", args.Argv(2), args.Argv(3) );
+		fileSystem->CloseFile( file );
+	}
+
+	idStr viewComments = args.Argv(1);
+	viewComments.StripLeading("viewnotes/");
+	viewComments += " -- Loc: ";
+	viewComments += origin.ToString();
+	viewComments += "\n";
+	viewComments += args.Argv(3);
+	player->hud->SetStateString( "viewcomments", viewComments );
+	player->hud->HandleNamedEvent( "showViewComments" );
+}
 
 /*
 ==================
 Cmd_CloseViewNotes_f
 ==================
 */
-//static void Cmd_CloseViewNotes_f( const idCmdArgs &args ) {
-//	idPlayer *player = gameLocal.GetLocalPlayer();
-//
-//	if ( !player ) {
-//		return;
-//	}
-//
-//	player->hud->SetStateString( "viewcomments", "" );
-//	player->hud->HandleNamedEvent( "hideViewComments" );
-//}
+static void Cmd_CloseViewNotes_f( const idCmdArgs &args ) {
+	idPlayer *player = gameLocal.GetLocalPlayer();
+
+	if ( !player ) {
+		return;
+	}
+
+	player->hud->SetStateString( "viewcomments", "" );
+	player->hud->HandleNamedEvent( "hideViewComments" );
+}
 
 /*
 ==================
 Cmd_ShowViewNotes_f
 ==================
 */
-//static void Cmd_ShowViewNotes_f( const idCmdArgs &args ) {
-//	static idLexer parser( LEXFL_ALLOWPATHNAMES | LEXFL_NOSTRINGESCAPECHARS | LEXFL_NOSTRINGCONCAT | LEXFL_NOFATALERRORS );
-//	idToken	token;
-//	idPlayer *player;
-//	idVec3 origin;
-//	idMat3 axis;
-//
-//	player = gameLocal.GetLocalPlayer();
-//
-//	if ( !player ) {
-//		return;
-//	}
-//
-//	if ( !parser.IsLoaded() ) {
-//		idStr str = "viewnotes/";
-//		str += gameLocal.GetMapName();
-//		str.StripFileExtension();
-//		str += "/";
-//		if ( args.Argc() > 1 ) {
-//			str += args.Argv( 1 );
-//		} else {
-//			str += "comments";
-//		}
-//		str.SetFileExtension( ".txt" );
-//		if ( !parser.LoadFile( str ) ) {
-//			gameLocal.Printf( "No view notes for %s\n", gameLocal.GetMapName() );
-//			return;
-//		}
-//	}
-//
-//	if ( parser.ExpectTokenString( "view" ) && parser.Parse1DMatrix( 3, origin.ToFloatPtr() ) &&
-//		parser.Parse1DMatrix( 9, axis.ToFloatPtr() ) && parser.ExpectTokenString( "comments" ) && parser.ReadToken( &token ) ) {
-//		player->hud->SetStateString( "viewcomments", token );
-//		player->hud->HandleNamedEvent( "showViewComments" );
-//		player->Teleport( origin, axis.ToAngles(), NULL );
-//	} else {
-//		parser.FreeSource();
-//		player->hud->HandleNamedEvent( "hideViewComments" );
-//		return;
-//	}
-//}
+static void Cmd_ShowViewNotes_f( const idCmdArgs &args ) {
+	static idLexer parser( LEXFL_ALLOWPATHNAMES | LEXFL_NOSTRINGESCAPECHARS | LEXFL_NOSTRINGCONCAT | LEXFL_NOFATALERRORS );
+	idToken	token;
+	idPlayer *player;
+	idVec3 origin;
+	idMat3 axis;
+
+	player = gameLocal.GetLocalPlayer();
+
+	if ( !player ) {
+		return;
+	}
+
+	if ( !parser.IsLoaded() ) {
+		idStr str = "viewnotes/";
+		str += gameLocal.GetMapName();
+		str.StripFileExtension();
+		str += "/";
+		if ( args.Argc() > 1 ) {
+			str += args.Argv( 1 );
+		} else {
+			str += "comments";
+		}
+		str.SetFileExtension( ".txt" );
+		if ( !parser.LoadFile( str ) ) {
+			gameLocal.Printf( "No view notes for %s\n", gameLocal.GetMapName() );
+			return;
+		}
+	}
+
+	if ( parser.ExpectTokenString( "view" ) && parser.Parse1DMatrix( 3, origin.ToFloatPtr() ) &&
+		parser.Parse1DMatrix( 9, axis.ToFloatPtr() ) && parser.ExpectTokenString( "comments" ) && parser.ReadToken( &token ) ) {
+		player->hud->SetStateString( "viewcomments", token );
+		player->hud->HandleNamedEvent( "showViewComments" );
+		player->Teleport( origin, axis.ToAngles(), NULL );
+	} else {
+		parser.FreeSource();
+		player->hud->HandleNamedEvent( "hideViewComments" );
+		return;
+	}
+}
+#endif
 
 /*
 =================
@@ -2124,6 +2140,7 @@ bool FindEntityGUIs( idEntity *ent, const modelSurface_t ** surfaces,  int maxSu
 	return ( guiSurfaces != 0 );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =================
 Cmd_NextGUI_f
@@ -2239,18 +2256,20 @@ void Cmd_NextGUI_f( const idCmdArgs &args ) {
 	player->noclip = true;
 	player->Teleport( origin, angles, NULL );
 }
+#endif
 
 static void ArgCompletion_DefFile( const idCmdArgs &args, void(*callback)( const char *s ) ) {
 	cmdSystem->ArgCompletion_FolderExtension( args, callback, "def/", true, ".def", NULL );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 Cmd_TestId_f
 outputs a string from the string table for the specified id
 ===============
 */
-/*void Cmd_TestId_f( const idCmdArgs &args ) {
+void Cmd_TestId_f( const idCmdArgs &args ) {
 	idStr	id;
 	int		i;
 	if ( args.Argc() == 1 ) {
@@ -2265,7 +2284,8 @@ outputs a string from the string table for the specified id
 		id = STRTABLE_ID + id;
 	}
 	gameLocal.mpGame.AddChatLine( common->GetLanguageDict()->GetString( id ), "<nothing>", "<nothing>", "<nothing>" );
-}*/
+}
+#endif
 
 /*
 =================
@@ -2288,10 +2308,12 @@ void idGameLocal::InitConsoleCommands( void ) {
 	cmdSystem->AddCommand( "listActiveEntities",	Cmd_ActiveEntityList_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"lists active game entities" );
 	cmdSystem->AddCommand( "listMonsters",			idAI::List_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"lists monsters" );
 	cmdSystem->AddCommand( "listSpawnArgs",			Cmd_ListSpawnArgs_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"list the spawn args of an entity", idGameLocal::ArgCompletion_EntityName );
+#ifndef __EMSCRIPTEN__
 	cmdSystem->AddCommand( "say",					Cmd_Say_f,					CMD_FL_GAME,				"text chat" );
 	cmdSystem->AddCommand( "sayTeam",				Cmd_SayTeam_f,				CMD_FL_GAME,				"team text chat" );
 	cmdSystem->AddCommand( "addChatLine",			Cmd_AddChatLine_f,			CMD_FL_GAME,				"internal use - core to game chat lines" );
 	cmdSystem->AddCommand( "gameKick",				Cmd_Kick_f,					CMD_FL_GAME,				"same as kick, but recognizes player names" );
+#endif
 	cmdSystem->AddCommand( "give",					Cmd_Give_f,					CMD_FL_GAME|CMD_FL_CHEAT,	"gives one or more items" );
 	cmdSystem->AddCommand( "centerview",			Cmd_CenterView_f,			CMD_FL_GAME,				"centers the view" );
 	cmdSystem->AddCommand( "god",					Cmd_God_f,					CMD_FL_GAME|CMD_FL_CHEAT,	"enables god mode" );
@@ -2316,24 +2338,26 @@ void idGameLocal::InitConsoleCommands( void ) {
 	cmdSystem->AddCommand( "blinkline",				Cmd_BlinkDebugLine_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"blinks a debug line" );
 	cmdSystem->AddCommand( "listLines",				Cmd_ListDebugLines_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"lists all debug lines" );
 	cmdSystem->AddCommand( "playerModel",			Cmd_PlayerModel_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"sets the given model on the player", idCmdSystem::ArgCompletion_Decl<DECL_MODELDEF> );
-	//cmdSystem->AddCommand( "testFx",				Cmd_TestFx_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"tests an FX system", idCmdSystem::ArgCompletion_Decl<DECL_FX> );
-	//cmdSystem->AddCommand( "testBoneFx",			Cmd_TestBoneFx_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests an FX system bound to a joint", idCmdSystem::ArgCompletion_Decl<DECL_FX> );
-	//cmdSystem->AddCommand( "testLight",				Cmd_TestLight_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests a light" );
-	//cmdSystem->AddCommand( "testPointLight",		Cmd_TestPointLight_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"tests a point light" );
+	cmdSystem->AddCommand( "testFx",				Cmd_TestFx_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"tests an FX system", idCmdSystem::ArgCompletion_Decl<DECL_FX> );
+	cmdSystem->AddCommand( "testBoneFx",			Cmd_TestBoneFx_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests an FX system bound to a joint", idCmdSystem::ArgCompletion_Decl<DECL_FX> );
+	cmdSystem->AddCommand( "testLight",				Cmd_TestLight_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests a light" );
+	cmdSystem->AddCommand( "testPointLight",		Cmd_TestPointLight_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"tests a point light" );
 	cmdSystem->AddCommand( "popLight",				Cmd_PopLight_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"removes the last created light" );
-	//cmdSystem->AddCommand( "testDeath",				Cmd_TestDeath_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests death" );
-	//cmdSystem->AddCommand( "testSave",				Cmd_TestSave_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"writes out a test savegame" );
+	cmdSystem->AddCommand( "testDeath",				Cmd_TestDeath_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests death" );
+	cmdSystem->AddCommand( "testSave",				Cmd_TestSave_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"writes out a test savegame" );
 	cmdSystem->AddCommand( "script",				Cmd_Script_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"executes a line of script" );
 #endif
 	cmdSystem->AddCommand( "reloadScript",			Cmd_ReloadScript_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"reloads scripts" );
 	cmdSystem->AddCommand( "listCollisionModels",	Cmd_ListCollisionModels_f,	CMD_FL_GAME,				"lists collision models" );
 	cmdSystem->AddCommand( "collisionModelInfo",	Cmd_CollisionModelInfo_f,	CMD_FL_GAME,				"shows collision model info" );
-	//cmdSystem->AddCommand( "reexportmodels",		Cmd_ReexportModels_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"reexports models", ArgCompletion_DefFile );
+#ifndef __EMSCRIPTEN__
+	cmdSystem->AddCommand( "reexportmodels",		Cmd_ReexportModels_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"reexports models", ArgCompletion_DefFile );
+#endif
 	cmdSystem->AddCommand( "reloadanims",			Cmd_ReloadAnims_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"reloads animations" );
 	cmdSystem->AddCommand( "listAnims",				Cmd_ListAnims_f,			CMD_FL_GAME,				"lists all animations" );
 	cmdSystem->AddCommand( "aasStats",				Cmd_AASStats_f,				CMD_FL_GAME,				"shows AAS stats" );
-	//cmdSystem->AddCommand( "testDamage",			Cmd_TestDamage_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests a damage def", idCmdSystem::ArgCompletion_Decl<DECL_ENTITYDEF> );
 #ifndef __EMSCRIPTEN__
+	cmdSystem->AddCommand( "testDamage",			Cmd_TestDamage_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"tests a damage def", idCmdSystem::ArgCompletion_Decl<DECL_ENTITYDEF> );
 	cmdSystem->AddCommand( "weaponSplat",			Cmd_WeaponSplat_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"projects a blood splat on the player weapon" );
 	cmdSystem->AddCommand( "saveSelected",			Cmd_SaveSelected_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"saves the selected entity to the .map file" );
 	cmdSystem->AddCommand( "deleteSelected",		Cmd_DeleteSelected_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"deletes selected entity" );
@@ -2346,25 +2370,24 @@ void idGameLocal::InitConsoleCommands( void ) {
 	cmdSystem->AddCommand( "clearLights",			Cmd_ClearLights_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"clears all lights" );
 #endif
 	cmdSystem->AddCommand( "gameError",				Cmd_GameError_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"causes a game error" );
-
-	/*
+#ifndef __EMSCRIPTEN__
 	cmdSystem->AddCommand( "disasmScript",			Cmd_DisasmScript_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"disassembles script" );
 	cmdSystem->AddCommand( "recordViewNotes",		Cmd_RecordViewNotes_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"record the current view position with notes" );
 	cmdSystem->AddCommand( "showViewNotes",			Cmd_ShowViewNotes_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"show any view notes for the current map, successive calls will cycle to the next note" );
 	cmdSystem->AddCommand( "closeViewNotes",		Cmd_CloseViewNotes_f,		CMD_FL_GAME|CMD_FL_CHEAT,	"close the view showing any notes for this map" );
 	cmdSystem->AddCommand( "exportmodels",			Cmd_ExportModels_f,			CMD_FL_GAME|CMD_FL_CHEAT,	"exports models", ArgCompletion_DefFile );
-  */
+#endif
 
+#ifndef __EMSCRIPTEN__
 	// multiplayer client commands ( replaces old impulses stuff )
 	cmdSystem->AddCommand( "clientDropWeapon",		idMultiplayerGame::DropWeapon_f, CMD_FL_GAME,			"drop current weapon" );
 	cmdSystem->AddCommand( "clientMessageMode",		idMultiplayerGame::MessageMode_f, CMD_FL_GAME,			"ingame gui message mode" );
 	// FIXME: implement
-//	cmdSystem->AddCommand( "clientVote",			idMultiplayerGame::Vote_f,	CMD_FL_GAME,				"cast your vote: clientVote yes | no" );
-//	cmdSystem->AddCommand( "clientCallVote",		idMultiplayerGame::CallVote_f,	CMD_FL_GAME,			"call a vote: clientCallVote si_.. proposed_value" );
-#ifndef __EMSCRIPTEN__
+	cmdSystem->AddCommand( "clientVote",			idMultiplayerGame::Vote_f,	CMD_FL_GAME,				"cast your vote: clientVote yes | no" );
+	cmdSystem->AddCommand( "clientCallVote",		idMultiplayerGame::CallVote_f,	CMD_FL_GAME,			"call a vote: clientCallVote si_.. proposed_value" );
+
 	cmdSystem->AddCommand( "clientVoiceChat",		idMultiplayerGame::VoiceChat_f,	CMD_FL_GAME,			"voice chats: clientVoiceChat <sound shader>" );
 	cmdSystem->AddCommand( "clientVoiceChatTeam",	idMultiplayerGame::VoiceChatTeam_f,	CMD_FL_GAME,		"team voice chats: clientVoiceChat <sound shader>" );
-#endif
 
 	// multiplayer server commands
 	cmdSystem->AddCommand( "serverMapRestart",		idGameLocal::MapRestart_f,	CMD_FL_GAME,				"restart the current game" );
@@ -2373,7 +2396,9 @@ void idGameLocal::InitConsoleCommands( void ) {
 
 	// localization help commands
 	cmdSystem->AddCommand( "nextGUI",				Cmd_NextGUI_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"teleport the player to the next func_static with a gui" );
-	//cmdSystem->AddCommand( "testid",				Cmd_TestId_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"output the string for the specified id." );
+
+	cmdSystem->AddCommand( "testid",				Cmd_TestId_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"output the string for the specified id." );
+#endif
 }
 
 /*

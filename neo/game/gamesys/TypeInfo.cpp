@@ -1350,12 +1350,13 @@ void CompareGameState_f( const idCmdArgs &args ) {
 	idTypeInfoTools::CompareGameState( fileName );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 TestSaveGame_f
 ================
 */
-/*void TestSaveGame_f( const idCmdArgs &args ) {
+void TestSaveGame_f( const idCmdArgs &args ) {
 	idStr name;
 
 	if ( args.Argc() <= 1 ) {
@@ -1376,7 +1377,8 @@ TestSaveGame_f
 		// an ERR_DROP was thrown
 	}
 	cmdSystem->BufferCommandText( CMD_EXEC_NOW, "quit" );
-}*/
+}
+#endif
 
 /*
 ================

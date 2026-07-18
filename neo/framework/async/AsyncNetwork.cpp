@@ -92,9 +92,10 @@ void idAsyncNetwork::Init( void ) {
 	masters[3].var = &master3;
 	masters[4].var = &master4;
 
-	//cmdSystem->AddCommand( "spawnServer", SpawnServer_f, CMD_FL_SYSTEM, "spawns a server", idCmdSystem::ArgCompletion_MapName );
-	//cmdSystem->AddCommand( "nextMap", NextMap_f, CMD_FL_SYSTEM, "loads the next map on the server" );if
 #ifndef __EMSCRIPTEN__
+	cmdSystem->AddCommand( "spawnServer", SpawnServer_f, CMD_FL_SYSTEM, "spawns a server", idCmdSystem::ArgCompletion_MapName );
+	cmdSystem->AddCommand( "nextMap", NextMap_f, CMD_FL_SYSTEM, "loads the next map on the server" );if
+
 	cmdSystem->AddCommand( "connect", Connect_f, CMD_FL_SYSTEM, "connects to a server" );
 	cmdSystem->AddCommand( "reconnect", Reconnect_f, CMD_FL_SYSTEM, "reconnect to the last server we tried to connect to" );
 	cmdSystem->AddCommand( "serverInfo", GetServerInfo_f, CMD_FL_SYSTEM, "shows server info" );
@@ -286,12 +287,13 @@ bool idAsyncNetwork::UsercmdInputChanged( const usercmd_t &previousUserCmd, cons
 			previousUserCmd.angles[2] != currentUserCmd.angles[2];
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 idAsyncNetwork::SpawnServer_f
 ==================
 */
-/*void idAsyncNetwork::SpawnServer_f( const idCmdArgs &args ) {
+void idAsyncNetwork::SpawnServer_f( const idCmdArgs &args ) {
 
 	if(args.Argc() > 1) {
 		cvarSystem->SetCVarString("si_map", args.Argv(1));
@@ -320,21 +322,22 @@ idAsyncNetwork::SpawnServer_f
 			break;
 	}
 	// use serverMapRestart if we already have a running server
-	//if ( server.IsActive() ) {
-	//	cmdSystem->BufferCommandText( CMD_EXEC_NOW, "serverMapRestart" );
-	//} else {
-	//	server.Spawn();
-	//}
-}*/
+	if ( server.IsActive() ) {
+		cmdSystem->BufferCommandText( CMD_EXEC_NOW, "serverMapRestart" );
+	} else {
+		server.Spawn();
+	}
+}
 
 /*
 ==================
 idAsyncNetwork::NextMap_f
 ==================
 */
-//void idAsyncNetwork::NextMap_f( const idCmdArgs &args ) {
-	//server.ExecuteMapChange();
-//}
+void idAsyncNetwork::NextMap_f( const idCmdArgs &args ) {
+	server.ExecuteMapChange();
+}
+#endif
 
 /*
 ==================

@@ -2257,6 +2257,7 @@ void idMultiplayerGame::PrintMessageEvent( int to, msg_evt_t evt, int parm1, int
 			gameLocal.DPrintf( "PrintMessageEvent: unknown message type %d\n", evt );
 			return;
 	}
+
 	if ( !gameLocal.isClient ) {
 		idBitMsg outMsg;
 		byte msgBuf[1024];
@@ -2407,6 +2408,7 @@ void idMultiplayerGame::CheckRespawns( idPlayer *spectator ) {
 	}
 }
 
+#ifndef __EMSCRIPEN__
 /*
 ================
 idMultiplayerGame::ForceReady
@@ -2439,6 +2441,7 @@ void idMultiplayerGame::ForceReady_f( const idCmdArgs &args ) {
 	}
 	gameLocal.mpGame.ForceReady();
 }
+#endif
 
 /*
 ================
@@ -2454,6 +2457,7 @@ void idMultiplayerGame::DropWeapon( int clientNum ) {
 	static_cast< idPlayer* >( ent )->DropWeapon( false );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idMultiplayerGame::DropWeapon_f
@@ -2479,6 +2483,7 @@ idMultiplayerGame::MessageMode_f
 void idMultiplayerGame::MessageMode_f( const idCmdArgs &args ) {
 	gameLocal.mpGame.MessageMode( args );
 }
+#endif
 
 /*
 ================
@@ -2510,6 +2515,7 @@ void idMultiplayerGame::MessageMode( const idCmdArgs &args ) {
 	gameLocal.sessionCommand = "game_startmenu";
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idMultiplayerGame::Vote_f
@@ -2525,6 +2531,7 @@ FIXME: voting from console
 ================
 */
 void idMultiplayerGame::CallVote_f( const idCmdArgs &args ) { }
+#endif
 
 /*
 ================
