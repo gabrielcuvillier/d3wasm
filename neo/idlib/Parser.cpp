@@ -3008,6 +3008,7 @@ int idParser::GetFlags( void ) const {
 	return idParser::flags;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idParser::LoadFile
@@ -3043,6 +3044,7 @@ int idParser::LoadFile( const char *filename, bool OSPath ) {
 	}
 	return true;
 }
+#endif
 
 /*
 ================
@@ -3206,6 +3208,7 @@ idParser::idParser( int flags ) {
 	this->marker_p = NULL;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idParser::idParser
@@ -3224,6 +3227,7 @@ idParser::idParser( const char *filename, int flags, bool OSPath ) {
 	this->marker_p = NULL;
 	LoadFile( filename, OSPath );
 }
+#endif
 
 /*
 ================

@@ -1517,10 +1517,12 @@ gameReturn_t idGameLocal::ClientPrediction( int clientNum, const usercmd_t *clie
 	idEvent::ServiceEvents();
 
 	// show any debug info for this frame
+#ifndef __EMSCRIPTEN__
 	if ( isNewFrame ) {
 		RunDebugInfo();
 		D_DrawDebugLines();
 	}
+#endif
 
 	if ( sessionCommand.Length() ) {
 		idStr::Copynz( ret.sessionCommand, sessionCommand, sizeof( ret.sessionCommand ) );

@@ -1259,6 +1259,7 @@ static void Cmd_ListDebugLines_f( const idCmdArgs &args ) {
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ==================
 D_DrawDebugLines
@@ -1295,6 +1296,7 @@ void D_DrawDebugLines( void ) {
 		}
 	}
 }
+#endif
 
 /*
 ==================
