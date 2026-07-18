@@ -3091,6 +3091,9 @@ void idMultiplayerGame::Precache( void ) {
 	for ( i = 0; ui_skinArgs[ i ]; i++ ) {
 		declManager->FindSkin( ui_skinArgs[ i ], false );
 	}
+	for ( i = 0; ui_skinArgsWithBerserk[ i ]; i++ ) {
+		declManager->FindSkin( ui_skinArgsWithBerserk[ i ], false );
+	}
 	// MP game sounds
 	for ( i = 0; i < SND_COUNT; i++ ) {
 		f = fileSystem->OpenFileRead( GlobalSoundStrings[ i ] );

@@ -253,5 +253,6 @@ extern idCVar	net_clientLagOMeter;
 extern const char *si_gameTypeArgs[];
 
 extern const char *ui_skinArgs[];
+extern const char *ui_skinArgsWithBerserk[];
 
 #endif /* !__SYS_CVAR_H__ */

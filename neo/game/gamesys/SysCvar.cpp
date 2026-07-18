@@ -52,6 +52,7 @@ const char *si_readyArgs[]			= { "Not Ready", "Ready", NULL };
 const char *si_spectateArgs[]		= { "Play", "Spectate", NULL };
 
 const char *ui_skinArgs[]			= { "skins/characters/player/marine_mp", "skins/characters/player/marine_mp_red", "skins/characters/player/marine_mp_blue", "skins/characters/player/marine_mp_green", "skins/characters/player/marine_mp_yellow", NULL };
+const char *ui_skinArgsWithBerserk[]= { "skins/characters/player/marine_mp_berserk", "skins/characters/player/marine_mp_red_berserk", "skins/characters/player/marine_mp_blue_berserk", "skins/characters/player/marine_mp_green_berserk", "skins/characters/player/marine_mp_yellow_berserk", NULL };
 const char *ui_teamArgs[]			= { "Red", "Blue", NULL };
 
 struct gameVersion_s {
