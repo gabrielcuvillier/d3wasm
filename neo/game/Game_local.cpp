@@ -1575,11 +1575,13 @@ void idGameLocal::MapShutdown( void ) {
 
 	program.ClearScriptNamesScanList();
 
+#ifndef __EMSCRIPTEN__
 	if ( gameRenderWorld ) {
 		// clear any debug lines, text, and polygons
 		gameRenderWorld->DebugClearLines( 0 );
 		gameRenderWorld->DebugClearPolygons( 0 );
 	}
+#endif
 
 	// clear out camera if we're in a cinematic
 	if ( inCinematic ) {
