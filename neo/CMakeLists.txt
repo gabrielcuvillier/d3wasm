@@ -498,7 +498,7 @@ set(src_game
         game/Weapon.cpp
         game/WorldSpawn.cpp
         game/ai/AAS.cpp
-        game/ai/AAS_debug.cpp
+        #game/ai/AAS_debug.cpp
         game/ai/AAS_pathing.cpp
         game/ai/AAS_routing.cpp
         game/ai/AI.cpp

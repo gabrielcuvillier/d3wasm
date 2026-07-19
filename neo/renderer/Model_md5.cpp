@@ -666,6 +666,7 @@ idBounds idRenderModelMD5::Bounds( const renderEntity_t *ent ) const {
 	return ent->bounds;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ====================
 idRenderModelMD5::DrawJoints
@@ -712,6 +713,7 @@ void idRenderModelMD5::DrawJoints( const renderEntity_t *ent, const struct viewD
 		}
 	}
 }
+#endif
 
 /*
 ====================
@@ -756,6 +758,7 @@ idRenderModel *idRenderModelMD5::InstantiateDynamicModel( const struct renderEnt
 
 	staticModel->bounds.Clear();
 
+#ifndef __EMSCRIPTEN__
 	if ( r_showSkel.GetInteger() ) {
 		if ( ( view != NULL ) && ( !r_skipSuppress.GetBool() || !ent->suppressSurfaceInViewID || ( ent->suppressSurfaceInViewID != view->renderView.viewID ) ) ) {
 			// only draw the skeleton
@@ -768,6 +771,7 @@ idRenderModel *idRenderModelMD5::InstantiateDynamicModel( const struct renderEnt
 			return staticModel;
 		}
 	}
+#endif
 
 	// create all the surfaces
 	for( mesh = meshes.Ptr(), i = 0; i < meshes.Num(); i++, mesh++ ) {

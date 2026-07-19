@@ -242,7 +242,9 @@ public:
 	void SetFont();
 	void SetInitialState(const char *_name);
 	void AddChild(idWindow *win);
+#ifndef __EMSCRIPTEN__
 	void DebugDraw(int time, float x, float y);
+#endif
 	void CalcClientRect(float xofs, float yofs);
 	void CommonInit();
 	void CleanUp();

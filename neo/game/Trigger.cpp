@@ -48,6 +48,7 @@ CLASS_DECLARATION( idEntity, idTrigger )
 	EVENT( EV_Disable,	idTrigger::Event_Disable )
 END_CLASS
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idTrigger::DrawDebugInfo
@@ -112,6 +113,7 @@ void idTrigger::DrawDebugInfo( void ) {
 		}
 	}
 }
+#endif
 
 /*
 ================

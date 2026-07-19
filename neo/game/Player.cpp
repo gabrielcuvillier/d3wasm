@@ -6431,6 +6431,7 @@ void idPlayer::Think( void ) {
 		gameLocal.Printf( "player %d not thinking?\n", entityNumber );
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( g_showEnemies.GetBool() ) {
 		idActor *ent;
 		int num = 0;
@@ -6441,6 +6442,7 @@ void idPlayer::Think( void ) {
 		}
 		gameLocal.Printf( "%d: enemies\n", num );
 	}
+#endif
 }
 
 /*

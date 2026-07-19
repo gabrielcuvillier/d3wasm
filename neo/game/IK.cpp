@@ -632,6 +632,7 @@ void idIK_Walk::Evaluate( void ) {
 		gameLocal.clip.Translation( results, start, end, footModel, mat3_identity, CONTENTS_SOLID|CONTENTS_IKCLIP, self );
 		floorHeights[i] = results.endpos * normal;
 
+#ifndef __EMSCRIPTEN__
 		if ( ik_debug.GetBool() && footModel ) {
 			idFixedWinding w;
 			for ( int j = 0; j < footModel->GetTraceModel()->numVerts; j++ ) {
@@ -639,6 +640,7 @@ void idIK_Walk::Evaluate( void ) {
 			}
 			gameRenderWorld->DebugWinding( colorRed, w, results.endpos, results.endAxis );
 		}
+#endif
 	}
 
 	const idPhysics *phys = self->GetPhysics();
@@ -746,12 +748,14 @@ void idIK_Walk::Evaluate( void ) {
 		// solve IK and calculate knee position
 		SolveTwoBones( hipOrigin, jointOrigins[i], kneeDir, upperLegLength[i], lowerLegLength[i], kneeOrigin );
 
+#ifndef __EMSCRIPTEN__
 		if ( ik_debug.GetBool() ) {
 			gameRenderWorld->DebugLine( colorCyan, hipOrigin, kneeOrigin );
 			gameRenderWorld->DebugLine( colorRed, kneeOrigin, jointOrigins[i] );
 			gameRenderWorld->DebugLine( colorYellow, kneeOrigin, kneeOrigin + hipDir );
 			gameRenderWorld->DebugLine( colorGreen, kneeOrigin, kneeOrigin + kneeDir );
 		}
+#endif
 
 		// get the axis for the hip joint
 		GetBoneAxis( hipOrigin, kneeOrigin, hipDir, axis );
@@ -1084,12 +1088,14 @@ void idIK_Reach::Evaluate( void ) {
 		// solve IK and calculate elbow position
 		SolveTwoBones( shoulderOrigin, handOrigin, elbowDir, upperArmLength[i], lowerArmLength[i], elbowOrigin );
 
+#ifndef __EMSCRIPTEN__
 		if ( ik_debug.GetBool() ) {
 			gameRenderWorld->DebugLine( colorCyan, shoulderOrigin, elbowOrigin );
 			gameRenderWorld->DebugLine( colorRed, elbowOrigin, handOrigin );
 			gameRenderWorld->DebugLine( colorYellow, elbowOrigin, elbowOrigin + elbowDir );
 			gameRenderWorld->DebugLine( colorGreen, elbowOrigin, elbowOrigin + shoulderDir );
 		}
+#endif
 
 		// get the axis for the shoulder joint
 		GetBoneAxis( shoulderOrigin, elbowOrigin, shoulderDir, axis );

@@ -89,7 +89,7 @@ int cm_contentsFlagByIndex[] = {
 	CONTENTS_FLASHLIGHT_TRIGGER,	// 14
 	0
 };
-
+#ifndef __EMSCRIPTEN__
 idCVar cm_drawMask(			"cm_drawMask",			"none",		CVAR_GAME,				"collision mask", cm_contentsNameByIndex, idCmdSystem::ArgCompletion_String<cm_contentsNameByIndex> );
 idCVar cm_drawColor(		"cm_drawColor",			"1 0 0 .5",	CVAR_GAME,				"color used to draw the collision models" );
 idCVar cm_drawFilled(		"cm_drawFilled",		"0",		CVAR_GAME | CVAR_BOOL,	"draw filled polygons" );
@@ -99,6 +99,7 @@ idCVar cm_backFaceCull(		"cm_backFaceCull",		"0",		CVAR_GAME | CVAR_BOOL,	"cull 
 idCVar cm_debugCollision(	"cm_debugCollision",	"0",		CVAR_GAME | CVAR_BOOL,	"debug the collision detection" );
 
 static idVec4 cm_color;
+#endif
 
 /*
 ================
@@ -124,6 +125,8 @@ int idCollisionModelManagerLocal::ContentsFromString( const char *string ) const
 
 	return contents;
 }
+
+#ifndef __EMSCRIPTEN__
 
 /*
 ================
@@ -489,3 +492,5 @@ void idCollisionModelManagerLocal::DebugOutput( const idVec3 &origin ) {
 	Mem_Free( testend );
 	testend = NULL;
 }
+
+#endif

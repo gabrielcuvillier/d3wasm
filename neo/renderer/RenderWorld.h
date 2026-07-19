@@ -411,6 +411,7 @@ public:
 
 	//-------------- Debug Visualization  -----------------
 
+#ifndef __EMSCRIPTEN__
 	// Line drawing for debug visualization
 	virtual void			DebugClearLines( int time ) = 0;		// a time of 0 will clear all lines and text
 	virtual void			DebugLine( const idVec4 &color, const idVec3 &start, const idVec3 &end, const int lifetime = 0, const bool depthTest = false ) = 0;
@@ -430,6 +431,7 @@ public:
 
 	// Text drawing for debug visualization.
 	virtual void			DrawText( const char *text, const idVec3 &origin, float scale, const idVec4 &color, const idMat3 &viewAxis, const int align = 1, const int lifetime = 0, bool depthTest = false ) = 0;
+#endif
 };
 
 #endif /* !__RENDERWORLD_H__ */

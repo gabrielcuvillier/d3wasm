@@ -1316,7 +1316,7 @@ void idAI::SetAAS( void ) {
 	}
 	gameLocal.Printf( "WARNING: %s has no AAS file\n", name.c_str() );
 }
-
+#ifndef __EMSCRIPTEN__
 /*
 =====================
 idAI::DrawRoute
@@ -1331,7 +1331,7 @@ void idAI::DrawRoute( void ) const {
 		}
 	}
 }
-
+#endif
 /*
 =====================
 idAI::ReachedPos
@@ -1441,11 +1441,12 @@ float idAI::TravelDistance( const idVec3 &start, const idVec3 &end ) const {
 		delta = end.ToVec2() - start.ToVec2();
 		dist = delta.LengthFast();
 
+#ifndef __EMSCRIPTEN__
 		if ( ai_debugMove.GetBool() ) {
 			gameRenderWorld->DebugLine( colorBlue, start, end, gameLocal.msec, false );
 			gameRenderWorld->DrawText( va( "%d", ( int )dist ), ( start + end ) * 0.5f, 0.1f, colorWhite, gameLocal.GetLocalPlayer()->viewAngles.ToMat3() );
 		}
-
+#endif
 		return dist;
 	}
 
@@ -1462,10 +1463,12 @@ float idAI::TravelDistance( const idVec3 &start, const idVec3 &end ) const {
 		delta = end.ToVec2() - start.ToVec2();
 		dist = delta.LengthFast();
 
+#ifndef __EMSCRIPTEN__
 		if ( ai_debugMove.GetBool() ) {
 			gameRenderWorld->DebugLine( colorBlue, start, end, gameLocal.msec, false );
 			gameRenderWorld->DrawText( va( "%d", ( int )dist ), ( start + end ) * 0.5f, 0.1f, colorWhite, gameLocal.GetLocalPlayer()->viewAngles.ToMat3() );
 		}
+#endif
 
 		return dist;
 	}
@@ -1476,6 +1479,7 @@ float idAI::TravelDistance( const idVec3 &start, const idVec3 &end ) const {
 		return -1;
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		if ( move.moveType == MOVETYPE_FLY ) {
 			aas->ShowFlyPath( start, toArea, end );
@@ -1483,6 +1487,7 @@ float idAI::TravelDistance( const idVec3 &start, const idVec3 &end ) const {
 			aas->ShowWalkPath( start, toArea, end );
 		}
 	}
+#endif
 
 	return travelTime;
 }
@@ -2275,16 +2280,20 @@ bool idAI::GetMovePos( idVec3 &seekPos ) {
 		}
 
 		seekPos = org + move.moveDir * 2048.0f;
+#ifndef __EMSCRIPTEN__
 		if ( ai_debugMove.GetBool() ) {
 			gameRenderWorld->DebugLine( colorYellow, org, seekPos, gameLocal.msec, true );
 		}
+#endif
 	} else {
 		AI_DEST_UNREACHABLE = false;
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( result && ( ai_debugMove.GetBool() ) ) {
 		gameRenderWorld->DebugLine( colorCyan, physicsObj.GetOrigin(), seekPos );
 	}
+#endif
 
 	return result;
 }
@@ -2424,12 +2433,14 @@ void idAI::Turn( void ) {
 
 	viewAxis = idAngles( 0, current_yaw, 0 ).ToMat3();
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		const idVec3 &org = physicsObj.GetOrigin();
 		gameRenderWorld->DebugLine( colorRed, org, org + idAngles( 0, ideal_yaw, 0 ).ToForward() * 64, gameLocal.msec );
 		gameRenderWorld->DebugLine( colorGreen, org, org + idAngles( 0, current_yaw, 0 ).ToForward() * 48, gameLocal.msec );
 		gameRenderWorld->DebugLine( colorYellow, org, org + idAngles( 0, current_yaw + turnVel, 0 ).ToForward() * 32, gameLocal.msec );
 	}
+#endif
 }
 
 /*
@@ -2554,10 +2565,12 @@ void idAI::CheckObstacleAvoidance( const idVec3 &goalPos, idVec3 &newPos ) {
 	obstacle = NULL;
 	AI_OBSTACLE_IN_PATH = false;
 	foundPath = FindPathAroundObstacles( &physicsObj, aas, enemy.GetEntity(), origin, goalPos, path );
+#ifndef __EMSCRIPTEN__
 	if ( ai_showObstacleAvoidance.GetBool() ) {
 		gameRenderWorld->DebugLine( colorBlue, goalPos + idVec3( 1.0f, 1.0f, 0.0f ), goalPos + idVec3( 1.0f, 1.0f, 64.0f ), gameLocal.msec );
 		gameRenderWorld->DebugLine( foundPath ? colorYellow : colorRed, path.seekPos, path.seekPos + idVec3( 0.0f, 0.0f, 64.0f ), gameLocal.msec );
 	}
+#endif
 
 	if ( !foundPath ) {
 		// couldn't get around obstacles
@@ -2706,10 +2719,11 @@ void idAI::AnimMove( void ) {
 	physicsObj.ForceDeltaMove( disableGravity );
 
 	RunPhysics();
-
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorCyan, oldorigin, physicsObj.GetOrigin(), 5000 );
 	}
+#endif
 
 	if ( !af_push_moveables && attack.Length() && TestMelee() ) {
 		DirectDamage( attack, enemy.GetEntity() );
@@ -2728,13 +2742,14 @@ void idAI::AnimMove( void ) {
 	if ( oldorigin != org ) {
 		TouchTriggers();
 	}
-
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugBounds( colorMagenta, physicsObj.GetBounds(), org, gameLocal.msec );
 		gameRenderWorld->DebugBounds( colorMagenta, physicsObj.GetBounds(), move.moveDest, gameLocal.msec );
 		gameRenderWorld->DebugLine( colorYellow, org + EyeOffset(), org + EyeOffset() + viewAxis[ 0 ] * physicsObj.GetGravityAxis() * 16.0f, gameLocal.msec, true );
 		DrawRoute();
 	}
+#endif
 }
 
 /*
@@ -2833,9 +2848,11 @@ void idAI::SlideMove( void ) {
 	}
 	Turn();
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorCyan, oldorigin, physicsObj.GetOrigin(), 5000 );
 	}
+#endif
 
 	if ( !af_push_moveables && attack.Length() && TestMelee() ) {
 		DirectDamage( attack, enemy.GetEntity() );
@@ -2855,12 +2872,14 @@ void idAI::SlideMove( void ) {
 		TouchTriggers();
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugBounds( colorMagenta, physicsObj.GetBounds(), org, gameLocal.msec );
 		gameRenderWorld->DebugBounds( colorMagenta, physicsObj.GetBounds(), move.moveDest, gameLocal.msec );
 		gameRenderWorld->DebugLine( colorYellow, org + EyeOffset(), org + EyeOffset() + viewAxis[ 0 ] * physicsObj.GetGravityAxis() * 16.0f, gameLocal.msec, true );
 		DrawRoute();
 	}
+#endif
 }
 
 /*
@@ -2919,10 +2938,12 @@ void idAI::AddFlyBob( idVec3 &vel ) {
 		t = MS2SEC( gameLocal.time + entityNumber * 497 );
 		fly_bob_add = ( viewAxis[ 1 ] * idMath::Sin16( t * fly_bob_horz ) + viewAxis[ 2 ] * idMath::Sin16( t * fly_bob_vert ) ) * fly_bob_strength;
 		vel += fly_bob_add * MS2SEC( gameLocal.msec );
+#ifndef __EMSCRIPTEN__
 		if ( ai_debugMove.GetBool() ) {
 			const idVec3 &origin = physicsObj.GetOrigin();
 			gameRenderWorld->DebugArrow( colorOrange, origin, origin + fly_bob_add, 0 );
 		}
+#endif
 	}
 }
 
@@ -2952,9 +2973,11 @@ void idAI::AdjustFlyHeight( idVec3 &vel, const idVec3 &goalPos ) {
 			goLower = true;
 		}
 
+#ifndef __EMSCRIPTEN__
 		if ( ai_debugMove.GetBool() ) {
 			gameRenderWorld->DebugBounds( goLower ? colorRed : colorGreen, physicsObj.GetBounds(), path.endPos, gameLocal.msec );
 		}
+#endif
 	}
 
 	if ( !goLower ) {
@@ -3044,10 +3067,11 @@ void idAI::FlyMove( void ) {
 	if ( ( move.moveCommand != MOVE_NONE ) && ReachedPos( move.moveDest, move.moveCommand ) ) {
 		StopMove( MOVE_STATUS_DONE );
 	}
-
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameLocal.Printf( "%d: %s: %s, vel = %.2f, sp = %.2f, maxsp = %.2f\n", gameLocal.time, name.c_str(), moveCommandString[ move.moveCommand ], physicsObj.GetLinearVelocity().Length(), move.speed, fly_speed );
 	}
+#endif
 
 	if ( move.moveCommand != MOVE_TO_POSITION_DIRECT ) {
 		idVec3 vel = physicsObj.GetLinearVelocity();
@@ -3101,7 +3125,7 @@ void idAI::FlyMove( void ) {
 	if ( oldorigin != org ) {
 		TouchTriggers();
 	}
-
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorCyan, oldorigin, physicsObj.GetOrigin(), 4000 );
 		gameRenderWorld->DebugBounds( colorOrange, physicsObj.GetBounds(), org, gameLocal.msec );
@@ -3111,6 +3135,7 @@ void idAI::FlyMove( void ) {
 		gameRenderWorld->DebugLine( colorYellow, org + EyeOffset(), org + EyeOffset() + viewAxis[ 0 ] * physicsObj.GetGravityAxis() * 16.0f, gameLocal.msec, true );
 		DrawRoute();
 	}
+#endif
 }
 
 /*
@@ -3143,12 +3168,14 @@ void idAI::StaticMove( void ) {
 		DirectDamage( attack, enemyEnt );
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		const idVec3 &org = physicsObj.GetOrigin();
 		gameRenderWorld->DebugBounds( colorMagenta, physicsObj.GetBounds(), org, gameLocal.msec );
 		gameRenderWorld->DebugLine( colorBlue, org, move.moveDest, gameLocal.msec, true );
 		gameRenderWorld->DebugLine( colorYellow, org + EyeOffset(), org + EyeOffset() + viewAxis[ 0 ] * physicsObj.GetGravityAxis() * 16.0f, gameLocal.msec, true );
 	}
+#endif
 }
 
 /***********************************************************************
@@ -3808,11 +3835,12 @@ void idAI::UpdateEnemyPosition( void ) {
 			}
 		}
 	}
-
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugBounds( colorLtGrey, enemyEnt->GetPhysics()->GetBounds(), lastReachableEnemyPos, gameLocal.msec );
 		gameRenderWorld->DebugBounds( colorWhite, enemyEnt->GetPhysics()->GetBounds(), lastVisibleReachableEnemyPos, gameLocal.msec );
 	}
+#endif
 }
 
 /*
@@ -4293,10 +4321,11 @@ bool idAI::TestMelee( void ) const {
 	idVec3 enemyOrg = enemyEnt->GetPhysics()->GetOrigin();
 	idBounds enemyBounds = enemyEnt->GetPhysics()->GetBounds();
 	enemyBounds.TranslateSelf( enemyOrg );
-
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugBounds( colorYellow, bounds, vec3_zero, gameLocal.msec );
 	}
+#endif
 
 	if ( !bounds.IntersectsBounds( enemyBounds ) ) {
 		return false;
@@ -4746,9 +4775,11 @@ bool idAI::UpdateAnimationControllers( void ) {
 			GetJointWorldTransform( focusJoint, gameLocal.time, eyepos, axis );
 		}
 		eyeOffset.z = eyepos.z - physicsObj.GetOrigin().z;
+#ifndef __EMSCRIPTEN__
 		if ( ai_debugMove.GetBool() ) {
 			gameRenderWorld->DebugLine( colorRed, eyepos, eyepos + orientationJointAxis[ 0 ] * 32.0f, gameLocal.msec );
 		}
+#endif
 	} else {
 		eyepos = GetEyePosition();
 	}
@@ -4988,6 +5019,7 @@ bool idCombatNode::IsDisabled( void ) const {
 	return disabled;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =====================
 idCombatNode::DrawDebugInfo
@@ -5041,6 +5073,7 @@ void idCombatNode::DrawDebugInfo( void ) {
 		}
 	}
 }
+#endif
 
 /*
 =====================

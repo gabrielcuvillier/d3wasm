@@ -358,6 +358,7 @@ idPathCorner::Spawn
 void idPathCorner::Spawn( void ) {
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =====================
 idPathCorner::DrawDebugInfo
@@ -376,6 +377,7 @@ void idPathCorner::DrawDebugInfo( void ) {
 		gameRenderWorld->DebugBounds( colorRed, bnds, org, 0 );
 	}
 }
+#endif
 
 /*
 ============
@@ -676,7 +678,9 @@ void idSpring::Think( void ) {
 			end = origin + p2 * axis;
 		}
 
+#ifndef __EMSCRIPTEN__
 		gameRenderWorld->DebugLine( idVec4(1, 1, 0, 1), start, end, 0, true );
+#endif
 	}
 
 	Present();
@@ -1899,12 +1903,14 @@ idTextEntity::Think
 */
 void idTextEntity::Think( void ) {
 	if ( thinkFlags & TH_THINK ) {
+#ifndef __EMSCRIPTEN__
 		gameRenderWorld->DrawText( text, GetPhysics()->GetOrigin(), 0.25, colorWhite, playerOriented ? gameLocal.GetLocalPlayer()->viewAngles.ToMat3() : GetPhysics()->GetAxis().Transpose(), 1 );
 		for ( int i = 0; i < targets.Num(); i++ ) {
 			if ( targets[i].GetEntity() ) {
 				gameRenderWorld->DebugArrow( colorBlue, GetPhysics()->GetOrigin(), targets[i].GetEntity()->GetPhysics()->GetOrigin(), 1 );
 			}
 		}
+#endif
 	} else {
 		BecomeInactive( TH_ALL );
 	}

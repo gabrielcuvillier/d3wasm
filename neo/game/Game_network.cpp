@@ -866,6 +866,7 @@ void idGameLocal::ServerProcessReliableMessage( int clientNum, const idBitMsg &m
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idGameLocal::ClientShowSnapshot
@@ -920,6 +921,7 @@ void idGameLocal::ClientShowSnapshot( int clientNum ) const {
 							entBounds.GetCenter(), 0.1f, colorWhite, viewAxis, 1 );
 	}
 }
+#endif
 
 /*
 ================
@@ -987,11 +989,13 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 
 	InitLocalClient( clientNum );
 
+#ifndef __EMSCRIPTEN__
 	// clear any debug lines from a previous frame
 	gameRenderWorld->DebugClearLines( time );
 
 	// clear any debug polygons from a previous frame
 	gameRenderWorld->DebugClearPolygons( time );
+#endif
 
 	// update the game time
 	framenum = gameFrame;
@@ -1235,8 +1239,10 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 	}
 	ReadGameStateFromSnapshot( deltaMsg );
 
+#ifndef __EMSCRIPTEN__
 	// visualize the snapshot
 	ClientShowSnapshot( clientNum );
+#endif
 
 	// process entity events
 	ClientProcessEntityNetworkEventQueue();

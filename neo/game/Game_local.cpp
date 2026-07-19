@@ -2293,8 +2293,10 @@ gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds ) {
 	player = GetLocalPlayer();
 
 	if ( !isMultiplayer && g_stopTime.GetBool() ) {
+#ifndef __EMSCRIPTEN__
 		// clear any debug lines from a previous frame
 		gameRenderWorld->DebugClearLines( time + 1 );
+#endif
 
 		// set the user commands for this frame
 		memcpy( usercmds, clientCmds, numClients * sizeof( usercmds[ 0 ] ) );
@@ -2328,11 +2330,13 @@ gameReturn_t idGameLocal::RunFrame( const usercmd_t *clientCmds ) {
 			}
 		}
 
+#ifndef __EMSCRIPTEN__
 		// clear any debug lines from a previous frame
 		gameRenderWorld->DebugClearLines( time );
 
 		// clear any debug polygons from a previous frame
 		gameRenderWorld->DebugClearPolygons( time );
+#endif
 
 		// set the user commands for this frame
 		memcpy( usercmds, clientCmds, numClients * sizeof( usercmds[ 0 ] ) );
@@ -2707,6 +2711,7 @@ void idGameLocal::CallObjectFrameCommand( idEntity *ent, const char *frameComman
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idGameLocal::ShowTargets
@@ -2765,6 +2770,7 @@ void idGameLocal::ShowTargets( void ) {
 		}
 	}
 }
+#endif
 
 #ifndef __EMSCRIPTEN__
 /*

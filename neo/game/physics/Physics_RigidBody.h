@@ -194,7 +194,9 @@ private:
 	void					DropToFloorAndRest( void );
 	bool					TestIfAtRest( void ) const;
 	void					Rest( void );
+#ifndef __EMSCRIPTEN__
 	void					DebugDraw( void );
+#endif
 };
 
 #endif /* !__PHYSICS_RIGIDBODY_H__ */

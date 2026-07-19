@@ -962,13 +962,13 @@ const char *idWindow::HandleEvent(const sysEvent_t *event, bool *updateVisuals) 
 	return gui->GetReturnCmd();
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idWindow::DebugDraw
 ================
 */
 void idWindow::DebugDraw(int time, float x, float y) {
-#ifndef __EMSCRIPTEN__
 	static char buff[16384];
 	if (dc) {
 		dc->EnableClipping(false);
@@ -1000,8 +1000,8 @@ void idWindow::DebugDraw(int time, float x, float y) {
 		}
 		dc->EnableClipping(true);
 	}
-#endif
 }
+#endif
 
 /*
 ================

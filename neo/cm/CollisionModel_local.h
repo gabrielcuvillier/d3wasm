@@ -334,11 +334,13 @@ public:
 	int				Contacts( contactInfo_t *contacts, const int maxContacts, const idVec3 &start, const idVec6 &dir, const float depth,
 								const idTraceModel *trm, const idMat3 &trmAxis, int contentMask,
 								cmHandle_t model, const idVec3 &modelOrigin, const idMat3 &modelAxis );
+#ifndef __EMSCRIPTEN__
 	// test collision detection
 	void			DebugOutput( const idVec3 &origin );
 	// draw a model
 	void			DrawModel( cmHandle_t model, const idVec3 &origin, const idMat3 &axis,
 											const idVec3 &viewOrigin, const float radius );
+#endif
 	// print model information, use -1 handle for accumulated model info
 	void			ModelInfo( cmHandle_t model );
 	// list all loaded models

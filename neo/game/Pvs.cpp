@@ -1221,6 +1221,7 @@ bool idPVS::InCurrentPVS( const pvsHandle_t handle, const int *targetAreas, int 
 	return false;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idPVS::DrawPVS
@@ -1384,6 +1385,7 @@ void idPVS::DrawCurrentPVS( const pvsHandle_t handle, const idVec3 &source ) con
 		}
 	}
 }
+#endif
 
 #if ASYNC_WRITE_PVS
 

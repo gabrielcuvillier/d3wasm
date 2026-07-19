@@ -114,7 +114,9 @@ public:
 	void					AddSelectedEntity( idEntity *ent );
 	void					RemoveSelectedEntity( idEntity *ent );
 	void					ClearSelectedEntities( void );
+#ifndef __EMSCRIPTEN__
 	void					DisplayEntities( void );
+#endif
 	bool					EntityIsSelectable( idEntity *ent, idVec4 *color = NULL, idStr *text = NULL );
 private:
 	int						nextSelectTime;

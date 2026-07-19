@@ -397,6 +397,7 @@ int GetObstacles( const idPhysics *physics, const idAAS *aas, const idEntity *ig
 			obstacle.winding.AddPoint( silVerts[j].ToVec2() );
 		}
 
+#ifndef __EMSCRIPTEN__
 		if ( ai_showObstacleAvoidance.GetBool() ) {
 			for ( j = 0; j < numVerts; j++ ) {
 				silVerts[j].z = startPos.z;
@@ -405,6 +406,7 @@ int GetObstacles( const idPhysics *physics, const idAAS *aas, const idEntity *ig
 				gameRenderWorld->DebugArrow( colorWhite, silVerts[j], silVerts[(j+1)%numVerts], 4 );
 			}
 		}
+#endif
 
 		// expand the 2D winding for collision with a 2D box
 		obstacle.winding.ExpandForAxialBox( expBounds );
@@ -475,6 +477,7 @@ int GetObstacles( const idPhysics *physics, const idAAS *aas, const idEntity *ig
 		}
 	}
 
+#ifndef __EMSCRIPTEN__
 	// show obstacles
 	if ( ai_showObstacleAvoidance.GetBool() ) {
 		for ( i = 0; i < numObstacles; i++ ) {
@@ -488,6 +491,7 @@ int GetObstacles( const idPhysics *physics, const idAAS *aas, const idEntity *ig
 			}
 		}
 	}
+#endif
 
 	return numObstacles;
 }
@@ -507,6 +511,7 @@ void FreePathTree_r( pathNode_t *node ) {
 	pathNodeAllocator.Free( node );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 DrawPathTree
@@ -530,6 +535,7 @@ void DrawPathTree( const pathNode_t *root, const float height ) {
 		}
 	}
 }
+#endif
 
 /*
 ============
@@ -917,6 +923,7 @@ bool FindOptimalPath( const pathNode_t *root, const obstacle_t *obstacles, int n
 		seekPos.ToVec2() = optimizedPath[1];
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_showObstacleAvoidance.GetBool() ) {
 		idVec3 start, end;
 		start.z = end.z = height + 4.0f;
@@ -927,6 +934,7 @@ bool FindOptimalPath( const pathNode_t *root, const obstacle_t *obstacles, int n
 			gameRenderWorld->DebugArrow( colorCyan, start, end, 1 );
 		}
 	}
+#endif
 
 	return pathToGoalExists;
 }
@@ -990,10 +998,12 @@ bool idAI::FindPathAroundObstacles( const idPhysics *physics, const idAAS *aas, 
 	// build a path tree
 	root = BuildPathTree( obstacles, numObstacles, clipBounds, path.startPosOutsideObstacles.ToVec2(), path.seekPosOutsideObstacles.ToVec2(), path );
 
+#ifndef __EMSCRIPTEN__
 	// draw the path tree
 	if ( ai_showObstacleAvoidance.GetBool() ) {
 		DrawPathTree( root, physics->GetOrigin().z );
 	}
+#endif
 
 	// prune the tree
 	PrunePathTree( root, path.seekPosOutsideObstacles.ToVec2() );
@@ -1091,9 +1101,11 @@ bool PathTrace( const idEntity *ent, const idAAS *aas, const idVec3 &start, cons
 						path.endEvent = SE_ENTER_LEDGE_AREA;
 						path.blockingEntity = trace.blockingEntity;
 
+#ifndef __EMSCRIPTEN__
 						if ( ai_debugMove.GetBool() ) {
 							gameRenderWorld->DebugLine( colorRed, start, aasTrace.endpos );
 						}
+#endif
 						return true;
 					}
 				}
@@ -1103,10 +1115,11 @@ bool PathTrace( const idEntity *ent, const idAAS *aas, const idVec3 &start, cons
 						path.endNormal = trace.normal;
 						path.endEvent = SE_ENTER_OBSTACLE;
 						path.blockingEntity = trace.blockingEntity;
-
+#ifndef __EMSCRIPTEN__
 						if ( ai_debugMove.GetBool() ) {
 							gameRenderWorld->DebugLine( colorRed, start, aasTrace.endpos );
 						}
+#endif
 						return true;
 					}
 				}
@@ -1206,11 +1219,11 @@ bool idAI::PredictPath( const idEntity *ent, const idAAS *aas, const idVec3 &sta
 						if ( stopEvent & SE_BLOCKED ) {
 							path.endPos = lastEnd;
 							path.endEvent = SE_BLOCKED;
-
+#ifndef __EMSCRIPTEN__
 							if ( ai_debugMove.GetBool() ) {
 								gameRenderWorld->DebugLine( colorRed, lineStart, lastEnd );
 							}
-
+#endif
 							return true;
 						}
 
@@ -1239,10 +1252,11 @@ bool idAI::PredictPath( const idEntity *ent, const idAAS *aas, const idVec3 &sta
 				stepUp *= trace.fraction;
 				curStart = trace.endPos;
 			}
-
+#ifndef __EMSCRIPTEN__
 			if ( ai_debugMove.GetBool() ) {
 				gameRenderWorld->DebugLine( colorRed, lineStart, curStart );
 			}
+#endif
 
 			if ( trace.fraction >= 1.0f ) {
 				break;
@@ -1406,12 +1420,13 @@ bool idAI::TestTrajectory( const idVec3 &start, const idVec3 &end, float zVel, f
 
 	// end of parabolic
 	points[numSegments] = end;
-
+#ifndef __EMSCRIPTEN__
 	if ( drawtime ) {
 		for ( i = 0; i < numSegments; i++ ) {
 			gameRenderWorld->DebugLine( colorRed, points[i], points[i+1], drawtime );
 		}
 	}
+#endif
 
 	// make sure projectile doesn't go higher than we want it to go
 	for ( i = 0; i < numSegments; i++ ) {
@@ -1434,6 +1449,7 @@ bool idAI::TestTrajectory( const idVec3 &start, const idVec3 &end, float zVel, f
 		}
 	}
 
+#ifndef __EMSCRIPTEN__
 	if ( drawtime ) {
 		if ( clip ) {
 			gameRenderWorld->DebugBounds( result ? colorGreen : colorYellow, clip->GetBounds().Expand( 1.0f ), trace.endpos, drawtime );
@@ -1443,6 +1459,7 @@ bool idAI::TestTrajectory( const idVec3 &start, const idVec3 &end, float zVel, f
 			gameRenderWorld->DebugBounds( result ? colorGreen : colorYellow, bnds, vec3_zero, drawtime );
 		}
 	}
+#endif
 
 	return result;
 }
@@ -1481,12 +1498,14 @@ bool idAI::PredictTrajectory( const idVec3 &firePos, const idVec3 &target, float
 
 		gameLocal.clip.Translation( trace, firePos, target, clip, mat3_identity, clipmask, ignore );
 
+#ifndef __EMSCRIPTEN__
 		if ( drawtime ) {
 			gameRenderWorld->DebugLine( colorRed, firePos, target, drawtime );
 			idBounds bnds( trace.endpos );
 			bnds.ExpandSelf( 1.0f );
 			gameRenderWorld->DebugBounds( ( trace.fraction >= 1.0f || ( gameLocal.GetTraceEntity( trace ) == targetEntity ) ) ? colorGreen : colorYellow, bnds, vec3_zero, drawtime );
 		}
+#endif
 
 		return ( trace.fraction >= 1.0f || ( gameLocal.GetTraceEntity( trace ) == targetEntity ) );
 	}
@@ -1518,6 +1537,7 @@ bool idAI::PredictTrajectory( const idVec3 &firePos, const idVec3 &target, float
 
 		zVel = projectileSpeed * dir[i].z;
 
+#ifndef __EMSCRIPTEN__
 		if ( ai_debugTrajectory.GetBool() ) {
 			t = ballistics[i].time / 100.0f;
 			velocity = dir[i] * projectileSpeed;
@@ -1530,6 +1550,7 @@ bool idAI::PredictTrajectory( const idVec3 &firePos, const idVec3 &target, float
 				lastPos = pos;
 			}
 		}
+#endif
 
 		if ( TestTrajectory( firePos, target, zVel, projGravity[2], ballistics[i].time, firePos.z + max_height, clip, clipmask, ignore, targetEntity, drawtime ) ) {
 			aimDir = dir[i];

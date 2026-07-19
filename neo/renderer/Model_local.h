@@ -195,7 +195,9 @@ private:
 
 	void						CalculateBounds( const idJointMat *joints );
 	void						GetFrameBounds( const renderEntity_t *ent, idBounds &bounds ) const;
+#ifndef __EMSCRIPTEN__
 	void						DrawJoints( const renderEntity_t *ent, const struct viewDef_s *view ) const;
+#endif
 	void						ParseJoint( idLexer &parser, idMD5Joint *joint, idJointQuat *defaultPose );
 };
 

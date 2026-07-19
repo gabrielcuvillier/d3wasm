@@ -218,6 +218,7 @@ void idSecurityCamera::Event_AddLight( void ) {
 	spotLight->UpdateVisuals();
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idSecurityCamera::DrawFov
@@ -262,6 +263,7 @@ void idSecurityCamera::DrawFov( void ) {
 		gameRenderWorld->DebugLine( color2, halfPoint, center );
 	}
 }
+#endif
 
 /*
 ================
@@ -354,9 +356,11 @@ void idSecurityCamera::Think( void ) {
 	float travel;
 
 	if ( thinkFlags & TH_THINK ) {
+#ifndef __EMSCRIPTEN__
 		if ( g_showEntityInfo.GetBool() ) {
 			DrawFov();
 		}
+#endif
 
 		if (health <= 0) {
 			BecomeInactive( TH_THINK );

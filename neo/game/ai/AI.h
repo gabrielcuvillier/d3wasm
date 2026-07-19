@@ -466,7 +466,9 @@ protected:
 	float					TravelDistance( const idVec3 &start, const idVec3 &end ) const;
 	int						PointReachableAreaNum( const idVec3 &pos, const float boundsScale = 2.0f ) const;
 	bool					PathToGoal( aasPath_t &path, int areaNum, const idVec3 &origin, int goalAreaNum, const idVec3 &goalOrigin ) const;
+#ifndef __EMSCRIPTEN__
 	void					DrawRoute( void ) const;
+#endif
 	bool					GetMovePos( idVec3 &seekPos );
 	bool					MoveDone( void ) const;
 	bool					EntityCanSeePos( idActor *actor, const idVec3 &actorOrigin, const idVec3 &pos );
@@ -678,8 +680,9 @@ public:
 	void				Spawn( void );
 	bool				IsDisabled( void ) const;
 	bool				EntityInView( idActor *actor, const idVec3 &pos );
+#ifndef __EMSCRIPTEN__
 	static void			DrawDebugInfo( void );
-
+#endif
 private:
 	float				min_dist;
 	float				max_dist;

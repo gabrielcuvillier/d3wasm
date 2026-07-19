@@ -1598,6 +1598,7 @@ bool idClip::GetModelContactFeature( const contactInfo_t &contact, const idClipM
 	return true;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idClip::PrintStatistics
@@ -1636,7 +1637,9 @@ void idClip::DrawClipModels( const idVec3 &eye, const float radius, const idEnti
 		}
 	}
 }
+#endif
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idClip::DrawModelContactFeature
@@ -1669,3 +1672,4 @@ bool idClip::DrawModelContactFeature( const contactInfo_t &contact, const idClip
 
 	return true;
 }
+#endif

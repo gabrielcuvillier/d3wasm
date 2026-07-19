@@ -88,8 +88,10 @@ void idCursor3D::Present( void ) {
 
 	const idVec3 &origin = GetPhysics()->GetOrigin();
 	const idMat3 &axis = GetPhysics()->GetAxis();
+#ifndef __EMSCRIPTEN__
 	gameRenderWorld->DebugArrow( colorYellow, origin + axis[1] * -5.0f + axis[2] * 5.0f, origin, 2 );
 	gameRenderWorld->DebugArrow( colorRed, origin, draggedPosition, 2 );
+#endif
 }
 
 /*
@@ -273,7 +275,7 @@ void idDragEntity::Update( idPlayer *player ) {
 
 		renderEntity_t *renderEntity = drag->GetRenderEntity();
 		idAnimator *dragAnimator = drag->GetAnimator();
-
+#ifndef __EMSCRIPTEN__
 		if ( joint != INVALID_JOINT && renderEntity && dragAnimator ) {
 			dragAnimator->GetJointTransform( joint, gameLocal.time, cursor->draggedPosition, axis );
 			cursor->draggedPosition = renderEntity->origin + cursor->draggedPosition * renderEntity->axis;
@@ -282,8 +284,10 @@ void idDragEntity::Update( idPlayer *player ) {
 			cursor->draggedPosition = cursor->GetPhysics()->GetOrigin();
 			gameRenderWorld->DrawText( va( "%s\n%s\n%s", drag->GetName(), drag->GetType()->classname, bodyName.c_str() ), cursor->GetPhysics()->GetOrigin(), 0.1f, colorWhite, viewAxis, 1 );
 		}
+#endif
 	}
 
+#ifndef __EMSCRIPTEN__
 	// if there is a selected entity
 	if ( selected.GetEntity() && g_dragShowSelection.GetBool() ) {
 		// draw the bbox of the selected entity
@@ -292,6 +296,7 @@ void idDragEntity::Update( idPlayer *player ) {
 			gameRenderWorld->DebugBox( colorYellow, idBox( renderEntity->bounds, renderEntity->origin, renderEntity->axis ) );
 		}
 	}
+#endif
 }
 
 /*
@@ -530,6 +535,7 @@ bool idEditEntities::EntityIsSelectable( idEntity *ent, idVec4 *color, idStr *te
 	return false;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =============
 idEditEntities::DisplayEntities
@@ -660,6 +666,7 @@ void idEditEntities::DisplayEntities( void ) {
 		}
 	}
 }
+#endif
 
 
 /*

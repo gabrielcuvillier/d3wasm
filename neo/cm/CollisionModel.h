@@ -138,11 +138,13 @@ public:
 								const idTraceModel *trm, const idMat3 &trmAxis, int contentMask,
 								cmHandle_t model, const idVec3 &modelOrigin, const idMat3 &modelAxis ) = 0;
 
+#ifndef __EMSCRIPTEN__
 	// Tests collision detection.
 	virtual void			DebugOutput( const idVec3 &origin ) = 0;
 	// Draws a model.
 	virtual void			DrawModel( cmHandle_t model, const idVec3 &modelOrigin, const idMat3 &modelAxis,
 												const idVec3 &viewOrigin, const float radius ) = 0;
+#endif
 	// Prints model information, use -1 handle for accumulated model info.
 	virtual void			ModelInfo( cmHandle_t model ) = 0;
 	// Lists all loaded models.

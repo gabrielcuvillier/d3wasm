@@ -86,11 +86,13 @@ public:
 	bool				InCurrentPVS( const pvsHandle_t handle, const idBounds &target ) const;
 	bool				InCurrentPVS( const pvsHandle_t handle, const int targetArea ) const;
 	bool				InCurrentPVS( const pvsHandle_t handle, const int *targetAreas, int numTargetAreas ) const;
-						// draw all portals that are within the PVS of the source
+#ifndef __EMSCRIPTEN__
+	// draw all portals that are within the PVS of the source
 	void				DrawPVS( const idVec3 &source, const pvsType_t type = PVS_NORMAL ) const;
 	void				DrawPVS( const idBounds &source, const pvsType_t type = PVS_NORMAL ) const;
 						// visualize the PVS the handle points to
 	void				DrawCurrentPVS( const pvsHandle_t handle, const idVec3 &source ) const;
+#endif
 
 #if ASYNC_WRITE_PVS
 	void				WritePVS( const pvsHandle_t handle, idBitMsg &msg );

@@ -161,8 +161,10 @@ protected:
 	void					ActivateContactEntities( void );
 							// returns true if the whole physics object is outside the world bounds
 	bool					IsOutsideWorld( void ) const;
+#ifndef __EMSCRIPTEN__
 							// draw linear and angular velocity
 	void					DrawVelocity( int id, float linearScale, float angularScale ) const;
+#endif
 };
 
 #endif /* !__PHYSICS_BASE_H__ */

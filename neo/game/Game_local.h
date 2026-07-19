@@ -525,9 +525,10 @@ private:
 	void					FreePlayerPVS( void );
 	void					UpdateGravity( void );
 	void					SortActiveEntityList( void );
+#ifndef __EMSCRIPTEN__
 	void					ShowTargets( void );
 	void					RunDebugInfo( void );
-
+#endif
 	void					InitScriptForMap( void );
 
 	void					InitConsoleCommands( void );
@@ -545,7 +546,9 @@ private:
 	void					NetworkEventWarning( const entityNetEvent_t *event, const char *fmt, ... ) id_attribute((format(printf,3,4)));
 	void					ServerProcessEntityNetworkEventQueue( void );
 	void					ClientProcessEntityNetworkEventQueue( void );
+#ifndef __EMSCRIPTEN__
 	void					ClientShowSnapshot( int clientNum ) const;
+#endif
 							// call after any change to serverInfo. Will update various quick-access flags
 	void					UpdateServerInfoFlags( void );
 	void					RandomizeInitialSpawns( void );

@@ -306,11 +306,13 @@ public:
 	const idBounds &		GetWorldBounds( void ) const;
 	idClipModel *			DefaultClipModel( void );
 
+#ifndef __EMSCRIPTEN__
 							// stats and debug drawing
 	void					PrintStatistics( void );
+
 	void					DrawClipModels( const idVec3 &eye, const float radius, const idEntity *passEntity );
 	bool					DrawModelContactFeature( const contactInfo_t &contact, const idClipModel *clipModel, int lifetime ) const;
-
+#endif
 private:
 	int						numClipSectors;
 	struct clipSector_s *	clipSectors;

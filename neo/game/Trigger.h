@@ -47,8 +47,9 @@ class idTrigger : public idEntity {
 public:
 	CLASS_PROTOTYPE( idTrigger );
 
+#ifndef __EMSCRIPTEN__
 	static void			DrawDebugInfo( void );
-
+#endif
 						idTrigger();
 	void				Spawn( void );
 

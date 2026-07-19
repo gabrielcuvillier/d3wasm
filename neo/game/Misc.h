@@ -135,7 +135,9 @@ public:
 
 	void				Spawn( void );
 
+#ifndef __EMSCRIPTEN__
 	static void			DrawDebugInfo( void );
+#endif
 
 	static idPathCorner *RandomPath( const idEntity *source, const idEntity *ignore );
 

@@ -773,7 +773,7 @@ bool idPhysics_Base::IsOutsideWorld( void ) const {
 	}
 	return false;
 }
-
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idPhysics_Base::DrawVelocity
@@ -820,7 +820,7 @@ void idPhysics_Base::DrawVelocity( int id, float linearScale, float angularScale
 		gameRenderWorld->DebugArrow( colorBlue, start, end, 1 );
 	}
 }
-
+#endif
 /*
 ================
 idPhysics_Base::WriteToSnapshot

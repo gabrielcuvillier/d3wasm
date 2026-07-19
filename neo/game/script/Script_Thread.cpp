@@ -107,11 +107,13 @@ const idEventDef EV_Thread_IsClient( "isClient", NULL, 'f' );
 const idEventDef EV_Thread_IsMultiplayer( "isMultiplayer", NULL, 'f' );
 const idEventDef EV_Thread_GetFrameTime( "getFrameTime", NULL, 'f' );
 const idEventDef EV_Thread_GetTicsPerSecond( "getTicsPerSecond", NULL, 'f' );
+#ifndef __EMSCRIPTEN__
 const idEventDef EV_Thread_DebugLine( "debugLine", "vvvf" );
 const idEventDef EV_Thread_DebugArrow( "debugArrow", "vvvdf" );
 const idEventDef EV_Thread_DebugCircle( "debugCircle", "vvvfdf" );
 const idEventDef EV_Thread_DebugBounds( "debugBounds", "vvvf" );
 const idEventDef EV_Thread_DrawText( "drawText", "svfvdf" );
+#endif
 const idEventDef EV_Thread_InfluenceActive( "influenceActive", NULL, 'd' );
 
 CLASS_DECLARATION( idClass, idThread )
@@ -187,11 +189,13 @@ CLASS_DECLARATION( idClass, idThread )
 	EVENT( EV_Thread_GetFrameTime,			idThread::Event_GetFrameTime )
 	EVENT( EV_Thread_GetTicsPerSecond,		idThread::Event_GetTicsPerSecond )
 	EVENT( EV_CacheSoundShader,				idThread::Event_CacheSoundShader )
+#ifndef __EMSCRIPTEN__
 	EVENT( EV_Thread_DebugLine,				idThread::Event_DebugLine )
 	EVENT( EV_Thread_DebugArrow,			idThread::Event_DebugArrow )
 	EVENT( EV_Thread_DebugCircle,			idThread::Event_DebugCircle )
 	EVENT( EV_Thread_DebugBounds,			idThread::Event_DebugBounds )
 	EVENT( EV_Thread_DrawText,				idThread::Event_DrawText )
+#endif
 	EVENT( EV_Thread_InfluenceActive,		idThread::Event_InfluenceActive )
 END_CLASS
 
@@ -1781,6 +1785,7 @@ void idThread::Event_CacheSoundShader( const char *soundName ) {
 	declManager->FindSound( soundName );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idThread::Event_DebugLine
@@ -1825,6 +1830,7 @@ idThread::Event_DrawText
 void idThread::Event_DrawText( const char *text, const idVec3 &origin, float scale, const idVec3 &color, const int align, const float lifetime ) {
 	gameRenderWorld->DrawText( text, origin, scale, idVec4( color.x, color.y, color.z, 0.0f ), gameLocal.GetLocalPlayer()->viewAngles.ToMat3(), align, SEC2MS( lifetime ) );
 }
+#endif
 
 /*
 ================

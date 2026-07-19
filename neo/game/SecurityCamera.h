@@ -85,7 +85,9 @@ private:
 	void					StartSweep( void );
 	bool					CanSeePlayer( void );
 	void					SetAlertMode( int status );
+#ifndef __EMSCRIPTEN__
 	void					DrawFov( void );
+#endif
 	const idVec3			GetAxis( void ) const;
 	float					SweepSpeed( void ) const;
 

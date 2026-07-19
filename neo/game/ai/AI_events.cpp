@@ -749,9 +749,11 @@ void idAI::Event_MeleeAttackToJoint( const char *jointname, const char *meleeDef
 	end = physicsObj.GetOrigin() + ( end + modelOffset ) * viewAxis * physicsObj.GetGravityAxis();
 	start = GetEyePosition();
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorYellow, start, end, gameLocal.msec );
 	}
+#endif
 
 	gameLocal.clip.TranslationEntities( trace, start, end, NULL, mat3_identity, MASK_SHOT_BOUNDINGBOX, this );
 	if ( trace.fraction < 1.0f ) {
@@ -1664,10 +1666,12 @@ void idAI::Event_TestChargeAttack( void ) {
 
 	idAI::PredictPath( this, aas, physicsObj.GetOrigin(), end - physicsObj.GetOrigin(), 1000, 1000, ( move.moveType == MOVETYPE_FLY ) ? SE_BLOCKED : ( SE_ENTER_OBSTACLE | SE_BLOCKED | SE_ENTER_LEDGE_AREA ), path );
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorGreen, physicsObj.GetOrigin(), end, gameLocal.msec );
 		gameRenderWorld->DebugBounds( path.endEvent == 0 ? colorYellow : colorRed, physicsObj.GetBounds(), end, gameLocal.msec );
 	}
+#endif
 
 	if ( ( path.endEvent == 0 ) || ( path.blockingEntity == enemyEnt ) ) {
 		idVec3 delta = end - physicsObj.GetOrigin();
@@ -1710,10 +1714,12 @@ void idAI::Event_TestAnimMoveTowardEnemy( const char *animname ) {
 	moveVec = animator.TotalMovementDelta( anim ) * idAngles( 0.0f, yaw, 0.0f ).ToMat3() * physicsObj.GetGravityAxis();
 	idAI::PredictPath( this, aas, physicsObj.GetOrigin(), moveVec, 1000, 1000, ( move.moveType == MOVETYPE_FLY ) ? SE_BLOCKED : ( SE_ENTER_OBSTACLE | SE_BLOCKED | SE_ENTER_LEDGE_AREA ), path );
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorGreen, physicsObj.GetOrigin(), physicsObj.GetOrigin() + moveVec, gameLocal.msec );
 		gameRenderWorld->DebugBounds( path.endEvent == 0 ? colorYellow : colorRed, physicsObj.GetBounds(), physicsObj.GetOrigin() + moveVec, gameLocal.msec );
 	}
+#endif
 
 	idThread::ReturnInt( path.endEvent == 0 );
 }
@@ -1738,10 +1744,12 @@ void idAI::Event_TestAnimMove( const char *animname ) {
 	moveVec = animator.TotalMovementDelta( anim ) * idAngles( 0.0f, ideal_yaw, 0.0f ).ToMat3() * physicsObj.GetGravityAxis();
 	idAI::PredictPath( this, aas, physicsObj.GetOrigin(), moveVec, 1000, 1000, ( move.moveType == MOVETYPE_FLY ) ? SE_BLOCKED : ( SE_ENTER_OBSTACLE | SE_BLOCKED | SE_ENTER_LEDGE_AREA ), path );
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorGreen, physicsObj.GetOrigin(), physicsObj.GetOrigin() + moveVec, gameLocal.msec );
 		gameRenderWorld->DebugBounds( path.endEvent == 0 ? colorYellow : colorRed, physicsObj.GetBounds(), physicsObj.GetOrigin() + moveVec, gameLocal.msec );
 	}
+#endif
 
 	idThread::ReturnInt( path.endEvent == 0 );
 }
@@ -1756,6 +1764,7 @@ void idAI::Event_TestMoveToPosition( const idVec3 &position ) {
 
 	idAI::PredictPath( this, aas, physicsObj.GetOrigin(), position - physicsObj.GetOrigin(), 1000, 1000, ( move.moveType == MOVETYPE_FLY ) ? SE_BLOCKED : ( SE_ENTER_OBSTACLE | SE_BLOCKED | SE_ENTER_LEDGE_AREA ), path );
 
+#ifndef __EMSCRIPTEN__
 	if ( ai_debugMove.GetBool() ) {
 		gameRenderWorld->DebugLine( colorGreen, physicsObj.GetOrigin(), position, gameLocal.msec );
 		gameRenderWorld->DebugBounds( colorYellow, physicsObj.GetBounds(), position, gameLocal.msec );
@@ -1763,6 +1772,7 @@ void idAI::Event_TestMoveToPosition( const idVec3 &position ) {
 			gameRenderWorld->DebugBounds( colorRed, physicsObj.GetBounds(), path.endPos, gameLocal.msec );
 		}
 	}
+#endif
 
 	idThread::ReturnInt( path.endEvent == 0 );
 }

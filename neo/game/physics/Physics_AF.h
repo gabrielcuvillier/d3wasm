@@ -110,7 +110,9 @@ public:
 	const idVecX &			GetMultiplier( void );
 	virtual void			SetBody1( idAFBody *body );
 	virtual void			SetBody2( idAFBody *body );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			GetForce( idAFBody *body, idVec6 &force );
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
@@ -163,7 +165,9 @@ public:
 	void					SetRelativeAxis( const idMat3 &axis ) { this->relAxis = axis; }
 	virtual void			SetBody1( idAFBody *body );
 	virtual void			SetBody2( idAFBody *body );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 	virtual void			GetCenter( idVec3 &center );
@@ -196,7 +200,9 @@ public:
 	void					SetLimitEpsilon( const float e );
 	void					SetFriction( const float f ) { friction = f; }
 	float					GetFriction( void ) const;
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			GetForce( idAFBody *body, idVec6 &force );
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
@@ -253,7 +259,9 @@ public:
 	void					SetLimitEpsilon( const float e );
 	void					SetFriction( const float f ) { friction = f; }
 	float					GetFriction( void ) const;
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			GetForce( idAFBody *body, idVec6 &force );
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
@@ -302,7 +310,9 @@ class idAFConstraint_CylindricalJoint : public idAFConstraint {
 
 public:
 							idAFConstraint_CylindricalJoint( const idStr &name, idAFBody *body1, idAFBody *body2 );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 
@@ -333,7 +343,9 @@ public:
 	void					SetSteerSpeed( const float speed );
 	void					SetFriction( const float f ) { friction = f; }
 	float					GetFriction( void ) const;
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			GetForce( idAFBody *body, idVec6 &force );
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
@@ -409,7 +421,9 @@ class idAFConstraint_Slider : public idAFConstraint {
 public:
 							idAFConstraint_Slider( const idStr &name, idAFBody *body1, idAFBody *body2 );
 	void					SetAxis( const idVec3 &ax );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 	virtual void			GetCenter( idVec3 &center );
@@ -432,7 +446,9 @@ class idAFConstraint_Line : public idAFConstraint {
 
 public:
 							idAFConstraint_Line( const idStr &name, idAFBody *body1, idAFBody *body2 );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 
@@ -450,7 +466,9 @@ class idAFConstraint_Plane : public idAFConstraint {
 public:
 							idAFConstraint_Plane( const idStr &name, idAFBody *body1, idAFBody *body2 );
 	void					SetPlane( const idVec3 &normal, const idVec3 &anchor );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 	virtual void			Save( idSaveGame *saveFile ) const;
@@ -475,7 +493,9 @@ public:
 	void					SetAnchor( const idVec3 &worldAnchor1, const idVec3 &worldAnchor2 );
 	void					SetSpring( const float stretch, const float compress, const float damping, const float restLength );
 	void					SetLimit( const float minLength, const float maxLength );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 	virtual void			GetCenter( idVec3 &center );
@@ -505,7 +525,9 @@ public:
 							~idAFConstraint_Contact( void );
 	void					Setup( idAFBody *b1, idAFBody *b2, contactInfo_t &c );
 	const contactInfo_t &	GetContact( void ) const { return contact; }
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 	virtual void			GetCenter( idVec3 &center );
@@ -526,7 +548,9 @@ public:
 							idAFConstraint_ContactFriction( void );
 	void					Setup( idAFConstraint_Contact *cc );
 	bool					Add( idPhysics_AF *phys, float invTimeStep );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 
@@ -549,7 +573,9 @@ public:
 	void					SetBody1Axis( const idVec3 &body1Axis );
 	void					SetEpsilon( const float e ) { epsilon = e; }
 	bool					Add( idPhysics_AF *phys, float invTimeStep );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 	virtual void			Save( idSaveGame *saveFile ) const;
@@ -581,7 +607,9 @@ public:
 	void					SetBody1Axis( const idVec3 &body1Axis );
 	void					SetEpsilon( const float e ) { epsilon = e; }
 	bool					Add( idPhysics_AF *phys, float invTimeStep );
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 	virtual void			Save( idSaveGame *saveFile ) const;
@@ -616,8 +644,9 @@ public:
 	void					SetMotorVelocity( const float vel ) { motorVelocity = vel; }
 	void					SetEpsilon( const float e ) { epsilon = e; }
 	const idVec3			GetWheelOrigin( void ) const;
-
+#ifndef __EMSCRIPTEN__
 	virtual void			DebugDraw( void );
+#endif
 	virtual void			Translate( const idVec3 &translation );
 	virtual void			Rotate( const idRotation &rotation );
 
@@ -786,7 +815,9 @@ public:
 	void					SetMaxSubTreeAuxiliaryIndex( void );
 	void					SortBodies( void );
 	void					SortBodies_r( idList<idAFBody*>&sortedList, idAFBody *body );
+#ifndef __EMSCRIPTEN__
 	void					DebugDraw( const idVec4 &color ) const;
+#endif
 
 private:
 	idList<idAFBody *>		sortedBodies;
@@ -1045,7 +1076,9 @@ private:
 	bool					TestIfAtRest( float timeStep );
 	void					Rest( void );
 	void					AddPushVelocity( const idVec6 &pushVelocity );
+#ifndef __EMSCRIPTEN__
 	void					DebugDraw( void );
+#endif
 };
 
 #endif /* !__PHYSICS_AF_H__ */

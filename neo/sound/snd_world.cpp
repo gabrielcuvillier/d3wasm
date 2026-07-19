@@ -846,6 +846,7 @@ void idSoundWorldLocal::ForegroundUpdate( int current44kHzTime ) {
 		// update virtual origin / distance, etc
 		def->Spatialize( listenerPos, listenerArea, rw );
 
+#ifndef __EMSCRIPTEN__
 		// per-sound debug options
 		if ( idSoundSystemLocal::s_drawSounds.GetInteger() && rw ) {
 			if ( def->distance < def->maxDistance || idSoundSystemLocal::s_drawSounds.GetInteger() > 1 ) {
@@ -889,6 +890,7 @@ void idSoundWorldLocal::ForegroundUpdate( int current44kHzTime ) {
 				}
 			}
 		}
+#endif
 	}
 
 	Sys_LeaveCriticalSection();

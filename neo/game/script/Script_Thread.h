@@ -181,11 +181,13 @@ private:
 	void						Event_GetFrameTime( void );
 	void						Event_GetTicsPerSecond( void );
 	void						Event_CacheSoundShader( const char *soundName );
+#ifndef __EMSCRIPTEN__
 	void						Event_DebugLine( const idVec3 &color, const idVec3 &start, const idVec3 &end, const float lifetime );
 	void						Event_DebugArrow( const idVec3 &color, const idVec3 &start, const idVec3 &end, const int size, const float lifetime );
 	void						Event_DebugCircle( const idVec3 &color, const idVec3 &origin, const idVec3 &dir, const float radius, const int numSteps, const float lifetime );
 	void						Event_DebugBounds( const idVec3 &color, const idVec3 &mins, const idVec3 &maxs, const float lifetime );
 	void						Event_DrawText( const char *text, const idVec3 &origin, float scale, const idVec3 &color, const int align, const float lifetime );
+#endif
 	void						Event_InfluenceActive( void );
 
 public:
