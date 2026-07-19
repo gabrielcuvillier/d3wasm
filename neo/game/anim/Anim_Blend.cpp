@@ -5026,3 +5026,120 @@ idRenderModel *idGameEdit::ANIM_CreateMeshForAnim( idRenderModel *model, const c
 
 	return newmodel;
 }
+
+
+/***********************************************************************
+
+	idMD5CameraAnim
+
+***********************************************************************/
+
+/*
+=====================
+idMD5CameraAnim::idMD5CameraAnim
+=====================
+*/
+idMD5CameraAnim::idMD5CameraAnim() {
+	frameRate = 0;
+	cameraCuts.Clear();
+	camera.Clear();;
+}
+
+/*
+=====================
+idMD5CameraAnim::~idMD5CameraAnim
+=====================
+*/
+idMD5CameraAnim::~idMD5CameraAnim() {
+	frameRate = 0;
+	cameraCuts.Clear();
+	camera.Clear();;
+}
+
+/*
+================
+idMD5CameraAnim::idMD5CameraAnim
+================
+*/
+bool idMD5CameraAnim::InitFromFile( const char* qpath ) {
+	int			version;
+	idLexer		parser( LEXFL_ALLOWPATHNAMES | LEXFL_NOSTRINGESCAPECHARS | LEXFL_NOSTRINGCONCAT | LEXFL_NOFATALERRORS );
+	idToken		token;
+	int			numFrames;
+	int			numCuts;
+	int			i;
+	idStr		filename = qpath;
+	const char	*key;
+
+	filename.SetFileExtension( MD5_CAMERA_EXT );
+	if ( !parser.LoadFile( filename ) ) {
+		parser.Error( "Unable to load '%s'", filename.c_str() );
+		return false;
+	}
+
+	cameraCuts.Clear();
+	cameraCuts.SetGranularity( 1 );
+	camera.Clear();
+	camera.SetGranularity( 1 );
+
+	parser.ExpectTokenString( MD5_VERSION_STRING );
+	version = parser.ParseInt();
+	if ( version != MD5_VERSION ) {
+		parser.Warning( "Invalid version %d.  Should be version %d\n", version, MD5_VERSION );
+		return false;
+	}
+
+	// skip the commandline
+	parser.ExpectTokenString( "commandline" );
+	parser.ReadToken( &token );
+
+	// parse num frames
+	parser.ExpectTokenString( "numFrames" );
+	numFrames = parser.ParseInt();
+	if ( numFrames <= 0 ) {
+		parser.Warning(  "Invalid number of frames: %d", numFrames );
+		return false;
+	}
+
+	// parse framerate
+	parser.ExpectTokenString( "frameRate" );
+	frameRate = parser.ParseInt();
+	if ( frameRate <= 0 ) {
+		parser.Error( "Invalid framerate: %d", frameRate );
+		return false;
+	}
+
+	// parse num cuts
+	parser.ExpectTokenString( "numCuts" );
+	numCuts = parser.ParseInt();
+	if ( ( numCuts < 0 ) || ( numCuts > numFrames ) ) {
+		parser.Error( "Invalid number of camera cuts: %d", numCuts );
+		return false;
+	}
+
+	// parse the camera cuts
+	parser.ExpectTokenString( "cuts" );
+	parser.ExpectTokenString( "{" );
+	cameraCuts.SetNum( numCuts );
+	for( i = 0; i < numCuts; i++ ) {
+		cameraCuts[ i ] = parser.ParseInt();
+		if ( ( cameraCuts[ i ] < 1 ) || ( cameraCuts[ i ] >= numFrames ) ) {
+			parser.Error( "Invalid camera cut" );
+			return false;
+		}
+	}
+	parser.ExpectTokenString( "}" );
+
+	// parse the camera frames
+	parser.ExpectTokenString( "camera" );
+	parser.ExpectTokenString( "{" );
+	camera.SetNum( numFrames );
+	for( i = 0; i < numFrames; i++ ) {
+		parser.Parse1DMatrix( 3, camera[ i ].t.ToFloatPtr() );
+		parser.Parse1DMatrix( 3, camera[ i ].q.ToFloatPtr() );
+		camera[ i ].fov = parser.ParseFloat();
+	}
+	parser.ExpectTokenString( "}" );
+
+	return true;
+}

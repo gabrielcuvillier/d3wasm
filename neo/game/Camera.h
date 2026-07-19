@@ -91,12 +91,6 @@ A camera which follows a path defined by an animation.
 ===============================================================================
 */
 
-typedef struct {
-	idCQuat				q;
-	idVec3				t;
-	float				fov;
-} cameraFrame_t;
-
 class idCameraAnim : public idCamera {
 public:
 	CLASS_PROTOTYPE( idCameraAnim );
@@ -114,12 +108,10 @@ public:
 private:
 	int						threadNum;
 	idVec3					offset;
-	int						frameRate;
 	int						starttime;
 	int						cycle;
-	idList<int>				cameraCuts;
-	idList<cameraFrame_t>	camera;
 	idEntityPtr<idEntity>	activator;
+	idMD5CameraAnim			anim;
 
 	void					Start( void );
 	void					Stop( void );

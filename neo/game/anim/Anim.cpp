@@ -946,6 +946,7 @@ void idAnimManager::Shutdown( void ) {
 	animations.DeleteContents();
 	jointnames.Clear();
 	jointnamesHash.Free();
+	FlushCameras();
 }
 
 /*
@@ -1087,4 +1088,42 @@ void idAnimManager::FlushUnusedAnims( void ) {
 		animations.Remove( removeAnims[ i ]->Name() );
 		delete removeAnims[ i ];
 	}
+}
+
+/*
+====================
+idAnimManager::GetCameraAnim
+====================
+*/
+idMD5CameraAnim *idAnimManager::GetCameraAnim( const char *name ) {
+	const int key = cameraCacheIndex.GenerateKey(name);
+	for ( int i = cameraCacheIndex.First( key ); i != -1; i = cameraCacheIndex.Next( i ) ) {
+		if (cameraCacheNames[i] == name) {
+			return cameraCache[i];
+		}
+	}
+
+	idMD5CameraAnim *cam = new idMD5CameraAnim;
+	if (!cam->InitFromFile(name)) {
+		delete cam;
+		return NULL;
+	}
+	cameraCacheIndex.Add(key,	cameraCache.Append(cam));
+	cameraCacheNames.Append(name);
+
+	return cam;
+}
+
+/*
+================
+idAnimManager::FlushCameras
+================
+*/
+void idAnimManager::FlushCameras( void ) {
+	cameraCacheIndex.Clear();
+	cameraCacheNames.Clear();
+	for (int i = 0; i < cameraCache.Num(); i++ ) {
+		delete cameraCache[i];
+	}
+	cameraCache.Clear();
 }

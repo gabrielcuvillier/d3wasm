@@ -32,6 +32,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "idlib/containers/HashTable.h"
 #include "idlib/Dict.h"
 #include "renderer/Model.h"
+#include "idlib/math/Quat.h"
 
 #include "physics/Clip.h"
 
@@ -268,6 +269,32 @@ public:
 	void					GetOrigin( idVec3 &offset, int currentTime, int cyclecount ) const;
 	void					GetOriginRotation( idQuat &rotation, int time, int cyclecount ) const;
 	void					GetBounds( idBounds &bounds, int currentTime, int cyclecount ) const;
+};
+
+/*
+==============================================================================================
+
+	idMD5CameraAnim
+
+==============================================================================================
+*/
+
+typedef struct {
+	idCQuat				q;
+	idVec3				t;
+	float				fov;
+} cameraFrame_t;
+
+class idMD5CameraAnim {
+public:
+	int						frameRate;
+	idList<int>				cameraCuts;
+	idList<cameraFrame_t>	camera;
+
+public:
+							idMD5CameraAnim();
+							~idMD5CameraAnim();
+	bool					InitFromFile( const char* qpath );
 };
 
 /*
@@ -616,13 +643,21 @@ public:
 	int							JointIndex( const char *name );
 	const char *				JointName( int index ) const;
 
+	idMD5CameraAnim *			GetCameraAnim( const char *name );
+
 	void						ClearAnimsInUse( void );
 	void						FlushUnusedAnims( void );
+	void						FlushCameras( void );
 
 private:
 	idHashTable<idMD5Anim *>	animations;
 	idStrList					jointnames;
 	idHashIndex					jointnamesHash;
+
+	idHashIndex					cameraCacheIndex;
+	idList<idStr>				cameraCacheNames;
+	idList<idMD5CameraAnim *>	cameraCache;
+
 };
 
 #endif /* !__ANIM_H__ */
