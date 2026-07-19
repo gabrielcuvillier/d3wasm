@@ -82,8 +82,10 @@ public:
 	virtual bool				Init( const idStr &mapName, unsigned int mapFileCRC ) = 0;
 								// Print AAS stats.
 	virtual void				Stats( void ) const = 0;
+#ifndef __EMSCRIPTEN__
 								// Test from the given origin.
 	virtual void				Test( const idVec3 &origin ) = 0;
+#endif
 								// Get the AAS settings.
 	virtual const idAASSettings *GetSettings( void ) const = 0;
 								// Returns the number of the area the origin is in.
@@ -133,9 +135,11 @@ public:
 								// Returns true if one can fly along a straight line from the origin to the goal origin.
 	virtual bool				FlyPathValid( int areaNum, const idVec3 &origin, int goalAreaNum, const idVec3 &goalOrigin, int travelFlags, idVec3 &endPos, int &endAreaNum ) const = 0;
 								// Show the walk path from the origin towards the area.
+#ifndef __EMSCRIPTEN__
 	virtual void				ShowWalkPath( const idVec3 &origin, int goalAreaNum, const idVec3 &goalOrigin ) const = 0;
 								// Show the fly path from the origin towards the area.
 	virtual void				ShowFlyPath( const idVec3 &origin, int goalAreaNum, const idVec3 &goalOrigin ) const = 0;
+#endif
 								// Find the nearest goal which satisfies the callback.
 	virtual bool				FindNearestGoal( aasGoal_t &goal, int areaNum, const idVec3 origin, const idVec3 &target, int travelFlags, aasObstacle_t *obstacles, int numObstacles, idAASCallback &callback ) const = 0;
 };
