@@ -1879,9 +1879,10 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 				if ( pos > 0 ) {
 					temp += &model[ pos ];
 				}
+				declManager->MediaPrint( "Precaching model (if needed) %s\n", temp.c_str() );
 				if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
 					// precache the render model
-					renderModelManager->FindModel( temp );
+					renderModelManager->CheckModel( temp );
 					// precache .cm files only
 					collisionModelManager->LoadModel( temp, true );
 				}
