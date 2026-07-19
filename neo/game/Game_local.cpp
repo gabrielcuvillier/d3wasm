@@ -1668,19 +1668,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "snd", kv );
 	}
 
-	// Handle the case of custom "clipmodel", as some maps use it
-	kv = dict->MatchPrefix( "clipmodel", NULL );
-	while( kv ) {
-		if ( kv->GetValue().Length() ) {
-			common->Printf("Preaching clipmodel %s\n", kv->GetValue().c_str() );
-			declManager->MediaPrint( "Precaching clipmodel %s\n", kv->GetValue().c_str() );
-			if ( declManager->FindType( DECL_MODELDEF, kv->GetValue(), false ) == NULL ) {
-				collisionModelManager->LoadModel( kv->GetValue(), true );
-			}
-		}
-		kv = dict->MatchPrefix( "clipmodel", kv );
-	}
-
 	// Handle the case of "broken" models: might occur for idLight (the so called "broken lights") and idDamagable classes
 	idStr temp;
 	if (dict->GetString( "broken", "", temp ) ) {
