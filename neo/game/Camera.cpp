@@ -248,9 +248,10 @@ idCameraAnim::idCameraAnim
 idCameraAnim::idCameraAnim() {
 	threadNum = 0;
 	offset.Zero();
-	anim.frameRate = 0;
+	frameRate = 0;
 	cycle = 1;
 	starttime = 0;
+	anim = NULL;
 	activator = NULL;
 }
 
@@ -273,7 +274,7 @@ idCameraAnim::Save
 void idCameraAnim::Save( idSaveGame *savefile ) const {
 	savefile->WriteInt( threadNum );
 	savefile->WriteVec3( offset );
-	savefile->WriteInt( anim.frameRate );
+	savefile->WriteInt( frameRate );
 	savefile->WriteInt( starttime );
 	savefile->WriteInt( cycle );
 	activator.Save( savefile );
@@ -287,7 +288,7 @@ idCameraAnim::Restore
 void idCameraAnim::Restore( idRestoreGame *savefile ) {
 	savefile->ReadInt( threadNum );
 	savefile->ReadVec3( offset );
-	savefile->ReadInt( anim.frameRate );
+	savefile->ReadInt( frameRate );
 	savefile->ReadInt( starttime );
 	savefile->ReadInt( cycle );
 	activator.Restore( savefile );
@@ -343,7 +344,10 @@ void idCameraAnim::LoadAnim( void ) {
 		gameLocal.Error( "Unable to load camera anim %s", filename.c_str() );
 	}
 
-	anim = *cam;
+	anim = cam;
+	if (cam) {
+		frameRate = cam->frameRate;
+	}
 }
 
 /*
@@ -397,7 +401,16 @@ void idCameraAnim::Stop( void ) {
 idCameraAnim::Think
 =====================
 */
+
+/*
+=====================
+idCameraAnim::GetViewParms
+=====================
+*/
 void idCameraAnim::Think( void ) {
+	if (!anim) {
+		return;
+	}
 	int frame;
 	int frameTime;
 
@@ -407,27 +420,27 @@ void idCameraAnim::Think( void ) {
 			return;
 		}
 
-		if ( anim.camera.Num() < 2 ) {
+		if ( anim->camera.Num() < 2 ) {
 			// 1 frame anims never end
 			return;
 		}
 
-		if ( anim.frameRate == USERCMD_HZ ) {
+		if ( frameRate == USERCMD_HZ ) {
 			frameTime	= gameLocal.time - starttime;
 			frame		= frameTime / gameLocal.msec;
 		} else {
-			frameTime	= ( gameLocal.time - starttime ) * anim.frameRate;
+			frameTime	= ( gameLocal.time - starttime ) * frameRate;
 			frame		= frameTime / 1000;
 		}
 
-		if ( frame > anim.camera.Num() + anim.cameraCuts.Num() - 2 ) {
+		if ( frame > anim->camera.Num() + anim->cameraCuts.Num() - 2 ) {
 			if ( cycle > 0 ) {
 				cycle--;
 			}
 
 			if ( cycle != 0 ) {
 				// advance start time so that we loop
-				starttime += ( ( anim.camera.Num() - anim.cameraCuts.Num() ) * 1000 ) / anim.frameRate;
+				starttime += ( ( anim->camera.Num() - anim->cameraCuts.Num() ) * 1000 ) / frameRate;
 			} else {
 				Stop();
 			}
@@ -435,11 +448,6 @@ void idCameraAnim::Think( void ) {
 	}
 }
 
-/*
-=====================
-idCameraAnim::GetViewParms
-=====================
-*/
 void idCameraAnim::GetViewParms( renderView_t *view ) {
 	int				realFrame;
 	int				frame;
@@ -455,19 +463,22 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 	if ( !view ) {
 		return;
 	}
+	if (!anim) {
+		return;
+	}
 
-	if ( anim.camera.Num() == 0 ) {
+	if ( anim->camera.Num() == 0 ) {
 		// we most likely are in the middle of a restore
 		// FIXME: it would be better to fix it so this doesn't get called during a restore
 		return;
 	}
 
-	if ( anim.frameRate == USERCMD_HZ ) {
+	if ( frameRate == USERCMD_HZ ) {
 		frameTime	= gameLocal.time - starttime;
 		frame		= frameTime / gameLocal.msec;
 		lerp		= 0.0f;
 	} else {
-		frameTime	= ( gameLocal.time - starttime ) * anim.frameRate;
+		frameTime	= ( gameLocal.time - starttime ) * frameRate;
 		frame		= frameTime / 1000;
 		lerp		= ( frameTime % 1000 ) * 0.001f;
 	}
@@ -475,8 +486,8 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 	// skip any frames where camera cuts occur
 	realFrame = frame;
 	cut = 0;
-	for( i = 0; i < anim.cameraCuts.Num(); i++ ) {
-		if ( frame < anim.cameraCuts[ i ] ) {
+	for( i = 0; i < anim->cameraCuts.Num(); i++ ) {
+		if ( frame < anim->cameraCuts[ i ] ) {
 			break;
 		}
 		frame++;
@@ -484,13 +495,13 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 	}
 
 	if ( g_debugCinematic.GetBool() ) {
-		int prevFrameTime	= ( gameLocal.time - starttime - gameLocal.msec ) * anim.frameRate;
+		int prevFrameTime	= ( gameLocal.time - starttime - gameLocal.msec ) * frameRate;
 		int prevFrame		= prevFrameTime / 1000;
 		int prevCut;
 
 		prevCut = 0;
-		for( i = 0; i < anim.cameraCuts.Num(); i++ ) {
-			if ( prevFrame < anim.cameraCuts[ i ] ) {
+		for( i = 0; i < anim->cameraCuts.Num(); i++ ) {
+			if ( prevFrame < anim->cameraCuts[ i ] ) {
 				break;
 			}
 			prevFrame++;
@@ -504,18 +515,18 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 
 	// clamp to the first frame.  also check if this is a one frame anim.  one frame anims would end immediately,
 	// but since they're mainly used for static cams anyway, just stay on it infinitely.
-	if ( ( frame < 0 ) || ( anim.camera.Num() < 2 ) ) {
-		view->viewaxis = anim.camera[ 0 ].q.ToQuat().ToMat3();
-		view->vieworg = anim.camera[ 0 ].t + offset;
-		view->fov_x = anim.camera[ 0 ].fov;
-	} else if ( frame > anim.camera.Num() - 2 ) {
+	if ( ( frame < 0 ) || ( anim->camera.Num() < 2 ) ) {
+		view->viewaxis = anim->camera[ 0 ].q.ToQuat().ToMat3();
+		view->vieworg = anim->camera[ 0 ].t + offset;
+		view->fov_x = anim->camera[ 0 ].fov;
+	} else if ( frame > anim->camera.Num() - 2 ) {
 		if ( cycle > 0 ) {
 			cycle--;
 		}
 
 		if ( cycle != 0 ) {
 			// advance start time so that we loop
-			starttime += ( ( anim.camera.Num() - anim.cameraCuts.Num() ) * 1000 ) / anim.frameRate;
+			starttime += ( ( anim->camera.Num() - anim->cameraCuts.Num() ) * 1000 ) / frameRate;
 			GetViewParms( view );
 			return;
 		}
@@ -527,18 +538,18 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 			return;
 		} else {
 			// just use our last frame
-			camFrame = &anim.camera[ anim.camera.Num() - 1 ];
+			camFrame = &anim->camera[ anim->camera.Num() - 1 ];
 			view->viewaxis = camFrame->q.ToQuat().ToMat3();
 			view->vieworg = camFrame->t + offset;
 			view->fov_x = camFrame->fov;
 		}
 	} else if ( lerp == 0.0f ) {
-		camFrame = &anim.camera[ frame ];
+		camFrame = &anim->camera[ frame ];
 		view->viewaxis = camFrame[ 0 ].q.ToMat3();
 		view->vieworg = camFrame[ 0 ].t + offset;
 		view->fov_x = camFrame[ 0 ].fov;
 	} else {
-		camFrame = &anim.camera[ frame ];
+		camFrame = &anim->camera[ frame ];
 		invlerp = 1.0f - lerp;
 		q1 = camFrame[ 0 ].q.ToQuat();
 		q2 = camFrame[ 1 ].q.ToQuat();
@@ -568,7 +579,7 @@ void idCameraAnim::GetViewParms( renderView_t *view ) {
 #endif
 
 	if ( g_showcamerainfo.GetBool() ) {
-		gameLocal.Printf( "^5Frame: ^7%d/%d\n\n\n", realFrame + 1, anim.camera.Num() - anim.cameraCuts.Num() );
+		gameLocal.Printf( "^5Frame: ^7%d/%d\n\n\n", realFrame + 1, anim->camera.Num() - anim->cameraCuts.Num() );
 	}
 }
 

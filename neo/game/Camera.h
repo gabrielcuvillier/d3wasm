@@ -109,9 +109,10 @@ private:
 	int						threadNum;
 	idVec3					offset;
 	int						starttime;
+	int						frameRate;
 	int						cycle;
 	idEntityPtr<idEntity>	activator;
-	idMD5CameraAnim			anim;
+	idMD5CameraAnim*		anim;
 
 	void					Start( void );
 	void					Stop( void );

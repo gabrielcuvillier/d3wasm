@@ -5071,6 +5071,11 @@ bool idMD5CameraAnim::InitFromFile( const char* qpath ) {
 	idStr		filename = qpath;
 	const char	*key;
 
+	cameraCuts.Clear();
+	cameraCuts.SetGranularity( 1 );
+	camera.Clear();
+	camera.SetGranularity( 1 );
+
 	filename.SetFileExtension( MD5_CAMERA_EXT );
 	if ( !parser.LoadFile( filename ) ) {
 		parser.Error( "Unable to load '%s'", filename.c_str() );
@@ -5085,7 +5090,7 @@ bool idMD5CameraAnim::InitFromFile( const char* qpath ) {
 	parser.ExpectTokenString( MD5_VERSION_STRING );
 	version = parser.ParseInt();
 	if ( version != MD5_VERSION ) {
-		parser.Warning( "Invalid version %d.  Should be version %d\n", version, MD5_VERSION );
+		parser.Error( "Invalid version %d.  Should be version %d\n", version, MD5_VERSION );
 		return false;
 	}
 
@@ -5097,7 +5102,8 @@ bool idMD5CameraAnim::InitFromFile( const char* qpath ) {
 	parser.ExpectTokenString( "numFrames" );
 	numFrames = parser.ParseInt();
 	if ( numFrames <= 0 ) {
-		parser.Warning(  "Invalid number of frames: %d", numFrames );
+		parser.Error
+		(  "Invalid number of frames: %d", numFrames );
 		return false;
 	}
 
