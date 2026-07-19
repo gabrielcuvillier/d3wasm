@@ -287,15 +287,15 @@ idLexer* idUserInterfaceLocal::ParsePDHandler(const char* qpath) {
 	}
 
 	if (index == -1) {
+		ID_TIME_T tstamp;
 		char* buffer = 0;
-		int l = fileSystem->ReadFile(qpath, ( void** )&buffer, &timeStamp);
+		int l = fileSystem->ReadFile(qpath, ( void** )&buffer, &tstamp);
 		if (l != -1) {
-			ID_TIME_T timeStamp;
 			index = uiManagerLocal.guiCacheNames.Append(qpath);
 			uiManagerLocal.guiCacheIndex.Add(key, index);
 			//Load the timestamp so reload guis will work correctly
 			uiManagerLocal.guiCacheSources.Append(buffer);
-			uiManagerLocal.guiCacheTimestamps.Append(timeStamp);
+			uiManagerLocal.guiCacheTimestamps.Append(tstamp);
 			fileSystem->FreeFile(buffer);
 		}
 	}

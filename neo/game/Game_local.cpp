@@ -1907,6 +1907,16 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			}
 		}
 	}
+	if (spawnclass == "idCameraAnim") {
+		kv = dict->MatchPrefix( "anim", NULL );
+		while( kv ) {
+			if ( kv->GetValue().Length() ) {
+				declManager->MediaPrint( "Precaching camera animation %s\n", kv->GetValue().c_str() );
+				animationLib.GetCameraAnim(kv->GetValue().c_str());
+			}
+			kv = dict->MatchPrefix( "anim", kv );
+		}
+	}
 
 	PrecacheScriptReferences(dict);
 
