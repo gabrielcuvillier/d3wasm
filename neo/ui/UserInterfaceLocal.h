@@ -95,6 +95,8 @@ public:
 	idStr						&GetPendingCmd() { return pendingCmd; };
 	idStr						&GetReturnCmd() { return returnCmd; };
 
+	static idLexer*				ParsePDHandler(const char* qpath);
+
 private:
 	bool						active;
 	bool						loading;

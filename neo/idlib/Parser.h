@@ -75,6 +75,7 @@ typedef struct indent_s {
 	struct indent_s	*next;						// next indent on the indent stack
 } indent_t;
 
+typedef idLexer* (*CustomIncludeDirectiveHandler)(const char *);
 
 class idParser {
 
@@ -172,6 +173,8 @@ public:
 					// print a warning message
 	void			Warning( const char *str, ... ) const id_attribute((format(printf,2,3)));
 
+	void			SetCustomIncludeDirectiveHandler(CustomIncludeDirectiveHandler handler) { customIncludeHandler = handler; }
+
 					// add a global define that will be added to all opened sources
 	static int		AddGlobalDefine( const char *string );
 					// remove the given global define
@@ -197,6 +200,8 @@ private:
 	const char*		marker_p;
 
 	static define_t *globaldefines;				// list with global defines added to every source loaded
+
+	CustomIncludeDirectiveHandler	customIncludeHandler;
 
 private:
 	void			PushIndent( int type, int skip );

@@ -952,21 +952,26 @@ int idParser::Directive_include( void ) {
 		return false;
 	}
 	if ( token.type == TT_STRING ) {
-		script = new idLexer;
-		// try relative to the current file
-		path = scriptstack->GetFileName();
-		path.StripFilename();
-		path += "/";
-		path += token;
-		if ( !script->LoadFile( path, OSPath ) ) {
-			// try absolute path
+		if (customIncludeHandler) {
 			path = token;
+			script = customIncludeHandler(path.c_str());
+		} else {
+			// try relative to the current file
+			path = scriptstack->GetFileName();
+			path.StripFilename();
+			path += "/";
+			path += token;
+			script = new idLexer;
 			if ( !script->LoadFile( path, OSPath ) ) {
-				// try from the include path
-				path = includepath + token;
+				// try absolute path
+				path = token;
 				if ( !script->LoadFile( path, OSPath ) ) {
-					delete script;
-					script = NULL;
+					// try from the include path
+					path = includepath + token;
+					if ( !script->LoadFile( path, OSPath ) ) {
+						delete script;
+						script = NULL;
+					}
 				}
 			}
 		}
@@ -993,10 +998,14 @@ int idParser::Directive_include( void ) {
 		if ( idParser::flags & LEXFL_NOBASEINCLUDES ) {
 			return true;
 		}
-		script = new idLexer;
-		if ( !script->LoadFile( includepath + path, OSPath ) ) {
-			delete script;
-			script = NULL;
+		if (customIncludeHandler) {
+			script = customIncludeHandler(path.c_str());
+		} else {
+			script = new idLexer;
+			if ( !script->LoadFile( includepath + path, OSPath ) ) {
+				delete script;
+				script = NULL;
+			}
 		}
 	}
 	else {
@@ -3188,6 +3197,7 @@ idParser::idParser() {
 	this->defines = NULL;
 	this->tokens = NULL;
 	this->marker_p = NULL;
+	this->customIncludeHandler = NULL;
 }
 
 /*
@@ -3206,6 +3216,7 @@ idParser::idParser( int flags ) {
 	this->defines = NULL;
 	this->tokens = NULL;
 	this->marker_p = NULL;
+	this->customIncludeHandler = NULL;
 }
 
 #ifndef __EMSCRIPTEN__
@@ -3225,6 +3236,7 @@ idParser::idParser( const char *filename, int flags, bool OSPath ) {
 	this->defines = NULL;
 	this->tokens = NULL;
 	this->marker_p = NULL;
+	this->customIncludeHandler = NULL;
 	LoadFile( filename, OSPath );
 }
 #endif
@@ -3245,6 +3257,7 @@ idParser::idParser( const char *ptr, int length, const char *name, int flags ) {
 	this->defines = NULL;
 	this->tokens = NULL;
 	this->marker_p = NULL;
+	this->customIncludeHandler = NULL;
 	LoadMemory( ptr, length, name );
 }
 

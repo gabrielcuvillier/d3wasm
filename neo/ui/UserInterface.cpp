@@ -276,6 +276,38 @@ bool idUserInterfaceLocal::IsInteractive() const {
 	return interactive;
 }
 
+idLexer* idUserInterfaceLocal::ParsePDHandler(const char* qpath) {
+	int index = -1;
+	const int key = uiManagerLocal.guiCacheIndex.GenerateKey(qpath);
+	for ( int i = uiManagerLocal.guiCacheIndex.First( key ); i != -1; i = uiManagerLocal.guiCacheIndex.Next( i ) ) {
+		if (uiManagerLocal.guiCacheNames[i] == qpath) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1) {
+		char* buffer = 0;
+		int l = fileSystem->ReadFile(qpath, ( void** )&buffer, &timeStamp);
+		if (l != -1) {
+			ID_TIME_T timeStamp;
+			index = uiManagerLocal.guiCacheNames.Append(qpath);
+			uiManagerLocal.guiCacheIndex.Add(key, index);
+			//Load the timestamp so reload guis will work correctly
+			uiManagerLocal.guiCacheSources.Append(buffer);
+			uiManagerLocal.guiCacheTimestamps.Append(timeStamp);
+			fileSystem->FreeFile(buffer);
+		}
+	}
+
+	if (index != -1) {
+		idLexer* newlex = new idLexer;
+		newlex->LoadMemory(uiManagerLocal.guiCacheSources[index].c_str(), uiManagerLocal.guiCacheSources[index].Length(), qpath);
+		return newlex;
+	}
+	return NULL;
+}
+
 bool idUserInterfaceLocal::InitFromFile( const char *qpath, bool rebuild, bool cache ) {
 
 	if ( !( qpath && *qpath ) ) {
@@ -296,6 +328,8 @@ bool idUserInterfaceLocal::InitFromFile( const char *qpath, bool rebuild, bool c
 	state.Set( "text", "Test Text!" );
 
 	idParser src( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
+
+	src.SetCustomIncludeDirectiveHandler(ParsePDHandler);
 
 	int index = -1;
 
