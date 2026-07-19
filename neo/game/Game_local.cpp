@@ -1900,7 +1900,7 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		while( kv ) {
 			if ( kv->GetValue().Length() ) {
 				declManager->MediaPrint( "Precaching camera animation %s\n", kv->GetValue().c_str() );
-				animationLib.GetCameraAnim(kv->GetValue().c_str());
+				animationLib.GetCameraAnim(kv->GetValue().c_str(), true);
 			}
 			kv = dict->MatchPrefix( "anim", kv );
 		}

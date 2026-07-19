@@ -294,7 +294,7 @@ public:
 public:
 							idMD5CameraAnim();
 							~idMD5CameraAnim();
-	bool					InitFromFile( const char* qpath );
+	bool					InitFromFile( const char* qpath, bool bInhibitErrors = false );
 };
 
 /*
@@ -643,7 +643,7 @@ public:
 	int							JointIndex( const char *name );
 	const char *				JointName( int index ) const;
 
-	idMD5CameraAnim *			GetCameraAnim( const char *name );
+	idMD5CameraAnim *			GetCameraAnim( const char *name, bool bInhibitErrors = false );
 
 	void						ClearAnimsInUse( void );
 	void						FlushUnusedAnims( void );

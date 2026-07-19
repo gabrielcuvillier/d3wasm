@@ -1095,7 +1095,7 @@ void idAnimManager::FlushUnusedAnims( void ) {
 idAnimManager::GetCameraAnim
 ====================
 */
-idMD5CameraAnim *idAnimManager::GetCameraAnim( const char *name ) {
+idMD5CameraAnim *idAnimManager::GetCameraAnim( const char *name, bool bInhibitErrors ) {
 	const int key = cameraCacheIndex.GenerateKey(name);
 	for ( int i = cameraCacheIndex.First( key ); i != -1; i = cameraCacheIndex.Next( i ) ) {
 		if (cameraCacheNames[i] == name) {
@@ -1104,7 +1104,7 @@ idMD5CameraAnim *idAnimManager::GetCameraAnim( const char *name ) {
 	}
 
 	idMD5CameraAnim *cam = new idMD5CameraAnim;
-	if (!cam->InitFromFile(name)) {
+	if (!cam->InitFromFile(name, bInhibitErrors)) {
 		delete cam;
 		return NULL;
 	}

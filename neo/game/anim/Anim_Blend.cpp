@@ -5061,7 +5061,7 @@ idMD5CameraAnim::~idMD5CameraAnim() {
 idMD5CameraAnim::idMD5CameraAnim
 ================
 */
-bool idMD5CameraAnim::InitFromFile( const char* qpath ) {
+bool idMD5CameraAnim::InitFromFile( const char* qpath, bool bInhibitErrors ) {
 	int			version;
 	idLexer		parser( LEXFL_ALLOWPATHNAMES | LEXFL_NOSTRINGESCAPECHARS | LEXFL_NOSTRINGCONCAT | LEXFL_NOFATALERRORS );
 	idToken		token;
@@ -5078,7 +5078,9 @@ bool idMD5CameraAnim::InitFromFile( const char* qpath ) {
 
 	filename.SetFileExtension( MD5_CAMERA_EXT );
 	if ( !parser.LoadFile( filename ) ) {
-		parser.Error( "Unable to load '%s'", filename.c_str() );
+		if (!bInhibitErrors) {
+			parser.Error( "Unable to load '%s'", filename.c_str() );
+		}
 		return false;
 	}
 
