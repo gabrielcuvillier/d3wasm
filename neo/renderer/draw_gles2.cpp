@@ -2083,10 +2083,6 @@ int RB_GLSL_DrawShaderPasses(drawSurf_t** drawSurfs, int numDrawSurfs) {
     return numDrawSurfs;
   }
 
-#ifndef WEBGL
-  // For now, the only postprocess materials are HeatHaze effects, which are not supported
-  // Let's disable this for now
-
   // if we are about to draw the first surface that needs
   // the rendering in a texture, copy it over
   if ( drawSurfs[0]->material->GetSort() >= SS_POST_PROCESS ) {
@@ -2105,7 +2101,6 @@ int RB_GLSL_DrawShaderPasses(drawSurf_t** drawSurfs, int numDrawSurfs) {
 
     backEnd.currentRenderCopied = true;
   }
-#endif
 
   ////////////////////////////////////////
   // GL shader setup for the current pass
