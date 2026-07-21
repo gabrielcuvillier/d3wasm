@@ -1523,6 +1523,9 @@ void R_InitMaterials( void ) {
 	// needed by R_DeriveLightData
 	declManager->FindMaterial( "lights/defaultPointLight" );
 	declManager->FindMaterial( "lights/defaultProjectedLight" );
+
+	// needed by idGameEdit::ParseSpawnArgsToRenderLight(), called by idWindow::Prerender at the very begining of the game
+	declManager->FindMaterial( "lights/squarelight1" );
 }
 
 
