@@ -1668,18 +1668,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "snd", kv );
 	}
 
-	// Handle the case of "broken" models: might occur for idLight (the so called "broken lights") and idDamagable classes
-	idStr temp;
-	if (dict->GetString( "broken", "", temp ) ) {
-		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
-		if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
-			// precache the render model
-			renderModelManager->FindModel( temp );
-			// precache .cm files only
-			collisionModelManager->LoadModel( temp, true );
-		}
-	}
-
 	kv = dict->MatchPrefix( "gui", NULL );
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
@@ -1712,11 +1700,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			declManager->FindType( DECL_MATERIAL, kv->GetValue() );
 		}
 		kv = dict->MatchPrefix( "mtr", kv );
-	}
-
-	// Never used in practice in D3 base game, but the code does support it
-	if (dict->GetString( "shader", "", temp ) ) {
-		declManager->FindType( DECL_MATERIAL, temp );
 	}
 
 	// handles hud icons
@@ -1763,7 +1746,15 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
 			declManager->MediaPrint( "Precaching skin %s\n", kv->GetValue().c_str() );
-			declManager->FindType( DECL_SKIN, kv->GetValue() );
+			// If we can't find a corresponding skin...
+			if (!declManager->FindType( DECL_SKIN, kv->GetValue(), false )) {
+				// ...try again with the /skin prefix (this is to solve the rocket
+				// launcher skin issues 0rox.skin, 1rox.skin, etc., not correctly prefixed
+				if (!declManager->FindType( DECL_SKIN, idStr("skins/") + kv->GetValue(), false)) {
+					// If we can't still find a skin, just let make a default
+					declManager->FindType( DECL_SKIN, kv->GetValue());
+				}
+			}
 		}
 		kv = dict->MatchPrefix( "skin", kv );
 	}
@@ -1822,6 +1813,24 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 				gui->InitFromFile( temp );
 				uiManager->DeAlloc( gui );
 			}
+	// Handle the case of "broken" models: might occur for idLight (the so called "broken lights") and idDamagable classes
+	idStr temp;
+		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+		// Only need to check the static model (and actually load it if needed)
+		renderModelManager->CheckModel( temp.c_str() );
+	}
+
+	// Never used in practice in D3 base game, but the code does support it
+	if (dict->GetString( "shader", "", temp ) ) {
+		declManager->FindType( DECL_MATERIAL, temp );
+	}
+
+	// Handle the case of "attached heads"
+	if (dict->GetString( "def_head", "", temp ) ) {
+		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+		if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+			// precache the render model
+			renderModelManager->FindModel( temp );
 		}
 		if (dict->GetString( "spawn_skin", "", temp ) ) {
 			declManager->FindType( DECL_SKIN, temp );
@@ -1839,6 +1848,21 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			}
 		}
 	}
+
+	if (dict->GetString( "newmodel", "", temp ) ) {
+		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+		if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+			// precache the render model
+			renderModelManager->FindModel( temp );
+			// precache .cm files only
+			collisionModelManager->LoadModel( temp, true );
+		}
+	}
+
+	// Special shader used by idLight
+	if (dict->GetString( "mat_demonic", "", temp ) ) {
+		declManager->FindType( DECL_MATERIAL, temp );
+	}
 	if (spawnclass == "idPlayer" || spawnclass == "idAFEntity_WithAttachedHead" || spawnclass == "idAI") {
 		idStr temp;
 		if (dict->GetString( "def_head", "", temp ) ) {
@@ -1847,8 +1871,39 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 				// precache the render model
 				renderModelManager->FindModel( temp );
 			}
-		}
+
+	// Only for the monster_boss_guardian_spawner def
+	if (dict->GetString( "lightning_model", "", temp ) ) {
+		common->Printf("Precaching model %s\n", temp.c_str());
+		// precache model
+		renderModelManager->FindModel( temp );
 	}
+
+	// Handle camera animations
+	kv = dict->MatchPrefix( "anim", NULL );
+	while( kv ) {
+		if ( kv->GetValue().Length() ) {
+			declManager->MediaPrint( "Precaching camera animation %s\n", kv->GetValue().c_str() );
+			animationLib.GetCameraAnim(kv->GetValue().c_str(), true);
+		}
+		kv = dict->MatchPrefix( "anim", kv );
+	}
+
+	// For some very specific cases where gui_parms holds references to video assets
+	kv = dict->MatchPrefix( "gui_parm", NULL );
+		if ( kv->GetValue().Length() ) {
+			idStr str = kv->GetValue();
+			if ( !idStr::Icmpn( str, "#str_", strlen("#str_") )) {
+				str = common->GetLanguageDict()->GetString(str);
+			}
+			if (!idStr::Icmpn( str, "video/", strlen("video/") ) || !idStr::Icmpn( str, "sound/", strlen("sound/") )) {
+				declManager->FindMaterial( str );
+			}
+		}
+		kv = dict->MatchPrefix( "gui_parm", kv );
+	}
+
+	// Special case for idLights: handle the "_broken" suffix for models if there is no broken model provided
 	if (spawnclass == "idLight" || classname == "light") {
 		idStr temp;
 		if (!dict->GetString( "broken", "", temp ) ) {
@@ -1903,6 +1958,9 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 				animationLib.GetCameraAnim(kv->GetValue().c_str(), true);
 			}
 			kv = dict->MatchPrefix( "anim", kv );
+				declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+				renderModelManager->CheckModel( temp.c_str() );
+			}
 		}
 	}
 
