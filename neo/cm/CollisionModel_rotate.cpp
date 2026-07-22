@@ -1654,6 +1654,7 @@ void idCollisionModelManagerLocal::Rotation( trace_t *results, const idVec3 &sta
 
 	idCollisionModelManagerLocal::Rotation180( results, rotation.GetOrigin(), rotation.GetVec(), 0.0f, rotation.GetAngle(), start, trm, trmAxis, contentMask, model, modelOrigin, modelAxis );
 
+#ifndef __EMSCRIPTEN__
 #ifdef _DEBUG
 	// test for collisions
 	if ( cm_debugCollision.GetBool() ) {
@@ -1667,5 +1668,6 @@ void idCollisionModelManagerLocal::Rotation( trace_t *results, const idVec3 &sta
 			idCollisionModelManagerLocal::Rotation( &tr, start, rotation, trm, trmAxis, contentMask, model, modelOrigin, modelAxis );
 		}
 	}
+#endif
 #endif
 }

@@ -1087,6 +1087,7 @@ void idCollisionModelManagerLocal::Translation( trace_t *results, const idVec3 &
 		}
 	}
 
+#ifndef __EMSCRIPTEN__
 #ifdef _DEBUG
 	// test for collisions
 	if ( cm_debugCollision.GetBool() ) {
@@ -1102,5 +1103,6 @@ void idCollisionModelManagerLocal::Translation( trace_t *results, const idVec3 &
 			}
 		}
 	}
+#endif
 #endif
 }
