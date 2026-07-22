@@ -4573,17 +4573,16 @@ static void ActionScanCalls(const char *funcname,
 	} else if (!idStr::Icmp(eventname, "setModel")) {
 		if ( declManager->FindType(DECL_MODELDEF, string1, false) == NULL ) {
 			renderModelManager->FindModel(string1);
-			collisionModelManager->LoadModel(string1, true);
 		}
 	} else if (!idStr::Icmp(eventname, "setSkin")) {
-		declManager->FindType(DECL_SKIN, string1, false);
+		declManager->FindType(DECL_SKIN, string1);
 	} else if (!idStr::Icmp(eventname, "cacheSoundShader")
 		|| !idStr::Icmp(eventname, "startSoundShader")
 		|| !idStr::Icmp(eventname, "music")) {
-		declManager->FindType(DECL_SOUND, string1, false);
+		declManager->FindType(DECL_SOUND, string1);
 	} else if (!idStr::Icmp(eventname, "setKey")) {
 		if (!idStr::Icmpn(string1, "snd_", strlen("snd_")) && string2) {
-			declManager->FindType(DECL_SOUND, string2, false);
+			declManager->FindType(DECL_SOUND, string2);
 		}
 	}
 }
