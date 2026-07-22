@@ -1791,30 +1791,9 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "audio", kv );
 	}
 
-	if (spawnclass == "idPlayer") {
-		idStr temp;
-		if (dict->GetString( "mphud", "guis/mphud.gui", temp ) ) {
-			idUserInterface *gui = uiManager->Alloc();
-			if ( gui ) {
-				gui->InitFromFile( temp );
-				uiManager->DeAlloc( gui );
-			}
-		}
-		if (dict->GetString( "hud", "guis/hud.gui", temp ) ) {
-			idUserInterface *gui = uiManager->Alloc();
-			if ( gui ) {
-				gui->InitFromFile( temp );
-				uiManager->DeAlloc( gui );
-			}
-		}
-		if (dict->GetString( "cursor", "guis/cursor.gui", temp ) ) {
-			idUserInterface *gui = uiManager->Alloc();
-			if ( gui ) {
-				gui->InitFromFile( temp );
-				uiManager->DeAlloc( gui );
-			}
 	// Handle the case of "broken" models: might occur for idLight (the so called "broken lights") and idDamagable classes
 	idStr temp;
+	if (dict->GetString( "broken", "", temp ) ) {
 		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
 		// Only need to check the static model (and actually load it if needed)
 		renderModelManager->CheckModel( temp.c_str() );
@@ -1832,23 +1811,9 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			// precache the render model
 			renderModelManager->FindModel( temp );
 		}
-		if (dict->GetString( "spawn_skin", "", temp ) ) {
-			declManager->FindType( DECL_SKIN, temp );
-		}
-	}
-	if (spawnclass == "idTarget_SetModel") {
-		idStr temp;
-		if (dict->GetString( "newmodel", "", temp ) ) {
-			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
-			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
-				// precache the render model
-				renderModelManager->FindModel( temp );
-				// precache .cm files only
-				collisionModelManager->LoadModel( temp, true );
-			}
-		}
 	}
 
+	// Never used in practice in D3 base game, but the code does support it (for idTarget_SetModel)
 	if (dict->GetString( "newmodel", "", temp ) ) {
 		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
 		if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
@@ -1863,14 +1828,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 	if (dict->GetString( "mat_demonic", "", temp ) ) {
 		declManager->FindType( DECL_MATERIAL, temp );
 	}
-	if (spawnclass == "idPlayer" || spawnclass == "idAFEntity_WithAttachedHead" || spawnclass == "idAI") {
-		idStr temp;
-		if (dict->GetString( "def_head", "", temp ) ) {
-			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
-			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
-				// precache the render model
-				renderModelManager->FindModel( temp );
-			}
 
 	// Only for the monster_boss_guardian_spawner def
 	if (dict->GetString( "lightning_model", "", temp ) ) {
@@ -1891,6 +1848,7 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 
 	// For some very specific cases where gui_parms holds references to video assets
 	kv = dict->MatchPrefix( "gui_parm", NULL );
+	while( kv ) {
 		if ( kv->GetValue().Length() ) {
 			idStr str = kv->GetValue();
 			if ( !idStr::Icmpn( str, "#str_", strlen("#str_") )) {
@@ -1921,44 +1879,8 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 				if ( pos > 0 ) {
 					temp += &model[ pos ];
 				}
-				declManager->MediaPrint( "Precaching model (if needed) %s\n", temp.c_str() );
-				if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
-					// precache the render model
-					renderModelManager->CheckModel( temp );
-					// precache .cm files only
-					collisionModelManager->LoadModel( temp, true );
-				}
-			}
-		}
-		if (dict->GetString( "mat_demonic", "", temp ) ) {
-			declManager->FindType( DECL_MATERIAL, temp );
-		}
-	}
-	if (classname == "monster_boss_guardian_spawner") {
-		idStr temp;
-		// Mostly for the monster_boss_guardian_spawner.def case
-		if (dict->GetString( "lightning_model", "", temp ) ) {
-			common->Printf("Precaching lightning_model %s\n", temp.c_str());
-			// precache model/animations
-			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
-				// precache the render model
-				renderModelManager->FindModel( temp );
-				// precache .cm files only
-				collisionModelManager->LoadModel( temp, true );
-			} else {
-				common->Printf("Huh? 4\n");
-			}
-		}
-	}
-	if (spawnclass == "idCameraAnim") {
-		kv = dict->MatchPrefix( "anim", NULL );
-		while( kv ) {
-			if ( kv->GetValue().Length() ) {
-				declManager->MediaPrint( "Precaching camera animation %s\n", kv->GetValue().c_str() );
-				animationLib.GetCameraAnim(kv->GetValue().c_str(), true);
-			}
-			kv = dict->MatchPrefix( "anim", kv );
 				declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+				// Only need to check the static model (and actually load it if needed)
 				renderModelManager->CheckModel( temp.c_str() );
 			}
 		}
