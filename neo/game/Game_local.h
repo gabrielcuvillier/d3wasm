@@ -455,8 +455,8 @@ public:
 	void					PrecacheScriptReferencesForNamespace( const char* ns );
 	void					PrecacheScriptReferencesForFile( const char* type );
 
-	void					PrecacheAfterMapInit();
-	void					PrecacheBeforeMapInit();
+	void					PrecacheBeforeEntitySpawn();
+	void					PrecacheBeforePlayerSpawn(const idDict* playerDef);
 	void					PrecacheScriptReferences(const idDict *dict);
 
 private:

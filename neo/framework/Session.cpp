@@ -1362,8 +1362,10 @@ void idSessionLocal::LoadLoadingGui(const char* mapName) {
   else {
     guiLoading = uiManager->FindGui("guis/map/loading.gui", true, false, true);
   }
-  if (guiLoading)
+  if (guiLoading) {
     guiLoading->SetStateFloat("map_loading", 0.0f);
+  }
+
 }
 
 /*

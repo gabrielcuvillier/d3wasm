@@ -1244,8 +1244,6 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	gameRenderWorld = renderWorld;
 	gameSoundWorld = soundWorld;
 
-	PrecacheBeforeMapInit();
-
 	LoadMap( mapName, randseed );
 
 	InitScriptForMap();
@@ -1255,8 +1253,6 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	mpGame.Reset();
 
 	mpGame.Precache();
-
-	PrecacheAfterMapInit();
 
 	// free up any unused animations
 	animationLib.FlushUnusedAnims();
@@ -1288,11 +1284,11 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	gameRenderWorld = renderWorld;
 	gameSoundWorld = soundWorld;
 
-	PrecacheBeforeMapInit();
-
 	idRestoreGame savegame( saveGameFile );
 
 	savegame.ReadBuildNumber();
+
+	PrecacheBeforeEntitySpawn();
 
 	// Create the list of all objects in the game
 	savegame.CreateObjects();
@@ -1315,7 +1311,10 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	g_skill.SetInteger( i );
 
 	// precache the player
-	FindEntityDef( "player_doommarine", false );
+	const idDeclEntityDef* playerDef = FindEntityDef("player_doommarine", false);
+	if (playerDef) {
+		PrecacheBeforePlayerSpawn(&playerDef->dict);
+	}
 
 	// Precache map script namespace, using Worldentity
 	idMapEntity *worldEnt = mapFile->GetEntity( 0 );
@@ -1503,8 +1502,6 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	mpGame.Reset();
 
 	mpGame.Precache();
-
-	PrecacheAfterMapInit();
 
 	for (i = 0; i < num_entities; i++) {
 		idStr entDefName = entities[i]->GetEntityDefName();
@@ -1927,9 +1924,15 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 
 	// they can connect
 	Printf( "SpawnPlayer: %i\n", clientNum );
+
+	const idDeclEntityDef* playerDef = FindEntityDef("player_doommarine", false);
+	if (playerDef) {
+		PrecacheBeforePlayerSpawn(&playerDef->dict);
+	}
+
 	args.SetInt( "spawn_entnum", clientNum );
 	args.Set( "name", va( "player%d", clientNum + 1 ) );
-	args.Set( "classname", isMultiplayer ? "player_doommarine_mp" : "player_doommarine" );
+	args.Set( "classname", playerDef->dict.GetString("classname"));
 	if ( !SpawnEntityDef( args, &ent ) || !entities[ clientNum ] ) {
 		Error( "Failed to spawn player as '%s'", args.GetString( "classname" ) );
 	}
@@ -3321,6 +3324,8 @@ void idGameLocal::SpawnMapEntities( void ) {
 		Error( "...no entities" );
 	}
 
+	PrecacheBeforeEntitySpawn();
+
 	// the worldspawn is a special that performs any global setup
 	// needed by a level
 	mapEnt = mapFile->GetEntity( 0 );
@@ -4659,39 +4664,37 @@ void idGameLocal::PrecacheScriptReferencesForFile(const char *file) {
 
 /*
 ===========
-idGameLocal::Precache
+idGameLocal::PrecacheBeforeEntitySpawn
 ============
 */
-void idGameLocal::PrecacheAfterMapInit() {
+void idGameLocal::PrecacheBeforeEntitySpawn() {
+	common->Printf("=== PrecacheBeforeEntitySpawn\n");
+	// Hardcoded in idPlayerView()
+	declManager->FindMaterial( "textures/decals/tunnel");
+	declManager->FindMaterial( "armorViewEffect" );
+	declManager->FindMaterial( "textures/decals/berserk" );
+	declManager->FindMaterial( "textures/decals/irblend" );
+	declManager->FindMaterial( "textures/decals/bloodspray" );
+	declManager->FindMaterial( "textures/decals/bfgvision" );
+	declManager->FindMaterial( LAGO_MATERIAL );
+	// hardcoded in idAI::Spawn()
+	declManager->FindMaterial( "muzzleflash" );
+	// hardcoded in idAFEntity_Vehicle::Spawn
+	declManager->FindType( DECL_PARTICLE, "muzzlesmoke" );
 	// hardcoded in idItem::Spawn()
-	declManager->FindMaterial("itemHighlightShell", false);
+	declManager->FindMaterial("itemHighlightShell");
 	// hardcoded in idWeapon::BloodSplat()
-	declManager->FindMaterial("textures/decals/duffysplatgun", false);
-	// Rocket Launcher skins are not theoretically  hardcoded as they are referenced by weapon_rocketlauncher def
-	// But due to a bug (missing "skin/" suffix), we have to precache them here
-	declManager->FindSkin("skins/models/weapons/0rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/1rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/2rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/3rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/4rox.skin", false);
-	declManager->FindSkin("skins/models/weapons/5rox.skin", false);
-	// hardcoded through default fallback strings (for example in idTarget_Damage::Event_Activate,
-	// idMover::Event_PartBlocked or idPlayer::Kill)
-	FindEntityDef("damage_generic", false);
-	FindEntityDef("damage_moverCrush", false);
-	FindEntityDef("damage_crush", false);
-	FindEntityDef("damage_Gib", false);
-	FindEntityDef("damage_telefrag", false);
-	FindEntityDef("damage_explosion", false);
-	FindEntityDef("damage_fatalfall", false);
-	FindEntityDef("damage_hardfall", false);
-	FindEntityDef("damage_softfall", false);
-	FindEntityDef("damage_noair", false);
-	FindEntityDef("damage_suicide", false);
-	FindEntityDef("damage_painTrigger", false);
-	// hardcoded in idProjectile::Explode()
-	FindEntityDef("projectile_debris", false);
-	FindEntityDef("projectile_shrapnel", false);
+	declManager->FindMaterial("textures/decals/duffysplatgun");
+	// hardcoded in idTarget_Damage::Event_Activate()
+	FindEntityDef("damage_generic");
+	// hadcoded in idTarget_EndLevel::Spawn()
+	if (uiManager->CheckGui("guis/EndLevel.gui")) {
+		idUserInterface *gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( "guis/EndLevel.gui" );
+			uiManager->DeAlloc( gui );
+		}
+	}
 }
 
 /*
@@ -4699,20 +4702,42 @@ void idGameLocal::PrecacheAfterMapInit() {
 idGameLocal::PrecacheBeforePlayerSpawn
 ============
 */
-void idGameLocal::PrecacheBeforeMapInit() {
-	// Hardcoded in idPlayerView()
-	declManager->FindMaterial( "textures/decals/tunnel", false);
-	declManager->FindMaterial( "armorViewEffect", false );
-	declManager->FindMaterial( "textures/decals/berserk", false );
-	declManager->FindMaterial( "textures/decals/irblend", false );
-	declManager->FindMaterial( "textures/decals/bloodspray", false );
-	declManager->FindMaterial( "textures/decals/bfgvision", false );
-	declManager->FindMaterial( LAGO_MATERIAL, false );
-	// hadcoded in idPlayer::Spawn()
-	declManager->FindSound( "player_sounds_hitArmor", false );
-	uiManager->FindGui("guis/pda.gui", true, false, true );
-	// hardcoded in idPlayer::GivePDA()
-	declManager->FindType(DECL_PDA, "personal", false);
+void idGameLocal::PrecacheBeforePlayerSpawn( const idDict* dict ) {
+
+	common->Printf("=== PrecacheBeforePlayerSpawn\n");
+	// GUIs from player def
+	if (dict) {
+		idUserInterface *gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "mphud", "guis/mphud.gui") );
+			uiManager->DeAlloc( gui );
+		}
+
+		gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "hud", "guis/hud.gui") );
+			uiManager->DeAlloc( gui );
+		}
+
+		gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "cursor", "guis/cursor.gui") );
+			uiManager->DeAlloc( gui );
+		}
+	}
+
+	// Objective/PDA Gui
+	idUserInterface *gui = uiManager->Alloc();
+	if ( gui ) {
+		gui->InitFromFile( "guis/pda.gui" );
+		uiManager->DeAlloc( gui );
+	}
+
+	// in idPlayer::Spawn()
+	declManager->FindSound( "player_sounds_hitArmor" );
+
+	// in idPlayer::GivePDA()
+	declManager->FindType(DECL_PDA, "personal");
 }
 
 /*
