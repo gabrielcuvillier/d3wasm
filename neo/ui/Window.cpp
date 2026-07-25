@@ -1744,6 +1744,9 @@ idWindow::PostParse
 ================
 */
 void idWindow::PostParse() {
+	if (backGroundName.Length()) {
+		declManager->FindMaterial(backGroundName);
+	}
 }
 
 /*
