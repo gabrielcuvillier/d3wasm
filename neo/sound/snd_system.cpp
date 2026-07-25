@@ -1345,7 +1345,7 @@ idSoundSystemLocal::IsEFXAvailable
 */
 int idSoundSystemLocal::IsEFXAvailable( void ) {
 #ifdef NOEFX
-  return -1;
+	return -1;
 #else
 	return EFXAvailable;
 #endif
