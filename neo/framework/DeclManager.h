@@ -132,6 +132,7 @@ public:
 	virtual size_t			Size( void ) const = 0;
 	virtual void			List( void ) const = 0;
 	virtual void			Print( void ) const = 0;
+	virtual void			Touch( void ) const = 0;
 };
 
 
@@ -239,6 +240,10 @@ public:
 							// explicit data.
 	virtual void			Print( void ) const { base->Print(); }
 
+	virtual void			Touch() const { base->Touch(); }
+
+	virtual void			TouchData() const { }
+
 public:
 	idDeclBase *			base;
 };
@@ -304,13 +309,14 @@ public:
 	virtual void			ListType( const idCmdArgs &args, declType_t type ) = 0;
 	virtual void			PrintType( const idCmdArgs &args, declType_t type ) = 0;
 
+#ifndef __EMSCRIPTEN__
 							// Creates a new default decl of the given type with the given name in
 							// the given file used by editors to create a new decls.
 	virtual idDecl *		CreateNewDecl( declType_t type, const char *name, const char *fileName ) = 0;
 
 							// BSM - Added for the material editors rename capabilities
 	virtual bool			RenameDecl( declType_t type, const char* oldName, const char* newName ) = 0;
-
+#endif
 							// When media files are loaded, a reference line can be printed at a
 							// proper indentation if decl_show is set
 	virtual void			MediaPrint( const char *fmt, ... ) id_attribute((format(printf,2,3))) = 0;

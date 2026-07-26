@@ -132,6 +132,7 @@ protected:
 	virtual void				FreeData( void );
 	virtual void				List( void ) const;
 	virtual void				Print( void ) const;
+	virtual void				Touch( void ) const;
 
 protected:
 	void						AllocateSelf( void );
@@ -216,10 +217,12 @@ public:
 	virtual void				ListType( const idCmdArgs &args, declType_t type );
 	virtual void				PrintType( const idCmdArgs &args, declType_t type );
 
+#ifndef __EMSCRIPTEN__
 	virtual idDecl *			CreateNewDecl( declType_t type, const char *name, const char *fileName );
 
 	//BSM Added for the material editors rename capabilities
 	virtual bool				RenameDecl( declType_t type, const char* oldName, const char* newName );
+#endif
 
 	virtual void				MediaPrint( const char *fmt, ... ) id_attribute((format(printf,2,3)));
 	virtual void				WritePrecacheCommands( idFile *f );
@@ -1364,6 +1367,7 @@ void idDeclManagerLocal::PrintType( const idCmdArgs &args, declType_t type ) {
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===================
 idDeclManagerLocal::CreateNewDecl
@@ -1492,6 +1496,8 @@ bool idDeclManagerLocal::RenameDecl( declType_t type, const char* oldName, const
 
 	return true;
 }
+#endif
+
 
 /*
 ===================
@@ -2171,6 +2177,15 @@ idDeclLocal::Reload
 */
 void idDeclLocal::Reload( void ) {
 	this->sourceFile->Reload( false );
+}
+
+/*
+=================
+idDeclLocal::Touch
+=================
+*/
+void idDeclLocal::Touch() const {
+	declManager->FindType( GetType(), GetName() );
 }
 
 /*

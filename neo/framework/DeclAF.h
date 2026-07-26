@@ -157,6 +157,7 @@ public:
 	virtual void			FreeData( void );
 
 	virtual void			Finish( const getJointTransform_t GetJointTransform, const idJointMat *frame, void *model ) const;
+	virtual void			TouchData( ) const;
 
 #ifndef __EMSCRIPTEN__
 	bool					Save( void );

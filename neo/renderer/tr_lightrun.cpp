@@ -360,9 +360,9 @@ void R_DeriveLightData( idRenderLightLocal *light ) {
 	}
 	if ( !light->lightShader ) {
 		if ( light->parms.pointLight ) {
-			light->lightShader = declManager->FindMaterial( "lights/defaultPointLight" );
+			light->lightShader = tr.defaultPointLightMaterial;
 		} else {
-			light->lightShader = declManager->FindMaterial( "lights/defaultProjectedLight" );
+			light->lightShader = tr.defaultProjectedLightMaterial;
 		}
 	}
 
@@ -373,11 +373,11 @@ void R_DeriveLightData( idRenderLightLocal *light ) {
 		const idMaterial	*defaultShader;
 
 		if ( light->parms.pointLight ) {
-			defaultShader = declManager->FindMaterial( "lights/defaultPointLight" );
+			defaultShader = tr.defaultPointLightMaterial;
 			light->falloffImage = defaultShader->LightFalloffImage();
 		} else {
 			// projected lights by default don't diminish with distance
-			defaultShader = declManager->FindMaterial( "lights/defaultProjectedLight" );
+			defaultShader = tr.defaultProjectedLightMaterial;
 			light->falloffImage = defaultShader->LightFalloffImage();
 		}
 	}

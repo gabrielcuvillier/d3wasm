@@ -1521,11 +1521,10 @@ void R_InitMaterials( void ) {
 	declManager->FindMaterial( "_default", false );
 
 	// needed by R_DeriveLightData
-	declManager->FindMaterial( "lights/defaultPointLight" );
-	declManager->FindMaterial( "lights/defaultProjectedLight" );
-
-	// needed by idGameEdit::ParseSpawnArgsToRenderLight(), called by idWindow::Prerender at the very begining of the game
-	declManager->FindMaterial( "lights/squarelight1" );
+	tr.defaultPointLightMaterial = declManager->FindMaterial( "lights/defaultPointLight" );
+	tr.defaultProjectedLightMaterial = declManager->FindMaterial( "lights/defaultProjectedLight" );
+	tr.whiteMaterial = declManager->FindMaterial( "_white" );
+	tr.defaultLightMaterial = declManager->FindMaterial( "lights/squarelight1" );
 }
 
 
@@ -1650,6 +1649,10 @@ void idRenderSystemLocal::Clear( void ) {
 	memset( &primaryRenderView, 0, sizeof( primaryRenderView ) );
 	primaryView = NULL;
 	defaultMaterial = NULL;
+	whiteMaterial = NULL;
+	defaultPointLightMaterial = NULL;
+	defaultProjectedLightMaterial = NULL;
+	defaultLightMaterial = NULL;
 	testImage = NULL;
 	ambientCubeImage = NULL;
 	viewDef = NULL;
@@ -1843,4 +1846,55 @@ idRenderSystemLocal::GetScreenHeight
 */
 int idRenderSystemLocal::GetScreenHeight( void ) const {
 	return glConfig.vidHeight;
+}
+
+
+/*
+================
+idRenderSystemLocal::TouchEngineData
+================
+*/
+void idRenderSystemLocal::TouchEngineData() {
+	if (defaultMaterial) {
+		defaultMaterial->Touch();
+	}
+	if (whiteMaterial) {
+		whiteMaterial->Touch();
+	}
+	if (defaultPointLightMaterial) {
+		defaultPointLightMaterial->Touch();
+	}
+	if (defaultProjectedLightMaterial) {
+		defaultProjectedLightMaterial->Touch();
+	}
+	if (defaultLightMaterial) {
+		defaultLightMaterial->Touch();
+	}
+}
+
+/*
+================
+idRenderSystemLocal::GetDefaultMaterial
+================
+*/
+const idMaterial* idRenderSystemLocal::GetDefaultMaterial() {
+	return defaultMaterial;
+}
+
+/*
+================
+idRenderSystemLocal::GetDefaultMaterial
+================
+*/
+const idMaterial* idRenderSystemLocal::GetWhiteMaterial() {
+	return whiteMaterial;
+}
+
+/*
+================
+idRenderSystemLocal::GetDefaultMaterial
+================
+*/
+const idMaterial* idRenderSystemLocal::GetDefaultLightMaterial() {
+	return defaultLightMaterial;
 }

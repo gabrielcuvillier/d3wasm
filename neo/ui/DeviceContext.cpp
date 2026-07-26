@@ -141,6 +141,59 @@ void idDeviceContext::Init() {
 	fixOffsetForMenu.Set(0, 0);
 }
 
+
+void idDeviceContext::TouchEngineData() {
+	if (whiteImage) {
+		whiteImage->Touch();
+	}
+	if (cursorImages[CURSOR_ARROW]) {
+		cursorImages[CURSOR_ARROW]->Touch();
+	}
+	if (cursorImages[CURSOR_HAND]) {
+		cursorImages[CURSOR_HAND]->Touch();
+	}
+	if (scrollBarImages[SCROLLBAR_HBACK]) {
+		scrollBarImages[SCROLLBAR_HBACK]->Touch();
+	}
+	if (scrollBarImages[SCROLLBAR_VBACK]) {
+		scrollBarImages[SCROLLBAR_VBACK]->Touch();
+	}
+	if (scrollBarImages[SCROLLBAR_THUMB]) {
+		scrollBarImages[SCROLLBAR_THUMB]->Touch();
+	}
+	if (scrollBarImages[SCROLLBAR_RIGHT]) {
+		scrollBarImages[SCROLLBAR_RIGHT]->Touch();
+	}
+	if (scrollBarImages[SCROLLBAR_LEFT]) {
+		scrollBarImages[SCROLLBAR_LEFT]->Touch();
+	}
+	if (scrollBarImages[SCROLLBAR_UP]) {
+		scrollBarImages[SCROLLBAR_UP]->Touch();
+	}
+	if (scrollBarImages[SCROLLBAR_DOWN]) {
+		scrollBarImages[SCROLLBAR_DOWN]->Touch();
+	}
+	for (int i = 0; i < fonts.Num(); i++) {
+		for (int j = 0; j < GLYPHS_PER_FONT; j++) {
+			if (fonts[i].fontInfoSmall.glyphs[j].glyph) {
+				fonts[i].fontInfoSmall.glyphs[j].glyph->Touch();
+			}
+		}
+		for (int j = 0; j < GLYPHS_PER_FONT; j++) {
+			if (fonts[i].fontInfoMedium.glyphs[j].glyph) {
+				fonts[i].fontInfoMedium.glyphs[j].glyph->Touch();
+			}
+		}
+		for (int j = 0; j < GLYPHS_PER_FONT; j++) {
+			if (fonts[i].fontInfoLarge.glyphs[j].glyph) {
+				fonts[i].fontInfoLarge.glyphs[j].glyph->Touch();
+			}
+		}
+	}
+}
+
+
+
 void idDeviceContext::Shutdown() {
 	fontName.Clear();
 	clipRects.Clear();

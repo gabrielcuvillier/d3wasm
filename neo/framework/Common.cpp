@@ -209,6 +209,8 @@ public:
 
   virtual int KeyState(int key);
 
+  virtual void TouchEngineData();
+
   // DG: hack to allow adding callbacks and exporting additional functions without breaking the game ABI
   //     see Common.h for longer explanation...
 
@@ -296,6 +298,9 @@ private:
 
   idLangDict languageDict;
 
+  const idMaterial* splashMaterial;
+  const idMaterial* charsetMaterial;
+
 #ifdef ID_WRITE_VERSION
   idCompressor *				config_compressor;
 #endif
@@ -327,6 +332,9 @@ idCommonLocal::idCommonLocal(void) {
   rd_flush = NULL;
 
   gameDLL = 0;
+
+  splashMaterial = NULL;
+  charsetMaterial = NULL;
 
 #ifdef ID_WRITE_VERSION
   config_compressor = NULL;
@@ -2063,9 +2071,9 @@ void idCommonLocal::PrintLoadingMessage(const char* msg) {
     return;
   }
   renderSystem->BeginFrame(renderSystem->GetScreenWidth(), renderSystem->GetScreenHeight());
-  renderSystem->DrawStretchPic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1, declManager->FindMaterial("splashScreen"));
+  renderSystem->DrawStretchPic(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1, splashMaterial);
 	int len = strlen( msg );
-  renderSystem->DrawSmallStringExt(( 640 - len * SMALLCHAR_WIDTH ) / 2, 410, msg, idVec4(0.0f, 0.81f, 0.94f, 1.0f), true, declManager->FindMaterial("textures/bigchars"));
+  renderSystem->DrawSmallStringExt(( 640 - len * SMALLCHAR_WIDTH ) / 2, 410, msg, idVec4(0.0f, 0.81f, 0.94f, 1.0f), true, charsetMaterial);
   renderSystem->EndFrame(NULL, NULL);
   ForceRefreshScreen(0);
 }
@@ -2707,6 +2715,9 @@ void idCommonLocal::InitGame(void) {
   // initialize string database right off so we can use it for loading messages
   InitLanguageDict();
 
+  splashMaterial = declManager->FindMaterial("splashScreen");
+  charsetMaterial = declManager->FindMaterial("textures/bigchars");
+
   PrintLoadingMessage(common->GetLanguageDict()->GetString("#str_04344"));
 
   // load the font, etc
@@ -2870,6 +2881,9 @@ void idCommonLocal::ShutdownGame(bool reloading) {
   // shut down the event loop
   eventLoop->Shutdown();
 
+  splashMaterial = NULL;
+  charsetMaterial = NULL;
+
   // shut down the renderSystem
   renderSystem->Shutdown();
 
@@ -2947,4 +2961,18 @@ idGameCallbacks::idGameCallbacks()
 void idGameCallbacks::Reset() {
   reloadImagesCB = NULL;
   reloadImagesUserArg = NULL;
+}
+
+/*
+===============
+idCommonLocal::TouchEngineData
+===============
+*/
+void idCommonLocal::TouchEngineData() {
+  if (splashMaterial) {
+    splashMaterial->Touch();
+  }
+  if (charsetMaterial) {
+    charsetMaterial->Touch();
+  }
 }

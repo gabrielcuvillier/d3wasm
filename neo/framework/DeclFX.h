@@ -107,6 +107,7 @@ public:
 	virtual void			FreeData( void );
 	virtual void			Print( void ) const;
 	virtual void			List( void ) const;
+	virtual void			TouchData( void ) const;
 
 	idList<idFXSingleAction>events;
 	idStr					joint;

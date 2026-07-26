@@ -44,7 +44,7 @@ void idSliderWindow::CommonInit() {
 	low = 0.0;
 	high = 100.0;
 	stepSize = 1.0;
-	thumbMat = declManager->FindMaterial("_default");
+	thumbMat = renderSystem->GetDefaultMaterial();
 	buddyWin = NULL;
 
 	cvar = NULL;
@@ -173,16 +173,16 @@ void idSliderWindow::PostParse() {
 	InitCvar();
 }
 
-void idSliderWindow::InitWithDefaults(const char *_name, const idRectangle &_rect, const idVec4 &_foreColor, const idVec4 &_matColor, const char *_background, const char *thumbShader, bool _vertical, bool _scrollbar) {
+void idSliderWindow::InitWithDefaults(const char *_name, const idRectangle &_rect, const idVec4 &_foreColor, const idVec4 &_matColor, const idMaterial* _background, const idMaterial* thumbShader, bool _vertical, bool _scrollbar) {
 	SetInitialState(_name);
 	rect = _rect;
 	foreColor = _foreColor;
 	matColor = _matColor;
-	thumbMat = declManager->FindMaterial(thumbShader);
+	thumbMat = thumbShader;
 	thumbMat->SetSort( SS_GUI );
 	thumbWidth = thumbMat->GetImageWidth();
 	thumbHeight = thumbMat->GetImageHeight();
-	background = declManager->FindMaterial(_background);
+	background = _background;
 	background->SetSort( SS_GUI );
 	vertical = _vertical;
 	scrollbar = _scrollbar;

@@ -354,6 +354,7 @@ public:
 	virtual bool		Parse( const char *text, const int textLength );
 	virtual void		FreeData( void );
 	virtual void		Print( void ) const;
+	virtual void		TouchData() const;
 
 #ifndef __EMSCRIPTEN__
 	//BSM Nerve: Added for material editor

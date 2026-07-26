@@ -159,9 +159,12 @@ void idGameEdit::ParseSpawnArgsToRenderLight( const idDict *args, renderLight_t 
 	args->GetBool( "nospecular", "0", renderLight->noSpecular );
 	args->GetBool( "parallel", "0", renderLight->parallel );
 
-	args->GetString( "texture", "lights/squarelight1", &texture );
-	// allow this to be NULL
-	renderLight->shader = declManager->FindMaterial( texture, false );
+	if (!args->GetString( "texture", NULL, &texture )) {
+		renderLight->shader = renderSystem->GetDefaultLightMaterial();
+	} else {
+		// allow this to be NULL
+		renderLight->shader = declManager->FindMaterial( texture, false );
+	}
 }
 
 /*

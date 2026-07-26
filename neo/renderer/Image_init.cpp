@@ -2012,3 +2012,12 @@ void idImageManager::PrintMemInfo( MemInfo_t *mi ) {
 	fileSystem->CloseFile( f );
 #endif
 }
+
+/*
+===============
+idImageManager::ForceLoadImages
+===============
+*/
+void idImageManager::ForceLoadImages(bool force) {
+	forceLoadImages = force;
+}

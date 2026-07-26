@@ -70,6 +70,8 @@ public:
 
 	virtual void	SaveHistory() = 0;
 	virtual void	LoadHistory() = 0;
+
+	virtual void	TouchEngineData() = 0;
 };
 
 extern idConsole *	console;	// statically initialized to an idConsoleLocal

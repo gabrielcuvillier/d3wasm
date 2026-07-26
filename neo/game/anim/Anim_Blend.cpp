@@ -39,6 +39,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "Game_local.h"
 
 #include "anim/Anim.h"
+#include "framework/DeclSkin.h"
 
 static const char *channelNames[ ANIM_NumAnimChannels ] = {
 	"all", "torso", "legs", "head", "eyelids"
@@ -1002,6 +1003,42 @@ idAnim::GetAnimFlags
 */
 const animFlags_t &idAnim::GetAnimFlags( void ) const {
 	return flags;
+}
+
+/*
+=====================
+idAnim::TouchData
+=====================
+*/
+void idAnim::TouchData( void ) const {
+	if (modelDef) {
+		modelDef->Touch();
+	}
+
+	for (int i = 0; i < frameCommands.Num(); i++) {
+		frameCommand_t const *frame = &frameCommands[ i ];
+		switch ( frame->type ) {
+			case FC_SKIN:
+				if (frame->skin) {
+					frame->skin->Touch();
+				}
+				break;
+			case FC_SOUND:
+			case FC_SOUND_VOICE:
+			case FC_SOUND_VOICE2:
+			case FC_SOUND_BODY:
+			case FC_SOUND_BODY2:
+			case FC_SOUND_BODY3:
+			case FC_SOUND_WEAPON:
+			case FC_SOUND_CHATTER:
+			case FC_SOUND_GLOBAL:
+			case FC_SOUND_ITEM:
+				if (frame->soundShader) {
+					frame->soundShader->Touch();
+				}
+
+		}
+	}
 }
 
 /***********************************************************************
@@ -2291,12 +2328,19 @@ void idDeclModelDef::GetJointList( const char *jointnames, idList<jointHandle_t>
 
 /*
 =====================
-idDeclModelDef::Touch
+idDeclModelDef::TouchData
 =====================
 */
-void idDeclModelDef::Touch( void ) const {
+void idDeclModelDef::TouchData( void ) const {
 	if ( modelHandle ) {
 		renderModelManager->FindModel( modelHandle->Name() );
+	}
+	if (skin) {
+		skin->Touch();
+	}
+
+	for (int i=0; i<anims.Num(); i++ ) {
+		anims[i]->TouchData();
 	}
 }
 

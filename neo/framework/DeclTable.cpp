@@ -98,6 +98,14 @@ void idDeclTable::FreeData( void ) {
 
 /*
 =================
+idDeclTable::TouchData
+=================
+*/
+void idDeclTable::TouchData( void ) const {
+}
+
+/*
+=================
 idDeclTable::DefaultDefinition
 =================
 */

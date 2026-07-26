@@ -1751,3 +1751,11 @@ idDeclAF::~idDeclAF( void ) {
 	bodies.DeleteContents( true );
 	constraints.DeleteContents( true );
 }
+
+/*
+================
+idDeclAF::TouchData
+================
+*/
+void idDeclAF::TouchData( void ) const {
+}

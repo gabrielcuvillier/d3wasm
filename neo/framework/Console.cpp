@@ -73,6 +73,8 @@ public:
 	virtual void		SaveHistory();
 	virtual void		LoadHistory();
 
+	virtual void		TouchEngineData();
+
 	//============================
 
 	const idMaterial *	charSetShader;
@@ -1281,5 +1283,22 @@ void	idConsoleLocal::Draw( bool forceFullScreen ) {
 
 	if ( com_showSoundDecoders.GetBool() ) {
 		y = SCR_DrawSoundDecoders( y );
+	}
+}
+
+/*
+================
+idConsoleLocal::TouchEngineData
+================
+*/
+void idConsoleLocal::TouchEngineData() {
+	if (charSetShader) {
+		charSetShader->Touch();
+	}
+	if (whiteShader) {
+		whiteShader->Touch();
+	}
+	if (consoleShader) {
+		consoleShader->Touch();
 	}
 }

@@ -149,3 +149,12 @@ Dumps all key/value pairs, including inherited ones
 void idDeclEntityDef::Print( void ) const {
 	dict.Print();
 }
+
+/*
+================
+idDeclEntityDef::TouchData
+================
+*/
+void idDeclEntityDef::TouchData( void ) const {
+	game->CacheDictionaryMedia( &dict );
+}

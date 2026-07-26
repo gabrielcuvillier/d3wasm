@@ -263,6 +263,8 @@ public:
 	// *out_fnptr will be the function (you'll have to cast it probably)
 	// *out_userArg will be an argument you have to pass to the function, if appropriate (else NULL)
 	virtual bool				GetAdditionalFunction(FunctionType ft, FunctionPointer* out_fnptr, void** out_userArg) = 0;
+
+	virtual void				TouchEngineData() = 0;
 };
 
 extern idCommon *		common;

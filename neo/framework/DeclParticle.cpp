@@ -33,6 +33,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "framework/DeclParticle.h"
 
+#include "renderer/RenderSystem.h"
+
 struct ParticleParmDesc {
 	const char *name;
 	int count;
@@ -662,6 +664,21 @@ bool idDeclParticle::Save( const char *fileName ) {
 #endif
 
 /*
+=================
+idDeclParticle::TouchData
+=================
+*/
+void idDeclParticle::TouchData( void ) const {
+	for (int i = 0; i < stages.Num(); i++ ) {
+		idParticleStage const* stage = stages[i];
+
+		if (stage->material) {
+			stage->material->Touch();
+		}
+	}
+}
+
+/*
 ====================================================================================
 
 idParticleParm
@@ -745,7 +762,7 @@ Sets the stage to a default state
 ================
 */
 void idParticleStage::Default() {
-	material = declManager->FindMaterial( "_default" );
+	material = renderSystem->GetDefaultMaterial();
 	totalParticles = 100;
 	spawnBunching = 1.0f;
 	particleLife = 1.5f;

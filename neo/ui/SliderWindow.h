@@ -39,7 +39,7 @@ public:
 						idSliderWindow(idDeviceContext *d, idUserInterfaceLocal *gui);
 	virtual				~idSliderWindow();
 
-	void				InitWithDefaults(const char *_name, const idRectangle &rect, const idVec4 &foreColor, const idVec4 &matColor, const char *_background, const char *thumbShader, bool _vertical, bool _scrollbar);
+	void				InitWithDefaults(const char *_name, const idRectangle &rect, const idVec4 &foreColor, const idVec4 &matColor, const idMaterial* _background, const idMaterial *thumbShader, bool _vertical, bool _scrollbar);
 
 	void				SetRange(float _low, float _high, float _step);
 	float				GetLow() { return low; }

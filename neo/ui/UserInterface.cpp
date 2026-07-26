@@ -57,6 +57,8 @@ void idUserInterfaceManagerLocal::Init() {
 	guiCacheSources.Clear();
 	guiCacheTimestamps.Clear();
 	guiCacheNames.Clear();
+	thumbImage = declManager->FindMaterial("guis/assets/scrollbar_thumb.tga");
+	barImageV = declManager->FindMaterial("guis/assets/scrollbarv.tga");
 }
 
 void idUserInterfaceManagerLocal::Shutdown() {
@@ -67,6 +69,30 @@ void idUserInterfaceManagerLocal::Shutdown() {
 	guiCacheSources.Clear();
 	guiCacheTimestamps.Clear();
 	guiCacheNames.Clear();
+	thumbImage = NULL;
+	barImageV = NULL;
+}
+
+void idUserInterfaceManagerLocal::TouchEngineData() {
+	dc.TouchEngineData();
+	if (thumbImage) {
+		thumbImage->Touch();
+	}
+	if (barImageV) {
+		barImageV->Touch();
+	}
+}
+
+const idMaterial*   idUserInterfaceManagerLocal::GetScrollBarImageH() {
+	return dc.GetScrollBarImage(idDeviceContext::SCROLLBAR_HBACK);
+}
+
+const idMaterial*   idUserInterfaceManagerLocal::GetScrollBarImageV() {
+	return barImageV;
+}
+
+const idMaterial*   idUserInterfaceManagerLocal::GetThumbImage() {
+	return thumbImage;
 }
 
 void idUserInterfaceManagerLocal::Touch( const char *name ) {

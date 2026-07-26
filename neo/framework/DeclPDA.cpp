@@ -159,6 +159,24 @@ bool idDeclPDA::Parse( const char *text, const int textLength ) {
 }
 
 /*
+===============
+idDeclPDA::TouchData
+===============
+*/
+void idDeclPDA::TouchData( void ) const {
+	for (int i = 0; i < emails.Num(); i++) {
+		declManager->FindType(DECL_EMAIL, emails[i]);
+	}
+	for (int i = 0; i < audios.Num(); i++) {
+		declManager->FindType(DECL_AUDIO, audios[i]);
+	}
+	for (int i = 0; i < videos.Num(); i++) {
+		declManager->FindType(DECL_VIDEO, videos[i]);
+	}
+}
+
+
+/*
 ===================
 idDeclPDA::DefaultDefinition
 ===================
@@ -451,6 +469,14 @@ void idDeclEmail::FreeData( void ) {
 
 /*
 =================
+idDeclEmail::TouchData
+=================
+*/
+void idDeclEmail::TouchData( void ) const {
+}
+
+/*
+=================
 idDeclVideo::Size
 =================
 */
@@ -565,6 +591,17 @@ void idDeclVideo::FreeData( void ) {
 
 /*
 =================
+idDeclVideo::TouchData
+=================
+*/
+void idDeclVideo::TouchData( void ) const {
+	declManager->FindMaterial( preview );
+	// Do not consciously touch video and audio => we do want them to be loaded on demand only
+}
+
+
+/*
+=================
 idDeclAudio::Size
 =================
 */
@@ -669,4 +706,15 @@ idDeclAudio::FreeData
 ===================
 */
 void idDeclAudio::FreeData( void ) {
+}
+
+
+/*
+=================
+idDeclAudio::TouchData
+=================
+*/
+void idDeclAudio::TouchData( void ) const {
+	declManager->FindMaterial( preview );
+	// Do not consciously touch audio => we do want them to be loaded on demand only
 }

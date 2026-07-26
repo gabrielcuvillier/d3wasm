@@ -99,6 +99,8 @@ public:
 
 	void				DrawEditCursor(float x, float y, float scale);
 
+	void				TouchEngineData();
+
 	// DG: this is used for the "make sure menus are rendered as 4:3" hack
 	void				SetMenuScaleFix(bool enable);
 	bool				IsMenuScaleFixActive() const {

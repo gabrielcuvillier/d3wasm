@@ -127,6 +127,8 @@ void idMaterial::CommonInit() {
 	decalInfo.end[1] = 0;
 	decalInfo.end[2] = 0;
 	decalInfo.end[3] = 0;
+
+	deformDecl = NULL;
 }
 
 /*
@@ -1507,9 +1509,10 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			}
 			continue;
 		}
-#ifndef __EMSCRIPTEN__
+
 		if ( !token.Icmp( "megaTexture" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
+#ifndef __EMSCRIPTEN__
 				newStage.megaTexture = new idMegaTexture;
 				if ( !newStage.megaTexture->InitFromMegaFile( token.c_str() ) ) {
 					delete newStage.megaTexture;
@@ -1518,11 +1521,10 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 				}
 				newStage.vertexProgram = -1;
 				newStage.fragmentProgram = -1;
+#endif
 				continue;
 			}
 		}
-#endif
-
 
 		if ( !token.Icmp( "vertexParm" ) ) {
 			ParseVertexParm( src, &newStage );
@@ -2733,6 +2735,47 @@ void idMaterial::ReloadImages( bool force ) const
 			}
 		} else if ( stages[i].texture.image ) {
 			stages[i].texture.image->Reload( force );
+		}
+	}
+}
+
+
+/*
+===================
+idMaterial::TouchData
+===================
+*/
+void idMaterial::TouchData( void ) const {
+	if (deformDecl) {
+		deformDecl->Touch();
+	}
+	for ( int i = 0 ; i < numStages ; i++ ) {
+		shaderStage_t const* stage = &stages[i];
+		if (stage) {
+			if (stage->texture.image
+				&& stage->texture.image->texnum == idImage::TEXTURE_NOT_LOADED
+				&& !stage->texture.image->generatorFunction) {
+					globalImages->ImageFromFile(stage->texture.image->imgName,
+						stage->texture.image->filter,
+						stage->texture.image->allowDownSize,
+						stage->texture.image->repeat,
+						stage->texture.image->depth,
+						stage->texture.image->cubeFiles);
+			}
+			if (stage->newStage) {
+				for (int j = 0 ; j < stage->newStage->numFragmentProgramImages ; j++ ) {
+					if (stage->newStage->fragmentProgramImages[j]
+						&& stage->newStage->fragmentProgramImages[j]->texnum == idImage::TEXTURE_NOT_LOADED
+						&& !stage->newStage->fragmentProgramImages[j]->generatorFunction) {
+						globalImages->ImageFromFile(stage->newStage->fragmentProgramImages[j]->imgName,
+							stage->newStage->fragmentProgramImages[j]->filter,
+							stage->newStage->fragmentProgramImages[j]->allowDownSize,
+							stage->newStage->fragmentProgramImages[j]->repeat,
+							stage->newStage->fragmentProgramImages[j]->depth,
+							stage->newStage->fragmentProgramImages[j]->cubeFiles);
+					}
+				}
+			}
 		}
 	}
 }

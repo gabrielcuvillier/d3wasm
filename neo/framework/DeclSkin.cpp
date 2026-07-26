@@ -183,3 +183,21 @@ const idMaterial *idDeclSkin::RemapShaderBySkin( const idMaterial *shader ) cons
 	// didn't find a match or wildcard, so stay the same
 	return shader;
 }
+
+/*
+================
+idDeclSkin::TouchData
+================
+*/
+void idDeclSkin::TouchData( void ) const {
+	for (int i = 0; i < mappings.Num(); i++ ) {
+		const skinMapping_t	*map = &mappings[i];
+
+		if (map->from) {
+			map->from->Touch();
+		}
+		if (map->to) {
+			map->to->Touch();
+		}
+	}
+}

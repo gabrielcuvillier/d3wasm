@@ -125,7 +125,7 @@ idPlayerIcon::CreateIcon
 */
 bool idPlayerIcon::CreateIcon( idPlayer *player, playerIconType_t type, const idVec3 &origin, const idMat3 &axis ) {
 	assert( type != ICON_NONE );
-	const char *mtr = player->spawnArgs.GetString( iconKeys[ type ], "_default" );
+	const char *mtr = player->spawnArgs.GetString( iconKeys[ type ] );
 	return CreateIcon( player, type, mtr, origin, axis );
 }
 
@@ -159,7 +159,7 @@ bool idPlayerIcon::CreateIcon( idPlayer *player, playerIconType_t type, const ch
 	renderEnt.customSkin = 0;
 	renderEnt.noShadow = true;
 	renderEnt.noSelfShadow = true;
-	renderEnt.customShader = declManager->FindMaterial( mtr );
+	renderEnt.customShader = mtr ? declManager->FindMaterial( mtr ) : renderSystem->GetDefaultMaterial();
 	renderEnt.referenceShader = 0;
 	renderEnt.bounds = renderEnt.hModel->Bounds( &renderEnt );
 

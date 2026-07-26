@@ -336,6 +336,7 @@ public:
 	const char					*AddFrameCommand( const class idDeclModelDef *modelDef, int framenum, idLexer &src, const idDict *def );
 	void						CallFrameCommands( idEntity *ent, int from, int to ) const;
 	bool						HasFrameCommands( void ) const;
+	void						TouchData( void ) const;
 
 								// returns first frame (zero based) that command occurs.  returns -1 if not found.
 	int							FindFrameForFrameCommand( frameCommandType_t framecommand, const frameCommand_t **command ) const;
@@ -361,7 +362,7 @@ public:
 	virtual bool				Parse( const char *text, const int textLength );
 	virtual void				FreeData( void );
 
-	void						Touch( void ) const;
+	virtual void				TouchData( void ) const;
 
 	const idDeclSkin *			GetDefaultSkin( void ) const;
 	const idJointQuat *			GetDefaultPose( void ) const;

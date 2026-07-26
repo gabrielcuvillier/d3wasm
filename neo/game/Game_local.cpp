@@ -1288,7 +1288,7 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 
 	savegame.ReadBuildNumber();
 
-	PrecacheBeforeEntitySpawn();
+	PrecacheGameData();
 
 	// Create the list of all objects in the game
 	savegame.CreateObjects();
@@ -1311,10 +1311,7 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	g_skill.SetInteger( i );
 
 	// precache the player
-	const idDeclEntityDef* playerDef = FindEntityDef("player_doommarine", false);
-	if (playerDef) {
-		PrecacheBeforePlayerSpawn(&playerDef->dict);
-	}
+	FindEntityDef("player_doommarine", false);
 
 	// Precache map script namespace, using Worldentity
 	idMapEntity *worldEnt = mapFile->GetEntity( 0 );
@@ -1883,6 +1880,27 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		}
 	}
 
+	// Special handling for the player
+	if (spawnclass == "idPlayer") {
+		idUserInterface *gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "mphud", "guis/mphud.gui") );
+			uiManager->DeAlloc( gui );
+		}
+
+		gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "hud", "guis/hud.gui") );
+			uiManager->DeAlloc( gui );
+		}
+
+		gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "cursor", "guis/cursor.gui") );
+			uiManager->DeAlloc( gui );
+		}
+	}
+
 	PrecacheScriptReferences(dict);
 
 	if (gamestate == GAMESTATE_STARTUP) {
@@ -1926,9 +1944,6 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 	Printf( "SpawnPlayer: %i\n", clientNum );
 
 	const idDeclEntityDef* playerDef = FindEntityDef("player_doommarine", false);
-	if (playerDef) {
-		PrecacheBeforePlayerSpawn(&playerDef->dict);
-	}
 
 	args.SetInt( "spawn_entnum", clientNum );
 	args.Set( "name", va( "player%d", clientNum + 1 ) );
@@ -3324,7 +3339,7 @@ void idGameLocal::SpawnMapEntities( void ) {
 		Error( "...no entities" );
 	}
 
-	PrecacheBeforeEntitySpawn();
+	PrecacheGameData();
 
 	// the worldspawn is a special that performs any global setup
 	// needed by a level
@@ -4664,11 +4679,10 @@ void idGameLocal::PrecacheScriptReferencesForFile(const char *file) {
 
 /*
 ===========
-idGameLocal::PrecacheBeforeEntitySpawn
+idGameLocal::PrecacheScriptReferences
 ============
 */
-void idGameLocal::PrecacheBeforeEntitySpawn() {
-	common->Printf("=== PrecacheBeforeEntitySpawn\n");
+void idGameLocal::PrecacheGameData() {
 	// Hardcoded in idPlayerView()
 	declManager->FindMaterial( "textures/decals/tunnel");
 	declManager->FindMaterial( "armorViewEffect" );
@@ -4676,52 +4690,28 @@ void idGameLocal::PrecacheBeforeEntitySpawn() {
 	declManager->FindMaterial( "textures/decals/irblend" );
 	declManager->FindMaterial( "textures/decals/bloodspray" );
 	declManager->FindMaterial( "textures/decals/bfgvision" );
-	declManager->FindMaterial( LAGO_MATERIAL );
+	declManager->FindMaterial( LAGO_MATERIAL, false );
+
 	// hardcoded in idAI::Spawn()
-	declManager->FindMaterial( "muzzleflash" );
+	declManager->FindMaterial( "muzzleflash", false );
+
 	// hardcoded in idAFEntity_Vehicle::Spawn
 	declManager->FindType( DECL_PARTICLE, "muzzlesmoke" );
+
 	// hardcoded in idItem::Spawn()
 	declManager->FindMaterial("itemHighlightShell");
+
 	// hardcoded in idWeapon::BloodSplat()
 	declManager->FindMaterial("textures/decals/duffysplatgun");
+
 	// hardcoded in idTarget_Damage::Event_Activate()
 	FindEntityDef("damage_generic");
+
 	// hadcoded in idTarget_EndLevel::Spawn()
 	if (uiManager->CheckGui("guis/EndLevel.gui")) {
 		idUserInterface *gui = uiManager->Alloc();
 		if ( gui ) {
 			gui->InitFromFile( "guis/EndLevel.gui" );
-			uiManager->DeAlloc( gui );
-		}
-	}
-}
-
-/*
-===========
-idGameLocal::PrecacheBeforePlayerSpawn
-============
-*/
-void idGameLocal::PrecacheBeforePlayerSpawn( const idDict* dict ) {
-
-	common->Printf("=== PrecacheBeforePlayerSpawn\n");
-	// GUIs from player def
-	if (dict) {
-		idUserInterface *gui = uiManager->Alloc();
-		if ( gui ) {
-			gui->InitFromFile( dict->GetString( "mphud", "guis/mphud.gui") );
-			uiManager->DeAlloc( gui );
-		}
-
-		gui = uiManager->Alloc();
-		if ( gui ) {
-			gui->InitFromFile( dict->GetString( "hud", "guis/hud.gui") );
-			uiManager->DeAlloc( gui );
-		}
-
-		gui = uiManager->Alloc();
-		if ( gui ) {
-			gui->InitFromFile( dict->GetString( "cursor", "guis/cursor.gui") );
 			uiManager->DeAlloc( gui );
 		}
 	}
@@ -4738,6 +4728,13 @@ void idGameLocal::PrecacheBeforePlayerSpawn( const idDict* dict ) {
 
 	// in idPlayer::GivePDA()
 	declManager->FindType(DECL_PDA, "personal");
+
+	// Powerups
+	FindEntityDef( "powerup_berserk", false );
+	FindEntityDef( "powerup_invisibility", false );
+	FindEntityDef( "powerup_megahealth", false );
+	FindEntityDef( "powerup_adrenaline", false );
+
 }
 
 /*
@@ -4749,8 +4746,6 @@ void idGameLocal::PrecacheScriptReferences(const idDict* dict) {
 	if (!dict)
 		return;
 	idStr temp;
-	dict->GetString("classname", "", temp);
-
 	if (dict->GetString("spawnfunc", "", temp)) {
 		PrecacheScriptReferencesForFunction(temp);
 	}

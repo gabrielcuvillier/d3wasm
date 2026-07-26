@@ -345,6 +345,8 @@ public:
 
 	void				PrintMemInfo( MemInfo_t *mi );
 
+	void				ForceLoadImages( bool force );
+
 	// cvars
 	static idCVar		image_roundDown;			// round bad sizes down to nearest power of two
 	static idCVar		image_colorMipLevels;		// development aid to see texture mip usage
@@ -398,6 +400,7 @@ public:
 	idHashIndex			ddsHash;
 
 	bool				insideLevelLoad;			// don't actually load images now
+	bool				forceLoadImages;
 
 	byte				originalToCompressed[256];	// maps normal maps to 8 bit textures
 	byte				compressedPalette[768];		// the palette that normal maps use

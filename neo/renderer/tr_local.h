@@ -711,6 +711,11 @@ public:
 	virtual void			UnCrop();
 	virtual bool			UploadImage( const char *imageName, const byte *data, int width, int height );
 
+	virtual void			TouchEngineData();
+	virtual const idMaterial* GetDefaultMaterial();
+	virtual const idMaterial* GetWhiteMaterial();
+	virtual const idMaterial* GetDefaultLightMaterial();
+
 public:
 	// internal functions
 							idRenderSystemLocal( void );
@@ -749,6 +754,10 @@ public:
 	// many console commands need to know which world they should operate on
 
 	const idMaterial *		defaultMaterial;
+	const idMaterial *		whiteMaterial;
+	const idMaterial *		defaultPointLightMaterial;
+	const idMaterial *		defaultProjectedLightMaterial;;
+	const idMaterial *		defaultLightMaterial;
 	idImage *				testImage;
 	idCinematic *			testVideo;
 	float					testVideoStartTime;

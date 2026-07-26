@@ -522,7 +522,7 @@ idSessionLocal::StartWipe
 Draws and captures the current state, then starts a wipe with that image
 ================
 */
-void idSessionLocal::StartWipe(const char* _wipeMaterial, bool hold) {
+void idSessionLocal::StartWipe(const idMaterial* _wipeMaterial, bool hold) {
   console->Close();
 
   // render the current screen into a texture for the wipe model
@@ -536,7 +536,7 @@ void idSessionLocal::StartWipe(const char* _wipeMaterial, bool hold) {
   Draw();
 #endif
 
-  wipeMaterial = declManager->FindMaterial(_wipeMaterial, false);
+  wipeMaterial = _wipeMaterial;
 
 	wipeStartTime = Sys_Milliseconds();
 	wipeStopTime = wipeStartTime + com_wipeSeconds.GetFloat() * 1000.0f;
@@ -1356,12 +1356,15 @@ void idSessionLocal::LoadLoadingGui(const char* mapName) {
   // give the gamecode a chance to override
   game->GetMapLoadingGUI(guiMap);
 
+  globalImages->ForceLoadImages(true);
   if ( uiManager->CheckGui(guiMap)) {
     guiLoading = uiManager->FindGui(guiMap, true, false, true);
   }
   else {
     guiLoading = uiManager->FindGui("guis/map/loading.gui", true, false, true);
   }
+  globalImages->ForceLoadImages(false);
+
   if (guiLoading) {
     guiLoading->SetStateFloat("map_loading", 0.0f);
   }
@@ -1457,7 +1460,7 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
 
   if ( !noFadeWipe ) {
     // capture the current screen and start a wipe
-    StartWipe("wipeMaterial", true);
+    StartWipe(matWipeMaterial, true);
 
     // immediately complete the wipe to fade out the level transition
     // run the wipe to completion
@@ -1664,7 +1667,7 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
   }
 
   // capture the current screen and start a wipe
-  StartWipe("wipe2Material");
+  StartWipe(matWipe2Material);
 
   usercmdGen->Clear();
 
@@ -2319,14 +2322,14 @@ void idSessionLocal::DrawCmdGraph() {
   }
   renderSystem->SetColor4(0.1f, 0.1f, 0.1f, 1.0f);
   renderSystem->DrawStretchPic(0, 480 - ANGLE_GRAPH_HEIGHT, MAX_BUFFERED_USERCMD * ANGLE_GRAPH_STRETCH,
-                               ANGLE_GRAPH_HEIGHT, 0, 0, 1, 1, whiteMaterial);
+                               ANGLE_GRAPH_HEIGHT, 0, 0, 1, 1, renderSystem->GetWhiteMaterial());
   renderSystem->SetColor4(0.9f, 0.9f, 0.9f, 1.0f);
   for ( int i = 0; i < MAX_BUFFERED_USERCMD - 4; i++ ) {
     usercmd_t cmd = usercmdGen->TicCmd(latchedTicNumber - ( MAX_BUFFERED_USERCMD - 4 ) + i);
     int h = cmd.angles[1];
     h >>= 8;
     h &= ( ANGLE_GRAPH_HEIGHT - 1 );
-    renderSystem->DrawStretchPic(i * ANGLE_GRAPH_STRETCH, 480 - h, 1, h, 0, 0, 1, 1, whiteMaterial);
+    renderSystem->DrawStretchPic(i * ANGLE_GRAPH_STRETCH, 480 - h, 1, h, 0, 0, 1, 1, renderSystem->GetWhiteMaterial());
   }
 }
 #endif
@@ -2416,7 +2419,7 @@ void idSessionLocal::Draw() {
     }
     if ( !gameDraw ) {
       renderSystem->SetColor(colorBlack);
-      renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, declManager->FindMaterial("_white"));
+      renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, renderSystem->GetWhiteMaterial());
     }
 
 #ifndef NO_RENDERDEMO_WRITE
@@ -2440,7 +2443,7 @@ void idSessionLocal::Draw() {
 				StartMenu();
 			}
 			renderSystem->SetColor4( 0, 0, 0, 1 );
-			renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1, declManager->FindMaterial( "_white" ) );
+			renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1, renderSystem->GetWhiteMaterial() );
 		}
 #else
     // draw the console full screen - this should only ever happen in developer builds
@@ -2936,7 +2939,8 @@ void idSessionLocal::Init() {
   guiMsg = uiManager->FindGui("guis/msg.gui", true, false, true);
   guiIntro = uiManager->FindGui("guis/intro.gui", true, false, true);
 
-  whiteMaterial = declManager->FindMaterial("_white");
+  matWipeMaterial = declManager->FindMaterial("wipeMaterial", false);
+  matWipe2Material = declManager->FindMaterial("wipe2Material", false);
 
   guiInGame = NULL;
 
@@ -3363,4 +3367,39 @@ idSessionLocal::GetAuthMsg
 */
 const char* idSessionLocal::GetAuthMsg(void) {
   return authMsg.c_str();
+}
+
+
+/*
+================
+idSessionLocal::TouchEngineData
+================
+*/
+void idSessionLocal::TouchEngineData() {
+  common->Printf("idSessionLocal::TouchEngineData()\n");
+  globalImages->ForceLoadImages(true);
+  {
+    // RenderSystem
+    renderSystem->TouchEngineData();
+    // Common
+    common->TouchEngineData();
+    // Console
+    console->TouchEngineData();
+    // UI
+    uiManager->TouchEngineData();
+
+    if (matWipeMaterial) {
+      matWipeMaterial->Touch();
+    }
+    if (matWipe2Material) {
+      matWipe2Material->Touch();
+    }
+
+    // guiMainMenu;
+    // guiRestartMenu;
+    // guiLoading;
+    // guiIntro;
+    // guiGameOver;
+  }
+  globalImages->ForceLoadImages(false);
 }

@@ -51,6 +51,7 @@ public:
 	virtual void			FreeData( void );
 	virtual void			Print( void ) const;
 	virtual void			List( void ) const;
+	virtual void			TouchData( void ) const;
 
 	const char *			GetFrom() const { return from; }
 	const char *			GetBody() const { return text; }
@@ -79,6 +80,7 @@ public:
 	virtual void			FreeData( void );
 	virtual void			Print( void ) const;
 	virtual void			List( void ) const;
+	virtual void			TouchData( void ) const;
 
 	const char *			GetRoq() const { return video; }
 	const char *			GetWave() const { return audio; }
@@ -105,6 +107,7 @@ public:
 	virtual void			FreeData( void );
 	virtual void			Print( void ) const;
 	virtual void			List( void ) const;
+	virtual void			TouchData( void ) const;
 
 	const char *			GetAudioName() const { return audioName; }
 	const char *			GetWave() const { return audio; }
@@ -129,6 +132,7 @@ public:
 	virtual void			FreeData( void );
 	virtual void			Print( void ) const;
 	virtual void			List( void ) const;
+	virtual void			TouchData( void ) const;
 
 	virtual void			AddVideo( const char *name, bool unique = true ) const;
 	virtual void			AddAudio( const char *name, bool unique = true ) const;

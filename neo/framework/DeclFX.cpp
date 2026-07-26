@@ -97,6 +97,40 @@ void idDeclFX::List( void ) const {
 }
 
 /*
+===============
+idDeclFX::TouchData
+===============
+*/
+void idDeclFX::TouchData( void ) const {
+	for ( int i = 0; i < events.Num(); i++ ) {
+		idFXSingleAction const* action = &events[i];
+
+		switch( action->type ) {
+			case FX_LIGHT:
+			case FX_ATTACHLIGHT:
+			case FX_DECAL:
+				declManager->FindMaterial( action->data );
+				break;
+			case FX_ATTACHENTITY:
+			case FX_MODEL:
+			case FX_PARTICLE:
+				renderModelManager->FindModel( action->data );
+				break;
+			case FX_LAUNCH:
+			case FX_SHOCKWAVE:
+				declManager->FindType(DECL_ENTITYDEF, action->data );
+				break;
+			case FX_SOUND:
+				declManager->FindSound( action->data );
+				break;
+			case FX_SHAKE:
+			default:
+				break;
+		}
+	}
+}
+
+/*
 ================
 idDeclFX::ParseSingleFXAction
 ================

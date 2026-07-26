@@ -53,6 +53,7 @@ public:
 	virtual const char *	DefaultDefinition( void ) const;
 	virtual bool			Parse( const char *text, const int textLength );
 	virtual void			FreeData( void );
+	virtual void			TouchData( void ) const;
 
 	const idMaterial *		RemapShaderBySkin( const idMaterial *shader ) const;
 

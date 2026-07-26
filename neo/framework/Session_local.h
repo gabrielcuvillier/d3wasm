@@ -138,6 +138,8 @@ public:
 
 	virtual const char *GetCurrentMapName();
 
+	virtual void		TouchEngineData();
+
 	//=====================================
 
 	int					GetLocalClientNum();
@@ -153,7 +155,7 @@ public:
 
 	// called by Draw when the scene to scene wipe is still running
 	void				DrawWipeModel();
-	void				StartWipe( const char *materialName, bool hold = false);
+	void				StartWipe( const idMaterial* _wipeMaterial, bool hold = false);
 	void				CompleteWipe();
 	void				ClearWipe();
 
@@ -257,6 +259,9 @@ public:
 	const idMaterial *	whiteMaterial;
 
 	const idMaterial *	wipeMaterial;
+	const idMaterial *	matWipeMaterial;
+	const idMaterial *	matWipe2Material;
+
 	// DG: make wiping use Sys_Milliseconds() instead of tics
 	//     so we can get rid of the AsyncThread
 	unsigned			wipeStartTime;

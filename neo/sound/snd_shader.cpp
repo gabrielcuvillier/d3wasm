@@ -424,11 +424,15 @@ void idSoundShader::List() const {
 
 /*
 ===============
-idSoundShader::TouchCache
+idSoundShader::TouchData
 ===============
 */
 void idSoundShader::TouchData() const {
 	idStrList	shaders;
+
+	if (altSound) {
+		altSound->Touch();
+	}
 
 	for( int k = 0; k < numLeadins ; k++ ) {
 		idSoundSample *objectp = leadins[k];

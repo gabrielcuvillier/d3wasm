@@ -421,16 +421,13 @@ This is the same as in idEditWindow
 */
 void idListWindow::InitScroller( bool horizontal )
 {
-	const char *thumbImage = "guis/assets/scrollbar_thumb.tga";
-	const char *barImage = "guis/assets/scrollbarv.tga";
 	const char *scrollerName = "_scrollerWinV";
 
 	if (horizontal) {
-		barImage = "guis/assets/scrollbarh.tga";
 		scrollerName = "_scrollerWinH";
 	}
 
-	const idMaterial *mat = declManager->FindMaterial( barImage );
+	const idMaterial *mat = horizontal ? uiManager->GetScrollBarImageH() : uiManager->GetScrollBarImageV();
 	mat->SetSort( SS_GUI );
 	sizeBias = mat->GetImageWidth();
 
@@ -448,7 +445,7 @@ void idListWindow::InitScroller( bool horizontal )
 		scrollRect.h = clientRect.h;
 	}
 
-	scroller->InitWithDefaults(scrollerName, scrollRect, foreColor, matColor, mat->GetName(), thumbImage, !horizontal, true);
+	scroller->InitWithDefaults(scrollerName, scrollRect, foreColor, matColor, mat, uiManager->GetThumbImage(), !horizontal, true);
 	InsertChild(scroller, NULL);
 	scroller->SetBuddy(this);
 }
@@ -523,7 +520,7 @@ void idListWindow::Draw(int time, float x, float y) {
 					if ( work[0] != '\0' ) {
 
 						if ( iconMaterials.Get(work, &hashMat) == false ) {
-							iconMat = declManager->FindMaterial("_default");
+							iconMat = renderSystem->GetDefaultMaterial();
 						} else {
 							iconMat = *hashMat;
 						}

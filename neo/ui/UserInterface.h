@@ -32,6 +32,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "idlib/Dict.h"
 #include "ui/ListGUI.h"
 
+class idMaterial;
+
 /*
 ===============================================================================
 
@@ -160,6 +162,12 @@ public:
 
 								// De-allocates a list gui
 	virtual void				FreeListGUI( idListGUI *listgui ) = 0;
+
+	virtual void				TouchEngineData() = 0;
+
+	virtual const idMaterial*   GetScrollBarImageH() = 0;
+	virtual const idMaterial*   GetScrollBarImageV() = 0;
+	virtual const idMaterial*   GetThumbImage() = 0;
 };
 
 extern idUserInterfaceManager *	uiManager;

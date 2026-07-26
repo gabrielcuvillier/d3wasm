@@ -5318,7 +5318,6 @@ void idPlayer::UpdatePDAInfo( bool updatePDASel ) {
 #ifdef __EMSCRIPTEN__
 					const idMaterial* roq_shader = declManager->FindMaterial( vid->GetRoq(), false);
 					const idSoundShader* snd_shader = declManager->FindSound( vid->GetWave(), false);
-					const idMaterial* preview_shader = declManager->FindMaterial( vid->GetPreview(), false);
 #endif
 					pdaVideo = vid->GetRoq();
 					pdaVideoWave = vid->GetWave();
