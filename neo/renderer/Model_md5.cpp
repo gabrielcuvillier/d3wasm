@@ -916,7 +916,9 @@ void idRenderModelMD5::TouchData() {
 	int			i;
 
 	for( mesh = meshes.Ptr(), i = 0; i < meshes.Num(); i++, mesh++ ) {
-		declManager->FindMaterial( mesh->shader->GetName() );
+		if (mesh->shader) {
+			mesh->shader->Touch();
+		}
 	}
 }
 

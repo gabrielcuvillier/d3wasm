@@ -2749,11 +2749,26 @@ void idMaterial::TouchData( void ) const {
 	if (deformDecl) {
 		deformDecl->Touch();
 	}
+	if (lightFalloffImage && !lightFalloffImage->generatorFunction) {
+		globalImages->ImageFromFile(lightFalloffImage->imgName,
+						lightFalloffImage->filter,
+						lightFalloffImage->allowDownSize,
+						lightFalloffImage->repeat,
+						lightFalloffImage->depth,
+						lightFalloffImage->cubeFiles);
+	}
+	if (editorImage && !editorImage->generatorFunction) {
+		globalImages->ImageFromFile(editorImage->imgName,
+						editorImage->filter,
+						editorImage->allowDownSize,
+						editorImage->repeat,
+						editorImage->depth,
+						editorImage->cubeFiles);
+	}
 	for ( int i = 0 ; i < numStages ; i++ ) {
 		shaderStage_t const* stage = &stages[i];
 		if (stage) {
 			if (stage->texture.image
-				&& stage->texture.image->texnum == idImage::TEXTURE_NOT_LOADED
 				&& !stage->texture.image->generatorFunction) {
 					globalImages->ImageFromFile(stage->texture.image->imgName,
 						stage->texture.image->filter,
@@ -2765,7 +2780,6 @@ void idMaterial::TouchData( void ) const {
 			if (stage->newStage) {
 				for (int j = 0 ; j < stage->newStage->numFragmentProgramImages ; j++ ) {
 					if (stage->newStage->fragmentProgramImages[j]
-						&& stage->newStage->fragmentProgramImages[j]->texnum == idImage::TEXTURE_NOT_LOADED
 						&& !stage->newStage->fragmentProgramImages[j]->generatorFunction) {
 						globalImages->ImageFromFile(stage->newStage->fragmentProgramImages[j]->imgName,
 							stage->newStage->fragmentProgramImages[j]->filter,

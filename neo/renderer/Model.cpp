@@ -2285,7 +2285,10 @@ void idRenderModelStatic::TouchData( void ) {
 
 		// re-find the material to make sure it gets added to the
 		// level keep list
-		declManager->FindMaterial( surf->shader->GetName() );
+		//declManager->FindMaterial( surf->shader->GetName() );
+		if (surf->shader) {
+			surf->shader->Touch();
+		}
 	}
 }
 

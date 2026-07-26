@@ -59,7 +59,10 @@ idRenderModelPrt::TouchData
 */
 void idRenderModelPrt::TouchData( void ) {
 	// Ensure our particle system is added to the list of referenced decls
-	particleSystem = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, name ) );
+	//particleSystem = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, name ) );
+	if (particleSystem) {
+		particleSystem->Touch();
+	}
 }
 
 /*
