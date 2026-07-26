@@ -245,6 +245,7 @@ void idGameLocal::Clear( void ) {
 	playerPVS.h = (unsigned int)-1;
 	playerConnectedAreas.h = (unsigned int)-1;
 	gamestate = GAMESTATE_UNINITIALIZED;
+	//common->Printf("GAMESTATE_UNINITIALIZED\n");
 	skipCinematic = false;
 	influenceActive = false;
 
@@ -375,6 +376,7 @@ void idGameLocal::Init( void ) {
 	}
 
 	gamestate = GAMESTATE_NOMAP;
+	//common->Printf("GAMESTATE_NOMAP\n");
 
 	Printf( "...%d aas types\n", aasList.Num() );
 
@@ -1014,6 +1016,8 @@ void idGameLocal::LocalMapRestart( ) {
 	Printf( "----- Game Map Restart -----\n" );
 
 	gamestate = GAMESTATE_SHUTDOWN;
+	//common->Printf("GAMESTATE_SHUTDOWN\n");
+
 
 	program.ClearScriptNamesScanList();
 
@@ -1042,6 +1046,7 @@ void idGameLocal::LocalMapRestart( ) {
 	spawnCount = INITIAL_SPAWN_COUNT;
 
 	gamestate = GAMESTATE_STARTUP;
+	//common->Printf("GAMESTATE_STARTUP\n");
 
 	program.Restart();
 
@@ -1061,6 +1066,7 @@ void idGameLocal::LocalMapRestart( ) {
 	}
 
 	gamestate = GAMESTATE_ACTIVE;
+	//common->Printf("GAMESTATE_ACTIVE\n");
 }
 
 /*
@@ -1240,6 +1246,7 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	Printf( "----- Game Map Init -----\n" );
 
 	gamestate = GAMESTATE_STARTUP;
+	//common->Printf("GAMESTATE_STARTUP\n");
 
 	gameRenderWorld = renderWorld;
 	gameSoundWorld = soundWorld;
@@ -1258,6 +1265,7 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	animationLib.FlushUnusedAnims();
 
 	gamestate = GAMESTATE_ACTIVE;
+	//common->Printf("GAMESTATE_ACTIVE\n");
 }
 
 /*
@@ -1280,6 +1288,7 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	Printf( "----- Game Map Init SaveGame -----\n" );
 
 	gamestate = GAMESTATE_STARTUP;
+	//common->Printf("GAMESTATE_STARTUP\n");
 
 	gameRenderWorld = renderWorld;
 	gameSoundWorld = soundWorld;
@@ -1513,6 +1522,7 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	animationLib.FlushUnusedAnims();
 
 	gamestate = GAMESTATE_ACTIVE;
+	//common->Printf("GAMESTATE_ACTIVE\n");
 
 	return true;
 }
@@ -1566,6 +1576,7 @@ void idGameLocal::MapShutdown( void ) {
 	Printf( "----- Game Map Shutdown -----\n" );
 
 	gamestate = GAMESTATE_SHUTDOWN;
+	//common->Printf("GAMESTATE_SHUTDOWN\n");
 
 	program.ClearScriptNamesScanList();
 
@@ -1605,6 +1616,7 @@ void idGameLocal::MapShutdown( void ) {
 	gameSoundWorld = NULL;
 
 	gamestate = GAMESTATE_NOMAP;
+	//common->Printf("GAMESTATE_NOMAP\n");
 }
 
 /*
