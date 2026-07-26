@@ -50,6 +50,8 @@ idRenderModelPrt::InitFromFile
 void idRenderModelPrt::InitFromFile( const char *fileName ) {
 	name = fileName;
 	particleSystem = static_cast<const idDeclParticle *>( declManager->FindType( DECL_PARTICLE, fileName ) );
+
+	purged = false;
 }
 
 /*
