@@ -264,7 +264,13 @@ void idImage::MakeDefault() {
 				data[y][x][0] = 0;
 				data[y][x][1] = 0;
 				data[y][x][2] = 0;
+#ifndef __EMSCRIPTEN__
 				data[y][x][3] = 0;
+#else
+				// On Emscripten, we need the alpha to be set to 1
+				// Otherwise alpha multiplications will not work
+				data[y][x][3] = 255;
+#endif
 			}
 		}
 	}
@@ -293,7 +299,22 @@ static void R_BlackImage( idImage *image ) {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
 
 	// solid black texture
+#ifndef __EMSCRIPTEN__
 	memset( data, 0, sizeof( data ) );
+#else
+	// On Emscripten, we need the alpha to be set to 255 instead of 0
+	// Otherwise alpha multiplications will not work (such as with the wipe materials, e.g. fadein/fade out effect to black)
+	// This worked on Desktop because images with same alpha value on all pixels would be considered as RGB8 images
+	// (alpha was automatically added by GL). But now we use full RGBA images, the alpha channel must be setup correctly
+	for ( int y = 0 ; y < DEFAULT_SIZE ; y++ ) {
+		for ( int x = 0 ; x < DEFAULT_SIZE ; x++ ) {
+			data[y][x][0] = 0;
+			data[y][x][1] = 0;
+			data[y][x][2] = 0;
+			data[y][x][3] = 255;
+		}
+	}
+#endif
 	image->GenerateImage( (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE,
 		TF_DEFAULT, false, TR_REPEAT, TD_DEFAULT );
 }
