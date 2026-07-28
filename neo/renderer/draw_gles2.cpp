@@ -1780,7 +1780,84 @@ void RB_GLSL_T_RenderShaderPasses(const drawSurf_t* surf, const float mvp[16]) {
     const newShaderStage_t* const newStage = pStage->newStage;
 
     if ( newStage ) {
-      // new style stages: Not implemented in GLSL yet!
+     /*//--------------------------
+			//
+			// new style stages
+			//
+			//--------------------------
+
+			// completely skip the stage if we don't have the capability
+			if ( tr.backEndRenderer != BE_ARB2 ) {
+				continue;
+			}
+			if ( r_skipNewAmbient.GetBool() ) {
+				continue;
+			}
+			qglColorPointer( 4, GL_UNSIGNED_BYTE, sizeof( idDrawVert ), (void *)&ac->color );
+			qglVertexAttribPointerARB( 9, 3, GL_FLOAT, false, sizeof( idDrawVert ), ac->tangents[0].ToFloatPtr() );
+			qglVertexAttribPointerARB( 10, 3, GL_FLOAT, false, sizeof( idDrawVert ), ac->tangents[1].ToFloatPtr() );
+			qglNormalPointer( GL_FLOAT, sizeof( idDrawVert ), ac->normal.ToFloatPtr() );
+
+			qglEnableClientState( GL_COLOR_ARRAY );
+			qglEnableVertexAttribArrayARB( 9 );
+			qglEnableVertexAttribArrayARB( 10 );
+			qglEnableClientState( GL_NORMAL_ARRAY );
+
+			GL_State( pStage->drawStateBits );
+
+			qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, newStage->vertexProgram );
+			qglEnable( GL_VERTEX_PROGRAM_ARB );
+
+			// megaTextures bind a lot of images and set a lot of parameters
+			if ( newStage->megaTexture ) {
+				newStage->megaTexture->SetMappingForSurface( tri );
+				idVec3	localViewer;
+				R_GlobalPointToLocal( surf->space->modelMatrix, backEnd.viewDef->renderView.vieworg, localViewer );
+				newStage->megaTexture->BindForViewOrigin( localViewer );
+			}
+
+			for ( int i = 0 ; i < newStage->numVertexParms ; i++ ) {
+				float	parm[4];
+				parm[0] = regs[ newStage->vertexParms[i][0] ];
+				parm[1] = regs[ newStage->vertexParms[i][1] ];
+				parm[2] = regs[ newStage->vertexParms[i][2] ];
+				parm[3] = regs[ newStage->vertexParms[i][3] ];
+				qglProgramLocalParameter4fvARB( GL_VERTEX_PROGRAM_ARB, i, parm );
+			}
+
+			for ( int i = 0 ; i < newStage->numFragmentProgramImages ; i++ ) {
+				if ( newStage->fragmentProgramImages[i] ) {
+					GL_SelectTexture( i );
+					newStage->fragmentProgramImages[i]->Bind();
+				}
+			}
+			qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, newStage->fragmentProgram );
+			qglEnable( GL_FRAGMENT_PROGRAM_ARB );
+
+			// draw it
+			RB_DrawElementsWithCounters( tri );
+
+			for ( int i = 1 ; i < newStage->numFragmentProgramImages ; i++ ) {
+				if ( newStage->fragmentProgramImages[i] ) {
+					GL_SelectTexture( i );
+					globalImages->BindNull();
+				}
+			}
+			if ( newStage->megaTexture ) {
+				newStage->megaTexture->Unbind();
+			}
+
+			GL_SelectTexture( 0 );
+
+			qglDisable( GL_VERTEX_PROGRAM_ARB );
+			qglDisable( GL_FRAGMENT_PROGRAM_ARB );
+			// Fixme: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
+			qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, 0 ); // FIXME: ...
+
+			qglDisableClientState( GL_COLOR_ARRAY );
+			qglDisableVertexAttribArrayARB( 9 );
+			qglDisableVertexAttribArrayARB( 10 );
+			qglDisableClientState( GL_NORMAL_ARRAY );*/
       continue;
     }
     else {
