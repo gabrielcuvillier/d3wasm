@@ -92,6 +92,7 @@ public:
 					// load a source from the given memory with the given length
 					// NOTE: the ptr is expected to point at a valid C string: ptr[length] == '\0'
 	int				LoadMemory( const char *ptr, int length, const char *name );
+	int				LoadFile( idFile* file );
 					// free the current source
 	void			FreeSource( bool keepDefines = false );
 					// returns true if a source is loaded

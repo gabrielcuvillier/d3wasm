@@ -121,6 +121,14 @@ private:
 	int							refs;
 };
 
+typedef struct {
+	idStr name;
+	byte* buffer;
+	int compressed_len;
+	int original_len;
+	ID_TIME_T timestamp;
+} compressedGuiSource_t;
+
 class idUserInterfaceManagerLocal : public idUserInterfaceManager {
 	friend class idUserInterfaceLocal;
 
@@ -158,8 +166,6 @@ private:
 	const idMaterial* barImageV;
 
 public:
-	idHashIndex					guiCacheIndex;
-	idList<idStr>				guiCacheNames;
-	idList<idStr>				guiCacheSources;
-	idList<ID_TIME_T>			guiCacheTimestamps;
+	idHashIndex					  guiCacheIndex;
+	idList<compressedGuiSource_t> guiCacheSources;
 };

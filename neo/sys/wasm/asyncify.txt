@@ -555,6 +555,7 @@ Sys_FileTimeStamp(_IO_FILE*)
 Sys_ListFiles(char const*, char const*, idList<idStr>&)
 Sys_Mkdir(char const*)
 tmpfile
+UI_NewCompressedGuiSource(char const*)
 unz64local_CheckCurrentFileCoherencyHeader(unz64_s*, unsigned int*, unsigned long long*, unsigned int*)
 unz64local_getByte(zlib_filefunc64_32_def_s const*, void*, int*)
 unz64local_GetCurrentFileInfoInternal(void*, unz_file_info64_s*, unz_file_info64_internal_s*, char*, unsigned long, void*, unsigned long, char*, unsigned long)

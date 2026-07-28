@@ -32,6 +32,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "idlib/Parser.h"
 
+#include "framework/File.h"
+
 //#define DEBUG_EVAL
 #define MAX_DEFINEPARMS				128
 #define DEFINEHASHSIZE				2048
@@ -3054,6 +3056,41 @@ int idParser::LoadFile( const char *filename, bool OSPath ) {
 	return true;
 }
 #endif
+
+/*
+================
+idParser::LoadFile
+================
+*/
+int idParser::LoadFile( idFile* f ) {
+	idLexer *script;
+
+	if ( idParser::loaded ) {
+		idLib::common->FatalError("idParser::loadFile: another source already loaded");
+		return false;
+	}
+	script = new idLexer( f );
+	if ( !script->IsLoaded() ) {
+		delete script;
+		return false;
+	}
+	script->SetFlags( idParser::flags );
+	script->SetPunctuations( idParser::punctuations );
+	script->next = NULL;
+	idParser::filename = f->GetFullPath();
+	idParser::scriptstack = script;
+	idParser::tokens = NULL;
+	idParser::indentstack = NULL;
+	idParser::skip = 0;
+	idParser::loaded = true;
+
+	if ( !idParser::definehash ) {
+		idParser::defines = NULL;
+		idParser::definehash = (define_t **) Mem_ClearedAlloc( DEFINEHASHSIZE * sizeof(define_t *) );
+		idParser::AddGlobalDefinesToSource();
+	}
+	return true;
+}
 
 /*
 ================

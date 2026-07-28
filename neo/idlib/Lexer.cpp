@@ -1642,6 +1642,49 @@ int idLexer::LoadFile( const char *filename, bool OSPath ) {
 	return true;
 }
 
+
+/*
+================
+idLexer::LoadFile
+================
+*/
+int idLexer::LoadFile( idFile* file ) {
+	int l;
+	char *buf;
+
+	if ( idLexer::loaded ) {
+		idLib::common->Error("idLexer::LoadFile: another script already loaded");
+		return false;
+	}
+
+	if ( !file ) {
+		return false;
+	}
+	l = file->Length();
+	buf = (char *) Mem_Alloc( l + 1 );
+	buf[l] = '\0';
+	int n = file->Read( buf, l );
+	idLexer::fileTime = file->Timestamp();
+	idLexer::filename = file->GetFullPath();
+
+	idLexer::buffer = buf;
+	idLexer::length = l;
+	// pointer in script buffer
+	idLexer::script_p = idLexer::buffer;
+	// pointer in script buffer before reading token
+	idLexer::lastScript_p = idLexer::buffer;
+	// pointer to end of script buffer
+	idLexer::end_p = &(idLexer::buffer[l]);
+
+	idLexer::tokenavailable = 0;
+	idLexer::line = 1;
+	idLexer::lastline = 1;
+	idLexer::allocated = true;
+	idLexer::loaded = true;
+
+	return true;
+}
+
 /*
 ================
 idLexer::LoadMemory
@@ -1754,6 +1797,22 @@ idLexer::idLexer( const char *filename, int flags, bool OSPath ) {
 	idLexer::next = NULL;
 	idLexer::hadError = false;
 	idLexer::LoadFile( filename, OSPath );
+}
+
+/*
+================
+idLexer::idLexer
+================
+*/
+idLexer::idLexer( idFile* f ) {
+	idLexer::loaded = false;
+	idLexer::flags = flags;
+	idLexer::SetPunctuations( NULL );
+	idLexer::allocated = false;
+	idLexer::token = "";
+	idLexer::next = NULL;
+	idLexer::hadError = false;
+	idLexer::LoadFile( f );
 }
 
 /*
