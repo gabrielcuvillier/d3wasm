@@ -324,7 +324,14 @@ RB_SwapBuffers
 =============
 */
 const void	RB_SwapBuffers( const void *data ) {
-  // force a gl sync if requested
+#ifdef WEBGL
+	// GAB Note Dec 2018: Clear the Alpha channel, so that final render will not blend with the HTML5 background (canvas with premultiplied alpha)
+	qglColorMask(0, 0, 0, 1);
+	qglClear(GL_COLOR_BUFFER_BIT);
+	qglColorMask(1, 1, 1, 1);
+#endif
+
+	// force a gl sync if requested
 	if ( r_finish.GetBool() ) {
 		qglFinish();
 	}
