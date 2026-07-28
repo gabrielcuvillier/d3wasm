@@ -1680,8 +1680,10 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			if ( !idStr::Icmp( kv->GetKey(), "gui_noninteractive" )
 				|| !idStr::Icmpn( kv->GetKey(), "gui_parm", 8 )
 				|| !idStr::Icmp( kv->GetKey(), "gui_inventory" )
-				// used by d3dm4 map for some reason..
-				|| !idStr::Icmp( kv->GetKey(), "guiColor" )) {
+				// used by d3dm4 for some reason.. (no actual implementation)
+				|| !idStr::Icmp( kv->GetKey(), "guiColor" )
+				// used by alphalabs1
+				|| !idStr::Icmp( kv->GetKey(), "guiTarget" )) {
 				// unfortunate flag names, they aren't actually a gui
 			} else {
 				declManager->MediaPrint( "Precaching gui %s\n", kv->GetValue().c_str() );
