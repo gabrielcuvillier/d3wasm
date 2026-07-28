@@ -269,6 +269,12 @@ set(src_renderer_glsl
         renderer/glsl/zfillClipShaderVP.cpp
         renderer/glsl/zfillShaderFP.cpp
         renderer/glsl/zfillShaderVP.cpp
+        renderer/glsl/heatHazeFP.cpp
+        renderer/glsl/heatHazeVP.cpp
+        renderer/glsl/heatHazeWithMaskFP.cpp
+        renderer/glsl/heatHazeWithMaskVP.cpp
+        renderer/glsl/heatHazeWithMaskAndVertexFP.cpp
+        renderer/glsl/heatHazeWithMaskAndVertexVP.cpp
 )
 
 set(src_renderer
