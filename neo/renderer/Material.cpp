@@ -36,6 +36,8 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "renderer/Material.h"
 
+#include "glsl/glsl_shaders.h"
+
 /*
 
 Any errors during parsing just set MF_DEFAULTED and return, rather than throwing
@@ -1492,20 +1494,37 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 		}
 		if ( !token.Icmp( "program" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
-				newStage.vertexProgram = -1;
-				newStage.fragmentProgram = -1;
+				if (token ==  "heatHaze.vfp") {
+					newStage.program = pheatHazeShader->program;
+				} else if (token ==  "heatHazeWithMask.fp") {
+					newStage.program = pheatHazeWithMaskShader->program;
+				} else if (token ==  "heatHazeWithMaskAndVertex.fp") {
+					newStage.program = pheatHazeWithMaskAndVertexShader->program;
+				}
 			}
 			continue;
 		}
 		if ( !token.Icmp( "fragmentProgram" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
-				newStage.fragmentProgram = -1;
+				if (token ==  "heatHaze.vfp") {
+					newStage.program = pheatHazeShader->program;
+				} else if (token ==  "heatHazeWithMask.fp") {
+					newStage.program = pheatHazeWithMaskShader->program;
+				} else if (token ==  "heatHazeWithMaskAndVertex.fp") {
+					newStage.program = pheatHazeWithMaskAndVertexShader->program;
+				}
 			}
 			continue;
 		}
 		if ( !token.Icmp( "vertexProgram" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
-				newStage.vertexProgram = -1;
+				if (token ==  "heatHaze.vfp") {
+					newStage.program = pheatHazeShader->program;
+				} else if (token ==  "heatHazeWithMask.fp") {
+					newStage.program = pheatHazeWithMaskShader->program;
+				} else if (token ==  "heatHazeWithMaskAndVertex.fp") {
+					newStage.program = pheatHazeWithMaskAndVertexShader->program;
+				}
 			}
 			continue;
 		}
@@ -1519,8 +1538,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 					SetMaterialFlag( MF_DEFAULTED );
 					continue;
 				}
-				newStage.vertexProgram = -1;
-				newStage.fragmentProgram = -1;
+				newStage.program = -1;
 #endif
 				continue;
 			}
@@ -1544,7 +1562,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 
 
 	// if we are using newStage, allocate a copy of it
-	if ( newStage.fragmentProgram || newStage.vertexProgram ) {
+	if ( newStage.program ) {
 		ss->newStage = (newShaderStage_t *)Mem_Alloc( sizeof( newStage ) );
 		*(ss->newStage) = newStage;
 	}

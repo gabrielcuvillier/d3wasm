@@ -33,6 +33,12 @@ shaderProgram_t diffuseCubeShader;
 shaderProgram_t skyboxCubeShader;
 shaderProgram_t reflectionCubeShader;
 shaderProgram_t stencilShadowShader;
+shaderProgram_t heatHazeShader;
+shaderProgram_t heatHazeWithMaskShader;
+shaderProgram_t heatHazeWithMaskAndVertexShader;
+shaderProgram_t* pheatHazeShader = &heatHazeShader;
+shaderProgram_t* pheatHazeWithMaskShader = &heatHazeWithMaskShader;
+shaderProgram_t* pheatHazeWithMaskAndVertexShader = &heatHazeWithMaskAndVertexShader;
 
 #define ATTR_VERTEX     0   // Don't change this, as WebGL require the vertex attrib 0 to be always bound
 #define ATTR_COLOR      1
@@ -465,6 +471,48 @@ static bool RB_GLSL_InitShaders(void) {
   }
   else {
     RB_GLSL_GetUniformLocations(&stencilShadowShader);
+  }
+
+  // Heat Haze shader
+  common->Printf("Loading Heat Haze shader\n");
+  memset(&heatHazeShader, 0, sizeof(shaderProgram_t));
+
+  R_LoadGLSLShader(heatHazeShaderVP, &heatHazeShader, GL_VERTEX_SHADER);
+  R_LoadGLSLShader(heatHazeShaderFP, &heatHazeShader, GL_FRAGMENT_SHADER);
+
+  if ( !R_LinkGLSLShader(&heatHazeShader, "heatHaze") && !R_ValidateGLSLProgram(&heatHazeShader)) {
+    return false;
+  }
+  else {
+    RB_GLSL_GetUniformLocations(&heatHazeShader);
+  }
+
+  // Heat Haze With Mask shader
+  common->Printf("Loading Heat Haze With Mask shader\n");
+  memset(&heatHazeWithMaskShader, 0, sizeof(shaderProgram_t));
+
+  R_LoadGLSLShader(heatHazeWithMaskShaderVP, &heatHazeWithMaskShader, GL_VERTEX_SHADER);
+  R_LoadGLSLShader(heatHazeWithMaskShaderFP, &heatHazeWithMaskShader, GL_FRAGMENT_SHADER);
+
+  if ( !R_LinkGLSLShader(&heatHazeWithMaskShader, "heatHazeWithMask") && !R_ValidateGLSLProgram(&heatHazeWithMaskShader)) {
+    return false;
+  }
+  else {
+    RB_GLSL_GetUniformLocations(&heatHazeWithMaskShader);
+  }
+
+  // Heat Haze With Mask And Vertex shader
+  common->Printf("Loading Heat Haze With Mask And Vertex shader\n");
+  memset(&heatHazeWithMaskAndVertexShader, 0, sizeof(shaderProgram_t));
+
+  R_LoadGLSLShader(heatHazeWithMaskAndVertexShaderVP, &heatHazeWithMaskAndVertexShader, GL_VERTEX_SHADER);
+  R_LoadGLSLShader(heatHazeWithMaskAndVertexShaderFP, &heatHazeWithMaskAndVertexShader, GL_FRAGMENT_SHADER);
+
+  if ( !R_LinkGLSLShader(&heatHazeWithMaskAndVertexShader, "heatHazeWithMaskAndVertex") && !R_ValidateGLSLProgram(&heatHazeWithMaskAndVertexShader)) {
+    return false;
+  }
+  else {
+    RB_GLSL_GetUniformLocations(&heatHazeWithMaskAndVertexShader);
   }
 
   return true;

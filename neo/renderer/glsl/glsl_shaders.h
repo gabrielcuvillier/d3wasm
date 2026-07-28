@@ -48,5 +48,20 @@ extern const char* const cubeMapShaderFP;
 // Shadows
 extern const char* const stencilShadowShaderVP;
 extern const char* const stencilShadowShaderFP;
+// HeatHaze
+extern const char* const heatHazeShaderVP;
+extern const char* const heatHazeShaderFP;
+// HeatHazeWithMask
+extern const char* const heatHazeWithMaskShaderVP;
+extern const char* const heatHazeWithMaskShaderFP;
+// HeatHazeWithMaskAndVertex
+extern const char* const heatHazeWithMaskAndVertexShaderVP;
+extern const char* const heatHazeWithMaskAndVertexShaderFP;
+
+// Those shaders are expected to be "public" (found by Materials)
+struct shaderProgram_s;
+extern struct shaderProgram_s* pheatHazeShader;
+extern struct shaderProgram_s* pheatHazeWithMaskShader;
+extern struct shaderProgram_s* pheatHazeWithMaskAndVertexShader;
 
 #endif //D3WASM_GLSL_SHADERS_H
