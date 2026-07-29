@@ -2185,7 +2185,7 @@ idDeclLocal::Touch
 =================
 */
 void idDeclLocal::Touch() const {
-	declManager->FindType( GetType(), GetName() );
+	declManager->FindType( GetType(), GetName(), false );
 }
 
 /*
