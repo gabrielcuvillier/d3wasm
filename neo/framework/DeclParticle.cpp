@@ -469,10 +469,25 @@ bool idDeclParticle::Parse( const char *text, const int textLength ) {
 	//
 	// calculate the bounds
 	//
-	bounds.Clear();
-	for( int i = 0; i < stages.Num(); i++ ) {
-		GetStageBounds( stages[i] );
-		bounds.AddBounds( stages[i]->bounds );
+	if (text == DefaultDefinition()) {
+		static bool _first = true;
+		static idBounds _defaultBounds;
+		if (_first) {
+			_defaultBounds.Clear();
+			for( int i = 0; i < stages.Num(); i++ ) {
+				GetStageBounds( stages[i] );
+				_defaultBounds.AddBounds( stages[i]->bounds );
+			}
+			_first = false;
+		}
+		bounds = _defaultBounds;
+	}
+	else {
+		bounds.Clear();
+		for( int i = 0; i < stages.Num(); i++ ) {
+			GetStageBounds( stages[i] );
+			bounds.AddBounds( stages[i]->bounds );
+		}
 	}
 
 	if ( bounds.GetVolume() <= 0.1f ) {
