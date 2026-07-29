@@ -97,7 +97,7 @@ void idDeviceContext::SetFont( int num ) {
 void idDeviceContext::Init() {
 	xScale = 0.0;
 	SetSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-	whiteImage = declManager->FindMaterial("guis/assets/white.tga");
+	whiteImage = renderSystem->GetWhiteMaterial();
 	whiteImage->SetSort( SS_GUI );
 	mbcs = false;
 	SetupFonts();
@@ -143,9 +143,6 @@ void idDeviceContext::Init() {
 
 
 void idDeviceContext::TouchEngineData() {
-	if (whiteImage) {
-		whiteImage->Touch();
-	}
 	if (cursorImages[CURSOR_ARROW]) {
 		cursorImages[CURSOR_ARROW]->Touch();
 	}

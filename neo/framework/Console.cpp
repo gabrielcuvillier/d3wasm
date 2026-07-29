@@ -417,8 +417,8 @@ the renderSystem is initialized
 ==============
 */
 void idConsoleLocal::LoadGraphics() {
-	charSetShader = declManager->FindMaterial( "textures/bigchars" );
-	whiteShader = declManager->FindMaterial( "_white" );
+	charSetShader = common->GetCharSetMaterial();
+	whiteShader = renderSystem->GetWhiteMaterial();
 	consoleShader = declManager->FindMaterial( "console" );
 }
 
@@ -1292,12 +1292,6 @@ idConsoleLocal::TouchEngineData
 ================
 */
 void idConsoleLocal::TouchEngineData() {
-	if (charSetShader) {
-		charSetShader->Touch();
-	}
-	if (whiteShader) {
-		whiteShader->Touch();
-	}
 	if (consoleShader) {
 		consoleShader->Touch();
 	}

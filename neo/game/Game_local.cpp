@@ -4749,6 +4749,9 @@ void idGameLocal::PrecacheGameData() {
 	FindEntityDef( "powerup_megahealth", false );
 	FindEntityDef( "powerup_adrenaline", false );
 
+	// EntityDef
+	FindEntityDef( "ammo_names" );
+	FindEntityDef( "ammo_types" );
 }
 
 /*

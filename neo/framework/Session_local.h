@@ -261,6 +261,8 @@ public:
 	const idMaterial *	wipeMaterial;
 	const idMaterial *	matWipeMaterial;
 	const idMaterial *	matWipe2Material;
+	const idMaterial *	blankLevelShotMaterial;
+	const idMaterial *	pdtempaMaterial;
 
 	// DG: make wiping use Sys_Milliseconds() instead of tics
 	//     so we can get rid of the AsyncThread

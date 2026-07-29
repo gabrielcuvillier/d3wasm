@@ -2941,6 +2941,8 @@ void idSessionLocal::Init() {
 
   matWipeMaterial = declManager->FindMaterial("wipeMaterial", false);
   matWipe2Material = declManager->FindMaterial("wipe2Material", false);
+  blankLevelShotMaterial = declManager->FindMaterial("guis/assets/blankLevelShot");
+  pdtempaMaterial = declManager->FindMaterial("guis/assets/splash/pdtempa");
 
   guiInGame = NULL;
 
@@ -3376,7 +3378,6 @@ idSessionLocal::TouchEngineData
 ================
 */
 void idSessionLocal::TouchEngineData() {
-  common->Printf("idSessionLocal::TouchEngineData()\n");
   globalImages->ForceLoadImages(true);
   {
     // RenderSystem
@@ -3400,6 +3401,13 @@ void idSessionLocal::TouchEngineData() {
     // guiLoading;
     // guiIntro;
     // guiGameOver;
+
+    if (blankLevelShotMaterial) {
+      blankLevelShotMaterial->Touch();
+    }
+    if (pdtempaMaterial) {
+      pdtempaMaterial->Touch();
+    }
   }
   globalImages->ForceLoadImages(false);
 }

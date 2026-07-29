@@ -227,6 +227,9 @@ public:
   virtual bool
   GetAdditionalFunction(idCommon::FunctionType ft, idCommon::FunctionPointer* out_fnptr, void** out_userArg);
 
+  virtual const idMaterial*	GetCharSetMaterial() { return charsetMaterial; }
+  virtual const idMaterial*	GetSplashscreenMaterial() { return splashMaterial; }
+
   // DG end
 
   void InitGame(void);

@@ -39,6 +39,8 @@ If you have questions concerning this license or the applicable additional terms
 ==============================================================
 */
 
+class idMaterial;
+
 typedef enum {
 	EDITOR_NONE					= 0,
 	EDITOR_RADIANT				= BIT(1),
@@ -265,6 +267,9 @@ public:
 	virtual bool				GetAdditionalFunction(FunctionType ft, FunctionPointer* out_fnptr, void** out_userArg) = 0;
 
 	virtual void				TouchEngineData() = 0;
+
+	virtual const idMaterial*	GetCharSetMaterial() = 0;
+	virtual const idMaterial*	GetSplashscreenMaterial() = 0;
 };
 
 extern idCommon *		common;
