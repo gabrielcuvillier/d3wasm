@@ -2810,4 +2810,9 @@ void idMaterial::TouchData( void ) const {
 			}
 		}
 	}
+	for (int i = 0; i < numOps; i++) {
+		if (ops[i].opType == OP_TYPE_TABLE) {
+			declManager->DeclByIndex(DECL_TABLE, ops[i].a);
+		}
+	}
 }
