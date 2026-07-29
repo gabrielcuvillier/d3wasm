@@ -301,8 +301,10 @@ public:
 							 textureFilter_t filter, bool allowDownSize,
 							 textureRepeat_t repeat, textureDepth_t depth, cubeFiles_t cubeMap = CF_2D );
 
+#ifndef __EMSCRIPTEN__
 	// look for a loaded image, whatever the parameters
 	idImage *			GetImage( const char *name ) const;
+#endif
 
 	// The callback will be issued immediately, and later if images are reloaded or vid_restart
 	// The callback function should call one of the idImage::Generate* functions to fill in the data

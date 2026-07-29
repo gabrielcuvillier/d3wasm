@@ -1451,7 +1451,7 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 	int hash;
 
 	if ( !_name || !_name[0] || idStr::Icmp( _name, "default" ) == 0 || idStr::Icmp( _name, "_default" ) == 0 ) {
-		declManager->MediaPrint( "DEFAULTED\n" );
+		declManager->MediaPrint( "DEFAULTED Image\n" );
 		return globalImages->defaultImage;
 	}
 
@@ -1481,34 +1481,39 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 				continue;
 			}
 
-			if ( image->allowDownSize == allowDownSize && image->depth == depth ) {
-				// note that it is used this level load
-				image->levelLoadReferenced = true;
-				return image;
-			}
+			if (image->texnum != idImage::TEXTURE_NOT_LOADED) {
+				if ( image->allowDownSize == allowDownSize && image->depth == depth ) {
+					// note that it is used this level load
+					image->levelLoadReferenced = true;
+					image->referencedOutsideLevelLoad = image->referencedOutsideLevelLoad || !insideLevelLoad;
+					return image;
+				}
 
-			// the same image is being requested, but with a different allowDownSize or depth
-			// so pick the highest of the two and reload the old image with those parameters
-			if ( !image->allowDownSize ) {
-				allowDownSize = false;
-			}
-			if ( image->depth > depth ) {
-				depth = image->depth;
-			}
-			if ( image->allowDownSize == allowDownSize && image->depth == depth ) {
-				// the already created one is already the highest quality
-				image->levelLoadReferenced = true;
-				return image;
+				// the same image is being requested, but with a different allowDownSize or depth
+				// so pick the highest of the two and reload the old image with those parameters
+				if ( !image->allowDownSize ) {
+					allowDownSize = false;
+				}
+				if ( image->depth > depth ) {
+					depth = image->depth;
+				}
+				if ( image->allowDownSize == allowDownSize && image->depth == depth ) {
+					// the already created one is already the highest quality
+					image->levelLoadReferenced = true;
+					image->referencedOutsideLevelLoad = image->referencedOutsideLevelLoad || !insideLevelLoad;
+					return image;
+				}
 			}
 
 			image->allowDownSize = allowDownSize;
 			image->depth = depth;
 			image->levelLoadReferenced = true;
+			image->referencedOutsideLevelLoad = image->referencedOutsideLevelLoad || !insideLevelLoad;
 
-			if ( image_preload.GetBool() && !insideLevelLoad ) {
-				image->referencedOutsideLevelLoad = true;
+			if ( image_preload.GetBool() && (!insideLevelLoad || forceLoadImages) && image->texnum == idImage::TEXTURE_NOT_LOADED ) {
+				//common->Printf( "[ImageManager] Reloading purged %s\n", image->imgName.c_str() );
 				image->ActuallyLoadImage( false );
-				declManager->MediaPrint( "%ix%i %s (reload for mixed referneces)\n", image->uploadWidth, image->uploadHeight, image->imgName.c_str() );
+				declManager->MediaPrint( "%ix%i %s (reload for mixed references)\n", image->uploadWidth, image->uploadHeight, image->imgName.c_str() );
 			}
 			return image;
 		}
@@ -1533,10 +1538,11 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 	image->filter = filter;
 
 	image->levelLoadReferenced = true;
+	image->referencedOutsideLevelLoad = !insideLevelLoad;
 
 	// load it if we aren't in a level preload
-	if ( image_preload.GetBool() && !insideLevelLoad ) {
-		image->referencedOutsideLevelLoad = true;
+	if ( image_preload.GetBool() && (!insideLevelLoad || forceLoadImages) ) {
+		//common->Printf( "[ImageManager] Loading %s\n", image->imgName.c_str() );
 		image->ActuallyLoadImage( false );
 		declManager->MediaPrint( "%ix%i %s\n", image->uploadWidth, image->uploadHeight, image->imgName.c_str() );
 	} else {
@@ -1546,6 +1552,7 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 	return image;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idImageManager::GetImage
@@ -1557,7 +1564,7 @@ idImage *idImageManager::GetImage( const char *_name ) const {
 	int hash;
 
 	if ( !_name || !_name[0] || idStr::Icmp( _name, "default" ) == 0 || idStr::Icmp( _name, "_default" ) == 0 ) {
-		declManager->MediaPrint( "DEFAULTED\n" );
+		declManager->MediaPrint( "DEFAULTED Image\n" );
 		return globalImages->defaultImage;
 	}
 
@@ -1578,6 +1585,7 @@ idImage *idImageManager::GetImage( const char *_name ) const {
 
 	return NULL;
 }
+#endif
 
 /*
 ===============
@@ -1787,6 +1795,8 @@ void idImageManager::Init() {
 	cmdSystem->AddCommand( "combineCubeImages", R_CombineCubeImages_f, CMD_FL_RENDERER, "combines six images for roq compression" );
 #endif
 	// should forceLoadImages be here?
+	insideLevelLoad = false;
+	forceLoadImages = false;
 }
 
 /*
@@ -1796,6 +1806,7 @@ Shutdown
 */
 void idImageManager::Shutdown() {
 	images.DeleteContents( true );
+	insideLevelLoad = false;
 }
 
 /*
@@ -1820,6 +1831,7 @@ void idImageManager::BeginLevelLoad() {
 		}
 
 		if ( com_purgeAll.GetBool() ) {
+			//common->Printf("[ImageManager][BeginLevelLoad] Purging %s %d %d\n", image->imgName.c_str(), image->levelLoadReferenced, image->referencedOutsideLevelLoad);
 			image->PurgeImage();
 		}
 
@@ -1863,11 +1875,11 @@ void idImageManager::EndLevelLoad() {
 		}
 
 		if ( !image->levelLoadReferenced && !image->referencedOutsideLevelLoad ) {
-//			common->Printf( "Purging %s\n", image->imgName.c_str() );
+			//common->Printf( "[ImageManager][EndLevelLoad] Purging %s\n", image->imgName.c_str() );
 			purgeCount++;
 			image->PurgeImage();
 		} else if ( image->texnum != idImage::TEXTURE_NOT_LOADED ) {
-//			common->Printf( "Keeping %s\n", image->imgName.c_str() );
+//			common->Printf( "[ImageManager][EndLevelLoad] Keeping %s\n", image->imgName.c_str() );
 			keepCount++;
 		}
 	}
@@ -1880,7 +1892,7 @@ void idImageManager::EndLevelLoad() {
 		}
 
 		if ( image->levelLoadReferenced && image->texnum == idImage::TEXTURE_NOT_LOADED ) {
-//			common->Printf( "Loading %s\n", image->imgName.c_str() );
+			//common->Printf( "[ImageManager][EndLevelLoad] Loading %s\n", image->imgName.c_str() );
 			loadCount++;
 			image->ActuallyLoadImage( false );
 
