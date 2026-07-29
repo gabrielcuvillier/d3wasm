@@ -690,6 +690,18 @@ void idDeclParticle::TouchData( void ) const {
 		if (stage->material) {
 			stage->material->Touch();
 		}
+		if (stage->speed.table) {
+			stage->speed.table->Touch();
+		}
+		if (stage->rotationSpeed.table) {
+			stage->rotationSpeed.table->Touch();
+		}
+		if (stage->size.table) {
+			stage->size.table->Touch();
+		}
+		if (stage->aspect.table) {
+			stage->aspect.table->Touch();
+		}
 	}
 }
 
