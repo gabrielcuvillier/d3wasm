@@ -222,10 +222,12 @@ public:
 	virtual void			CaptureRenderToFile( const char *fileName, bool fixAlpha = false, bool async = false ) = 0;
 	virtual void			UnCrop() = 0;
 
+#ifndef __EMSCRIPTEN__
 	// the image has to be already loaded ( most straightforward way would be through a FindMaterial )
 	// texture filter / mipmapping / repeat won't be modified by the upload
 	// returns false if the image wasn't found
 	virtual bool			UploadImage( const char *imageName, const byte *data, int width, int height ) = 0;
+#endif
 
 	virtual void			TouchEngineData() = 0;
 

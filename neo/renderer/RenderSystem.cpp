@@ -966,6 +966,7 @@ void idRenderSystemLocal::PrintMemInfo( MemInfo_t *mi ) {
 
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 idRenderSystemLocal::UploadImage
@@ -980,3 +981,4 @@ bool idRenderSystemLocal::UploadImage( const char *imageName, const byte *data, 
 	image->SetImageFilterAndRepeat();
 	return true;
 }
+#endif

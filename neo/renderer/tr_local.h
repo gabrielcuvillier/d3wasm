@@ -709,7 +709,9 @@ public:
 	virtual void			CaptureRenderToImage( const char *imageName );
 	virtual void			CaptureRenderToFile( const char *fileName, bool fixAlpha, bool async = false );
 	virtual void			UnCrop();
+#ifndef __EMSCRIPTEN__
 	virtual bool			UploadImage( const char *imageName, const byte *data, int width, int height );
+#endif
 
 	virtual void			TouchEngineData();
 	virtual const idMaterial* GetDefaultMaterial();

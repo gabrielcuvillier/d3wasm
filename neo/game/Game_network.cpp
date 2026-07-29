@@ -979,6 +979,7 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 	int				numSourceAreas, sourceAreas[ idEntity::MAX_PVS_AREAS ];
 	idWeapon		*weap;
 
+#ifndef __EMSCRIPTEN__
 	if ( net_clientLagOMeter.GetBool() && renderSystem ) {
 		UpdateLagometer( aheadOfServer, dupeUsercmds );
 		if ( !renderSystem->UploadImage( LAGO_IMAGE, (byte *)lagometer, LAGO_IMG_WIDTH, LAGO_IMG_HEIGHT ) ) {
@@ -986,6 +987,7 @@ void idGameLocal::ClientReadSnapshot( int clientNum, int sequence, const int gam
 			net_clientLagOMeter.SetBool( false );
 		}
 	}
+#endif
 
 	InitLocalClient( clientNum );
 
