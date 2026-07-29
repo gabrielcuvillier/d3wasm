@@ -276,11 +276,13 @@ idRenderModel *idRenderModelManagerLocal::GetModel( const char *modelName, bool 
 		if ( canonical.Icmp( model->Name() ) == 0 ) {
 			if ( !model->IsLoaded() ) {
 				// reload it if it was purged
+				//common->Printf( "[ModelManager] Reloading purged (1) %s\n", model->Name());
 				model->LoadModel();
 			} else if ( insideLevelLoad && !model->IsLevelLoadReferenced() ) {
 				// we are reusing a model already in memory, but
 				// touch all the materials to make sure they stay
 				// in memory as well
+				//common->Printf( "[ModelManager] Touching data for %s\n", model->Name());
 				model->TouchData();
 			}
 			model->SetLevelLoadReferenced( true );
@@ -295,6 +297,8 @@ idRenderModel *idRenderModelManagerLocal::GetModel( const char *modelName, bool 
 	idRenderModel	*model;
 
 	canonical.ExtractFileExtension( extension );
+
+	//common->Printf( "[ModelManager] Loading %s\n", canonical.c_str());
 
 	if ( ( extension.Icmp( "ase" ) == 0 ) || ( extension.Icmp( "lwo" ) == 0 ) || ( extension.Icmp( "flt" ) == 0 ) ) {
 		model = new idRenderModelStatic;
@@ -505,6 +509,7 @@ void idRenderModelManagerLocal::BeginLevelLoad() {
 		idRenderModel *model = models[i];
 
 		if ( com_purgeAll.GetBool() && model->IsReloadable() ) {
+			//common->Printf("[ModelManager] Purging %s.\n", model->Name() );
 			R_CheckForEntityDefsUsingModel( model );
 			model->PurgeModel();
 		}
@@ -537,7 +542,7 @@ void idRenderModelManagerLocal::EndLevelLoad() {
 
 		if ( !model->IsLevelLoadReferenced() && model->IsLoaded() && model->IsReloadable() ) {
 
-//			common->Printf( "purging %s\n", model->Name() );
+			//common->Printf( "[ModelManager] Purging %s\n", model->Name() );
 
 			purgeCount++;
 
@@ -546,8 +551,7 @@ void idRenderModelManagerLocal::EndLevelLoad() {
 			model->PurgeModel();
 
 		} else {
-
-//			common->Printf( "keeping %s\n", model->Name() );
+//			common->Printf( "[ModelManager] keeping %s\n", model->Name() );
 
 			keepCount++;
 		}
@@ -561,6 +565,7 @@ void idRenderModelManagerLocal::EndLevelLoad() {
 		idRenderModel *model = models[i];
 
 		if ( model->IsLevelLoadReferenced() && !model->IsLoaded() && model->IsReloadable() ) {
+			//common->Printf( "[ModelManager] Reloading purged (2) %s\n", model->Name() );
 
 			loadCount++;
 			model->LoadModel();

@@ -96,6 +96,7 @@ idSoundSample *idSoundCache::FindSound( const idStr& filename, bool loadOnDemand
 		if ( def && def->name == fname ) {
 			def->levelLoadReferenced = true;
 			if ( def->purged && !loadOnDemandOnly ) {
+				//common->Printf("[SoundCache] Reloading purged %s\n", filename.c_str());
 				declManager->MediaPrint( "%s\n", fname.c_str() );
 				def->Load();
 			}
@@ -122,6 +123,7 @@ idSoundSample *idSoundCache::FindSound( const idStr& filename, bool loadOnDemand
 
 	if ( !loadOnDemandOnly ) {
 		// this may make it a default sound if it can't be loaded
+		//common->Printf("[SoundCache] Loading %s\n", filename.c_str());
 		def->Load();
 	}
 
@@ -166,6 +168,7 @@ void idSoundCache::BeginLevelLoad() {
 		}
 
 		if ( com_purgeAll.GetBool() ) {
+			//common->Printf("[SoundCache] Purging %s\n", sample->name.c_str() );
 			sample->PurgeSoundSample();
 		}
 
@@ -184,7 +187,7 @@ Free all samples marked as unused
 */
 void idSoundCache::EndLevelLoad() {
 	int	useCount, purgeCount;
-	common->DPrintf( "----- idSoundCache::EndLevelLoad -----\n" );
+	common->Printf( "----- idSoundCache::EndLevelLoad -----\n" );
 
 	insideLevelLoad = false;
 
@@ -200,7 +203,7 @@ void idSoundCache::EndLevelLoad() {
 			continue;
 		}
 		if ( !sample->levelLoadReferenced ) {
-//			common->Printf( "Purging %s\n", sample->name.c_str() );
+			//common->Printf( "[SoundCache] Purging %s\n", sample->name.c_str() );
 			purgeCount += sample->objectMemSize;
 			sample->PurgeSoundSample();
 		} else {
