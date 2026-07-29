@@ -895,27 +895,29 @@ void idExplodingBarrel::AddParticles( const char *name, bool burn ) {
 			gameRenderWorld->FreeEntityDef( particleModelDefHandle );
 		}
 		memset( &particleRenderEntity, 0, sizeof ( particleRenderEntity ) );
-		const idDeclModelDef *modelDef = static_cast<const idDeclModelDef *>( declManager->FindType( DECL_MODELDEF, name ) );
+		const idDeclModelDef *modelDef = static_cast<const idDeclModelDef *>( declManager->FindType( DECL_MODELDEF, name,false ) );
 		if ( modelDef ) {
-			particleRenderEntity.origin = physicsObj.GetAbsBounds().GetCenter();
-			particleRenderEntity.axis = mat3_identity;
 			particleRenderEntity.hModel = modelDef->ModelHandle();
-			float rgb = ( burn ) ? 0.0f : 1.0f;
-			particleRenderEntity.shaderParms[ SHADERPARM_RED ] = rgb;
-			particleRenderEntity.shaderParms[ SHADERPARM_GREEN ] = rgb;
-			particleRenderEntity.shaderParms[ SHADERPARM_BLUE ] = rgb;
-			particleRenderEntity.shaderParms[ SHADERPARM_ALPHA ] = rgb;
-			particleRenderEntity.shaderParms[ SHADERPARM_TIMEOFFSET ] = -MS2SEC( gameLocal.realClientTime );
-			particleRenderEntity.shaderParms[ SHADERPARM_DIVERSITY ] = ( burn ) ? 1.0f : gameLocal.random.RandomInt( 90 );
-			if ( !particleRenderEntity.hModel ) {
-				particleRenderEntity.hModel = renderModelManager->FindModel( name );
-			}
-			particleModelDefHandle = gameRenderWorld->AddEntityDef( &particleRenderEntity );
-			if ( burn ) {
-				BecomeActive( TH_THINK );
-			}
-			particleTime = gameLocal.realClientTime;
 		}
+
+		particleRenderEntity.origin = physicsObj.GetAbsBounds().GetCenter();
+		particleRenderEntity.axis = mat3_identity;
+
+		float rgb = (burn) ? 0.0f : 1.0f;
+		particleRenderEntity.shaderParms[SHADERPARM_RED] = rgb;
+		particleRenderEntity.shaderParms[SHADERPARM_GREEN] = rgb;
+		particleRenderEntity.shaderParms[SHADERPARM_BLUE] = rgb;
+		particleRenderEntity.shaderParms[SHADERPARM_ALPHA] = rgb;
+		particleRenderEntity.shaderParms[SHADERPARM_TIMEOFFSET] = -MS2SEC(gameLocal.realClientTime);
+		particleRenderEntity.shaderParms[SHADERPARM_DIVERSITY] = (burn) ? 1.0f : gameLocal.random.RandomInt(90);
+		if (!particleRenderEntity.hModel) {
+			particleRenderEntity.hModel = renderModelManager->FindModel(name);
+		}
+		particleModelDefHandle = gameRenderWorld->AddEntityDef(&particleRenderEntity);
+		if (burn) {
+			BecomeActive(TH_THINK);
+		}
+		particleTime = gameLocal.realClientTime;
 	}
 }
 
