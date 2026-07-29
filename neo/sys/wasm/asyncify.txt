@@ -137,6 +137,9 @@ idCompiler::ParseEventDef(idTypeDef*, char const*)
 idCompiler::ParseFunctionDef(idTypeDef*, char const*)
 idCompiler::ParseNamespace(idVarDef*)
 idCompressor_None::Read(void*, int)
+idCompressor_LZSS::Read(void*, int)
+idCompressor_LZW::Read(void*, int)
+idCompressor_Huffman::Read(void*, int)
 idCompressor_None::Timestamp()
 idConsoleLocal::Dump(char const*)
 idConsoleLocal::KeyDownEvent(int)
@@ -581,3 +584,4 @@ unzReadCurrentFile
 unzReOpen
 unzSetOffset64
 writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)
+idUserInterfaceManagerLocal::GetGuiSource(char const*)

@@ -155,6 +155,8 @@ public:
 	virtual const idMaterial*   GetScrollBarImageV();
 	virtual const idMaterial*   GetThumbImage();
 
+	compressedGuiSource_t		GetGuiSource( const char* qpath );
+
 private:
 	idRectangle					screenRect;
 	idDeviceContext				dc;

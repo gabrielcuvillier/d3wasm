@@ -263,6 +263,85 @@ void idUserInterfaceManagerLocal::FreeListGUI( idListGUI *listgui ) {
 	delete listgui;
 }
 
+static compressedGuiSource_t UI_NewCompressedGuiSource(const char *qpath) {
+	compressedGuiSource_t compressedGui;
+	compressedGui.name = qpath;
+	compressedGui.buffer = 0;
+	compressedGui.compressed_len = 0;
+	compressedGui.original_len = 0;
+
+	// Read the original GUI file
+	char* file_buffer = 0;
+	compressedGui.original_len = fileSystem->ReadFile( qpath, ( void** )&file_buffer, &compressedGui.timestamp );
+
+	if (compressedGui.original_len == -1) {
+		return compressedGui;
+	}
+
+	// Compress the buffer in a memory file, using LZSS compressor
+	idFile_Memory *f = new idFile_Memory();
+	idCompressor *compressor = idCompressor::AllocLZSS();
+	compressor->Init(f, true, 8);
+
+	int w = compressor->Write( file_buffer, compressedGui.original_len );
+
+	if ( w != compressedGui.original_len ) {
+		delete compressor;
+		fileSystem->CloseFile(f);
+		fileSystem->FreeFile(file_buffer);
+		return compressedGui;;
+	}
+
+	// At this point, we no longer need the original file buffer
+	fileSystem->FreeFile(file_buffer);
+
+	// Finish the compression and get the compressed length
+	compressor->FinishCompress();
+	compressedGui.compressed_len = f->Length();
+
+	common->DPrintf( "Compressed GUI: %s in=%d out=%d ratio=%f\n",
+		qpath, compressedGui.original_len, compressedGui.compressed_len, compressor->GetCompressionRatio() );
+
+	// Deletes the compressor
+	delete compressor;
+	// Release the ownership of the memory file's compressed buffer, so that we can extend its lifetime
+	f->SetForceOwnership(false);
+
+	// Retrieve the compressed buffer from the memory file (its lifetime is ours now)
+	compressedGui.buffer = (byte*)f->GetDataPtr();
+
+	// No longer need the memory file
+	fileSystem->CloseFile(f);
+
+	return compressedGui;
+}
+
+compressedGuiSource_t idUserInterfaceManagerLocal::GetGuiSource( const char* qpath ) {
+	const int key = guiCacheIndex.GenerateKey(qpath);
+	for ( int i = guiCacheIndex.First( key ); i != -1; i = guiCacheIndex.Next( i ) ) {
+		if (guiCacheSources[i].name == qpath) {
+			return uiManagerLocal.guiCacheSources[i];
+		}
+	}
+
+	compressedGuiSource_t compressed_gui_source = UI_NewCompressedGuiSource(qpath);
+	if (compressed_gui_source.buffer) {
+		// Add the new compressed GUI to the hash index
+		int index = uiManagerLocal.guiCacheSources.Append(compressed_gui_source);
+		uiManagerLocal.guiCacheIndex.Add(key, index);
+
+		return compressed_gui_source;
+	}
+
+	compressedGuiSource_t bad_gui;
+	bad_gui.name = qpath;
+	bad_gui.buffer = 0;
+	bad_gui.compressed_len = 0;
+	bad_gui.original_len = 0;
+	bad_gui.timestamp = 0;
+	return bad_gui;
+}
+
 /*
 ===============================================================================
 
@@ -282,6 +361,7 @@ idUserInterfaceLocal::idUserInterfaceLocal() {
 	//so the reg eval in gui parsing doesn't get bogus values
 	time = 0;
 	refs = 1;
+	timeStamp = 0;
 }
 
 idUserInterfaceLocal::~idUserInterfaceLocal() {
@@ -304,83 +384,27 @@ bool idUserInterfaceLocal::IsInteractive() const {
 	return interactive;
 }
 
-static compressedGuiSource_t UI_NewCompressedGuiSource(const char *qpath) {
-	ID_TIME_T tstamp;
-	compressedGuiSource_t compressedGui;
-	compressedGui.name = qpath;
-	compressedGui.buffer = 0;
-	compressedGui.compressed_len = 0;
-	compressedGui.original_len = 0;
-	compressedGui.timestamp = 0;
-
-	char* buffer = 0;
-	compressedGui.original_len = fileSystem->ReadFile(qpath, ( void** )&buffer, &tstamp);
-	if (compressedGui.original_len == -1) {
-		return compressedGui;
+idLexer* idUserInterfaceLocal::ParsePDHandler(const char* qpath) {
+	compressedGuiSource_t compressed_gui_source = uiManagerLocal.GetGuiSource(qpath);
+	if (!compressed_gui_source.buffer) {
+		return NULL;
 	}
-	compressedGui.timestamp = tstamp;
 
-	// Compress the data in a memory file
-	idFile_Memory *f = new idFile_Memory();
-	idCompressor *compressor = idCompressor::AllocLZSS();
-	compressor->Init(f, true, 8);
-	compressedGui.compressed_len = compressor->Write(buffer, compressedGui.original_len);
+	idFile_Memory* f = new idFile_Memory( compressed_gui_source.name,
+		(const char*)compressed_gui_source.buffer,
+		// magical trick here: let's say the length of the compressed file is the original uncompressed length
+		// this is mandatory to be able to decompress the "full" file later on
+		compressed_gui_source.original_len );
 
-	compressor->FinishCompress();
-	//common->Printf("Compressor for: %s %d %d written=%d %f\n", qpath, l, f->Length(), n,
-	//               compressor->GetCompressionRatio());
+	idCompressor* compressor = idCompressor::AllocLZSS();
+	compressor->Init( f, false, 8 );
 
-	// No longer need the original buffer, it have been written to the compressor
-	fileSystem->FreeFile(buffer);
-	// No longer need the compressor, everything is in the file in memory
+	idLexer* newlex = new idLexer(compressor);
+
 	delete compressor;
-
-	// Retrieve the compressed data in a buffer
-	compressedGui.buffer = (byte *) Mem_Alloc(compressedGui.compressed_len);
-	idFile_Memory *newf = new idFile_Memory(qpath, f->GetDataPtr(), compressedGui.compressed_len);
-	int read = newf->Read(compressedGui.buffer, compressedGui.compressed_len);
-	if (read != compressedGui.compressed_len) {
-		common->Warning("Read %d bytes from compressed file %s, expected %d", read, qpath, compressedGui.compressed_len);
-	}
-
-	// No longer need the files, compressed buffer has been retrieved
-	fileSystem->CloseFile(newf);
 	fileSystem->CloseFile(f);
 
-	return compressedGui;
-}
-
-idLexer* idUserInterfaceLocal::ParsePDHandler(const char* qpath) {
-	int index = -1;
-	const int key = uiManagerLocal.guiCacheIndex.GenerateKey(qpath);
-	for ( int i = uiManagerLocal.guiCacheIndex.First( key ); i != -1; i = uiManagerLocal.guiCacheIndex.Next( i ) ) {
-		if (uiManagerLocal.guiCacheSources[i].name == qpath) {
-			index = i;
-			break;
-		}
-	}
-
-	if (index == -1) {
-		compressedGuiSource_t compressed_gui_source = UI_NewCompressedGuiSource(qpath);
-		// Add the new compressed GUI to the list
-		index = uiManagerLocal.guiCacheSources.Append(compressed_gui_source);
-		uiManagerLocal.guiCacheIndex.Add(key, index);
-	}
-
-	if (index != -1) {
-		idFile_Memory* f = new idFile_Memory( uiManagerLocal.guiCacheSources[index].name,
-			(const char*)uiManagerLocal.guiCacheSources[index].buffer,
-			// magical trick here: let's say the length of the compressed file is the original uncompressed length
-			// this is mandatory to be able to decompress the "full" file later on
-			uiManagerLocal.guiCacheSources[index].original_len );
-		idCompressor* compressor = idCompressor::AllocLZSS();
-		compressor->Init( f, false, 8 );
-		idLexer* newlex = new idLexer(compressor);
-		delete compressor;
-		delete f;
-		return newlex;
-	}
-	return NULL;
+	return newlex;
 }
 
 bool idUserInterfaceLocal::InitFromFile( const char *qpath, bool rebuild, bool cache ) {
@@ -406,35 +430,23 @@ bool idUserInterfaceLocal::InitFromFile( const char *qpath, bool rebuild, bool c
 
 	src.SetCustomIncludeDirectiveHandler(ParsePDHandler);
 
-	int index = -1;
+	compressedGuiSource_t compressed_gui_source = uiManagerLocal.GetGuiSource(qpath);
+	if (compressed_gui_source.buffer) {
+		timeStamp = compressed_gui_source.timestamp;
 
-	const int key = uiManagerLocal.guiCacheIndex.GenerateKey(qpath);
-	for ( int i = uiManagerLocal.guiCacheIndex.First( key ); i != -1; i = uiManagerLocal.guiCacheIndex.Next( i ) ) {
-		if (uiManagerLocal.guiCacheSources[i].name == qpath) {
-			index = i;
-			break;
-		}
-	}
-
-	if (index == -1) {
-		compressedGuiSource_t compressed_gui_source = UI_NewCompressedGuiSource(qpath);
-		// Add the new compressed GUI to the list
-		index = uiManagerLocal.guiCacheSources.Append(compressed_gui_source);
-		uiManagerLocal.guiCacheIndex.Add(key, index);
-	}
-
-	if (index != -1) {
-		timeStamp = uiManagerLocal.guiCacheSources[index].timestamp;
-		idFile_Memory* f = new idFile_Memory( uiManagerLocal.guiCacheSources[index].name,
-			(const char*)uiManagerLocal.guiCacheSources[index].buffer,
+		idFile_Memory* f = new idFile_Memory( compressed_gui_source.name,
+			(const char*)compressed_gui_source.buffer,
 			// magical trick here: let's say the length of the compressed file is the original uncompressed length
 			// this is mandatory to be able to decompress the "full" file later on
-			uiManagerLocal.guiCacheSources[index].original_len );
+			compressed_gui_source.original_len );
+
 		idCompressor* compressor = idCompressor::AllocLZSS();
 		compressor->Init( f, false, 8 );
+
 		src.LoadFile(compressor);
+
 		delete compressor;
-		delete f;
+		fileSystem->CloseFile(f);
 	}
 
 	if ( src.IsLoaded() ) {
