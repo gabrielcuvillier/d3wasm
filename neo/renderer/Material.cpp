@@ -1279,7 +1279,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 		}
 
 		// privatePolygonOffset
-		else if ( !token.Icmp( "privatePolygonOffset" ) ) {
+		if ( !token.Icmp( "privatePolygonOffset" ) ) {
 			if ( !src.ReadTokenOnLine( &token ) ) {
 				ss->privatePolygonOffset = 1;
 				continue;
@@ -1496,9 +1496,9 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
 				if (token ==  "heatHaze.vfp") {
 					newStage.program = pheatHazeShader->program;
-				} else if (token ==  "heatHazeWithMask.fp") {
+				} else if (token ==  "heatHazeWithMask.vfp") {
 					newStage.program = pheatHazeWithMaskShader->program;
-				} else if (token ==  "heatHazeWithMaskAndVertex.fp") {
+				} else if (token ==  "heatHazeWithMaskAndVertex.vfp") {
 					newStage.program = pheatHazeWithMaskAndVertexShader->program;
 				}
 			}
@@ -1508,9 +1508,9 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
 				if (token ==  "heatHaze.vfp") {
 					newStage.program = pheatHazeShader->program;
-				} else if (token ==  "heatHazeWithMask.fp") {
+				} else if (token ==  "heatHazeWithMask.vfp") {
 					newStage.program = pheatHazeWithMaskShader->program;
-				} else if (token ==  "heatHazeWithMaskAndVertex.fp") {
+				} else if (token ==  "heatHazeWithMaskAndVertex.vfp") {
 					newStage.program = pheatHazeWithMaskAndVertexShader->program;
 				}
 			}
@@ -1520,9 +1520,9 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
 				if (token ==  "heatHaze.vfp") {
 					newStage.program = pheatHazeShader->program;
-				} else if (token ==  "heatHazeWithMask.fp") {
+				} else if (token ==  "heatHazeWithMask.vfp") {
 					newStage.program = pheatHazeWithMaskShader->program;
-				} else if (token ==  "heatHazeWithMaskAndVertex.fp") {
+				} else if (token ==  "heatHazeWithMaskAndVertex.vfp") {
 					newStage.program = pheatHazeWithMaskAndVertexShader->program;
 				}
 			}
