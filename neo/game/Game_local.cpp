@@ -4718,8 +4718,20 @@ void idGameLocal::PrecacheGameData() {
 	// hardcoded in idWeapon::BloodSplat()
 	declManager->FindMaterial("textures/decals/duffysplatgun");
 
-	// hardcoded in idTarget_Damage::Event_Activate()
+	// hardcoded in idTarget_Damage::Event_Activate() and various other places
 	FindEntityDef("damage_generic");
+	// these ones are not very important as they do not reference any media, but anyway they are nevertheless hardcoded
+	FindEntityDef("damage_moverCrush");
+	FindEntityDef("damage_crush");
+	FindEntityDef("damage_Gib");
+	FindEntityDef("damage_telefrag");
+	FindEntityDef("damage_explosion");
+	FindEntityDef("damage_fatalfall");
+	FindEntityDef("damage_hardfall");
+	FindEntityDef("damage_softfall");
+	FindEntityDef("damage_noair");
+	FindEntityDef("damage_suicide");
+	FindEntityDef("damage_painTrigger");
 
 	// hadcoded in idTarget_EndLevel::Spawn()
 	if (uiManager->CheckGui("guis/EndLevel.gui")) {
@@ -4749,7 +4761,7 @@ void idGameLocal::PrecacheGameData() {
 	FindEntityDef( "powerup_megahealth", false );
 	FindEntityDef( "powerup_adrenaline", false );
 
-	// EntityDef
+	// Weapon ammos
 	FindEntityDef( "ammo_names" );
 	FindEntityDef( "ammo_types" );
 }
