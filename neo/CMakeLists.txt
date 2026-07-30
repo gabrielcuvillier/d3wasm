@@ -153,7 +153,7 @@ else ()
     add_compile_options(--use-port=zlib)
     add_compile_options(--use-port=vorbis)
     add_compile_options(--use-port=ogg)
-    add_compile_options(--use-port=libjpeg)
+    #add_compile_options(--use-port=libjpeg)
 
     # fix for OpenAL include dir
     include_directories("${OPENAL_INCLUDE_DIR}/AL") # AL headers are not in a standard location
@@ -196,7 +196,7 @@ if (EMSCRIPTEN)
     add_link_options(--use-port=zlib)
     add_link_options(--use-port=vorbis)
     add_link_options(--use-port=ogg)
-    add_link_options(--use-port=libjpeg)
+    #add_link_options(--use-port=libjpeg)
     add_link_options(-lopenal)    # OpenAL
     add_link_options(-lEGL)       # EGL
     add_link_options(-lGL)        # WebGL
