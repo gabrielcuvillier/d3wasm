@@ -4755,6 +4755,8 @@ void idGameLocal::PrecacheGameData() {
 	// in idPlayer::GivePDA()
 	declManager->FindType(DECL_PDA, "personal");
 
+	declManager->FindMaterial("sound/vo/video/welcome");
+
 	// Powerups
 	FindEntityDef( "powerup_berserk", false );
 	FindEntityDef( "powerup_invisibility", false );
