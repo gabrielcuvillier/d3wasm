@@ -1077,6 +1077,7 @@ void idImage::Print() const {
 	case 2:
 	case 3:
 	case 4:
+	case GL_RGBA:
 		common->Printf( "RGBA  " );
 		break;
 	case GL_RGBA4:
@@ -1096,6 +1097,9 @@ void idImage::Print() const {
 	switch ( repeat ) {
 	case TR_REPEAT:
 		common->Printf( "rept " );
+		break;
+	case TR_CLAMP_TO_BORDER:
+		common->Printf( "bord " );
 		break;
 	case TR_CLAMP_TO_ZERO:
 		common->Printf( "zero " );
