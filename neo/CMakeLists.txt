@@ -152,7 +152,7 @@ else ()
     add_compile_options(--use-port=sdl2)
     add_compile_options(--use-port=zlib)
     add_compile_options(--use-port=vorbis)
-    add_compile_options(--use-port=ogg)
+    #add_compile_options(--use-port=ogg)
     #add_compile_options(--use-port=libjpeg)
 
     # fix for OpenAL include dir
@@ -195,7 +195,7 @@ if (EMSCRIPTEN)
     add_link_options(--use-port=sdl2)
     add_link_options(--use-port=zlib)
     add_link_options(--use-port=vorbis)
-    add_link_options(--use-port=ogg)
+    #add_link_options(--use-port=ogg)
     #add_link_options(--use-port=libjpeg)
     add_link_options(-lopenal)    # OpenAL
     add_link_options(-lEGL)       # EGL
