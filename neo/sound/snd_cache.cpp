@@ -390,6 +390,7 @@ idSoundSample::CheckForDownSample
 ===================
 */
 void idSoundSample::CheckForDownSample( void ) {
+#ifndef __EMSCRIPTEN__
 	if ( !idSoundSystemLocal::s_force22kHz.GetBool() ) {
 		return;
 	}
@@ -415,6 +416,9 @@ void idSoundSample::CheckForDownSample( void ) {
 	objectMemSize >>= 1;
 	objectInfo.nAvgBytesPerSec >>= 1;
 	objectInfo.nSamplesPerSec >>= 1;
+#else
+	return;
+#endif
 }
 
 /*
