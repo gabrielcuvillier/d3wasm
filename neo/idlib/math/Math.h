@@ -261,7 +261,6 @@ ID_INLINE float idMath::InvSqrt16( float x ) {
 }
 
 ID_INLINE float idMath::InvSqrt( float x ) {
-#ifndef __EMSCRIPTEN__
 	dword a = ((union _flint*)(&x))->i;
 	union _flint seed;
 
@@ -273,15 +272,9 @@ ID_INLINE float idMath::InvSqrt( float x ) {
 	r = r * ( 1.5f - r * r * y );
 	r = r * ( 1.5f - r * r * y );
 	return (float) r;
-#else
-	if (x == 0.0f)
-		return INFINITY;
-	return 1.0f / sqrtf(x);
-#endif
 }
 
 ID_INLINE double idMath::InvSqrt64( float x ) {
-#ifndef __EMSCRIPTEN__
 	dword a = ((union _flint*)(&x))->i;
 	union _flint seed;
 
@@ -294,11 +287,6 @@ ID_INLINE double idMath::InvSqrt64( float x ) {
 	r = r * ( 1.5f - r * r * y );
 	r = r * ( 1.5f - r * r * y );
 	return r;
-#else
-	if (x == 0.0f)
-		return INFINITY;
-	return 1.0f / sqrt(x);
-#endif
 }
 
 ID_INLINE float idMath::Sqrt16( float x ) {
@@ -306,19 +294,11 @@ ID_INLINE float idMath::Sqrt16( float x ) {
 }
 
 ID_INLINE float idMath::Sqrt( float x ) {
-#ifndef __EMSCRIPTEN__
 	return x * InvSqrt( x );
-#else
-	return (x>= 0)? sqrtf(x) : 0.0f;
-#endif
 }
 
 ID_INLINE double idMath::Sqrt64( float x ) {
-#ifndef __EMSCRIPTEN__
 	return x * InvSqrt64( x );
-#else
-	return (x>= 0)? sqrt(x) : 0.0f;
-#endif
 }
 
 ID_INLINE float idMath::Sin( float a ) {
