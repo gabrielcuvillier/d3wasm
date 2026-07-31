@@ -120,6 +120,7 @@ static int ClassifyImage( const char *name ) {
 	return IC_OTHER;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 R_RampImage
@@ -211,6 +212,7 @@ static void R_Specular2DTableImage( idImage *image ) {
 
 	image->GenerateImage( (byte *)data, 256, 256, TF_LINEAR, false, TR_CLAMP, TD_HIGH_QUALITY );
 }
+#endif
 
 /*
 ==================
@@ -319,7 +321,7 @@ static void R_BlackImage( idImage *image ) {
 		TF_DEFAULT, false, TR_REPEAT, TD_DEFAULT );
 }
 
-
+#ifndef __EMSCRIPTEN__
 // the size determines how far away from the edge the blocks start fading
 static const int BORDER_CLAMP_SIZE = 32;
 static void R_BorderClampImage( idImage *image ) {
@@ -363,6 +365,7 @@ static void R_BorderClampImage( idImage *image ) {
 	//color[0] = color[1] = color[2] = color[3] = 0;
 	//qglTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color );
 }
+#endif
 
 static void R_RGBA8Image( idImage *image ) {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
@@ -423,6 +426,7 @@ static void R_FlatNormalImage( idImage *image ) {
 		TF_DEFAULT, true, TR_REPEAT, TD_HIGH_QUALITY );
 }
 
+#ifndef __EMSCRIPTEN__
 static void R_AmbientNormalImage( idImage *image ) {
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
 	int		i;
@@ -443,7 +447,7 @@ static void R_AmbientNormalImage( idImage *image ) {
 	// this must be a cube map for fragment programs to simply substitute for the normalization cube map
 	image->GenerateCubeImage( pics, 2, TF_DEFAULT, true, TD_HIGH_QUALITY );
 }
-
+#endif
 
 #if 0
 static void CreateSquareLight( void ) {
@@ -520,7 +524,7 @@ static void CreateFlashOff( void ) {
 }
 #endif
 
-
+#ifndef __EMSCRIPTEN__
 /*
 ===============
 CreatePitFogImage
@@ -675,9 +679,7 @@ static void makeNormalizeVectorCubeMap( idImage *image ) {
 
 	Mem_Free(pixels[0]);
 }
-
-
-
+#endif
 
 /*
 ================
@@ -1766,17 +1768,23 @@ void idImageManager::Init() {
 	defaultImage = ImageFromFunction( "_default", R_DefaultImage );
 	whiteImage = ImageFromFunction( "_white", R_WhiteImage );
 	blackImage = ImageFromFunction( "_black", R_BlackImage );
+#ifndef __EMSCRIPTEN__
 	borderClampImage = ImageFromFunction( "_borderClamp", R_BorderClampImage );
+#endif
 	flatNormalMap = ImageFromFunction( "_flat", R_FlatNormalImage );
+#ifndef __EMSCRIPTEN__
 	ambientNormalMap = ImageFromFunction( "_ambient", R_AmbientNormalImage );
 	specularTableImage = ImageFromFunction( "_specularTable", R_SpecularTableImage );
 	specular2DTableImage = ImageFromFunction( "_specular2DTable", R_Specular2DTableImage );
 	rampImage = ImageFromFunction( "_ramp", R_RampImage );
 	alphaRampImage = ImageFromFunction( "_alphaRamp", R_RampImage );
+#endif
 	alphaNotchImage = ImageFromFunction( "_alphaNotch", R_AlphaNotchImage );
 	fogImage = ImageFromFunction( "_fog", R_FogImage );
 	fogEnterImage = ImageFromFunction( "_fogEnter", R_FogEnterImage );
+#ifndef __EMSCRIPTEN__
 	normalCubeMapImage = ImageFromFunction( "_normalCubeMap", makeNormalizeVectorCubeMap );
+#endif
 	noFalloffImage = ImageFromFunction( "_noFalloff", R_CreateNoFalloffImage );
 	quadraticImage = ImageFromFunction( "_quadratic", R_QuadraticImage );
 
@@ -1785,8 +1793,10 @@ void idImageManager::Init() {
 	cinematicImage = ImageFromFunction("_cinematic", R_RGBA8Image );
 	scratchImage = ImageFromFunction("_scratch", R_RGBA8Image );
 	scratchImage2 = ImageFromFunction("_scratch2", R_RGBA8Image );
+#ifndef __EMSCRIPTEN__
 	accumImage = ImageFromFunction("_accum", R_RGBA8Image );
 	scratchCubeMapImage = ImageFromFunction("_scratchCubeMap", makeNormalizeVectorCubeMap );
+#endif
 	currentRenderImage = ImageFromFunction("_currentRender", R_RGBA8Image );
 
 	cmdSystem->AddCommand( "reloadImages", R_ReloadImages_f, CMD_FL_RENDERER, "reloads images" );

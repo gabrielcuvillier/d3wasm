@@ -370,13 +370,17 @@ public:
 	// built-in images
 	idImage *			defaultImage;
 	idImage *			flatNormalMap;				// 128 128 255 in all pixels
+#ifndef __EMSCRIPTEN__
 	idImage *			ambientNormalMap;			// tr.ambientLightVector encoded in all pixels
 	idImage *			rampImage;					// 0-255 in RGBA in S
 	idImage *			alphaRampImage;				// 0-255 in alpha, 255 in RGB
+#endif
 	idImage *			alphaNotchImage;			// 2x1 texture with just 1110 and 1111 with point sampling
 	idImage *			whiteImage;					// full of 0xff
 	idImage *			blackImage;					// full of 0x00
+#ifndef __EMSCRIPTEN__
 	idImage *			normalCubeMapImage;			// cube map to normalize STR into RGB
+#endif
 	idImage *			noFalloffImage;				// all 255, but zero clamped
 	idImage * 			quadraticImage;				//
 	idImage *			fogImage;					// increasing alpha is denser fog
@@ -384,13 +388,16 @@ public:
 	idImage *			cinematicImage;
 	idImage *			scratchImage;
 	idImage *			scratchImage2;
+#ifndef __EMSCRIPTEN__
 	idImage *			accumImage;
+#endif
 	idImage *			currentRenderImage;			// for SS_POST_PROCESS shaders
+#ifndef __EMSCRIPTEN__
 	idImage *			scratchCubeMapImage;
 	idImage *			specularTableImage;			// 1D intensity texture with our specular function
 	idImage *			specular2DTableImage;		// 2D intensity texture with our specular function with variable specularity
 	idImage *			borderClampImage;			// white inside, black outside
-
+#endif
 	//--------------------------------------------------------
 
 	idImage *			AllocImage( const char *name );
