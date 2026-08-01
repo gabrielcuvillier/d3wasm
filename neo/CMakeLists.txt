@@ -275,6 +275,10 @@ set(src_renderer_glsl
         renderer/glsl/heatHazeWithMaskVP.cpp
         renderer/glsl/heatHazeWithMaskAndVertexFP.cpp
         renderer/glsl/heatHazeWithMaskAndVertexVP.cpp
+        renderer/glsl/colorProcessFP.cpp
+        renderer/glsl/colorProcessVP.cpp
+        renderer/glsl/bumpyEnvironmentFP.cpp
+        renderer/glsl/bumpyEnvironmentVP.cpp
 )
 
 set(src_renderer

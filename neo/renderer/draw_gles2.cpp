@@ -36,9 +36,12 @@ shaderProgram_t stencilShadowShader;
 shaderProgram_t heatHazeShader;
 shaderProgram_t heatHazeWithMaskShader;
 shaderProgram_t heatHazeWithMaskAndVertexShader;
+shaderProgram_t colorProcessShader;
+shaderProgram_t bumpyEnvironmentShader;
 shaderProgram_t* pheatHazeShader = &heatHazeShader;
 shaderProgram_t* pheatHazeWithMaskShader = &heatHazeWithMaskShader;
 shaderProgram_t* pheatHazeWithMaskAndVertexShader = &heatHazeWithMaskAndVertexShader;
+shaderProgram_t* pcolorProcessShader = &colorProcessShader;
 
 #define ATTR_VERTEX     0   // Don't change this, as WebGL require the vertex attrib 0 to be always bound
 #define ATTR_COLOR      1
@@ -513,6 +516,34 @@ static bool RB_GLSL_InitShaders(void) {
   }
   else {
     RB_GLSL_GetUniformLocations(&heatHazeWithMaskAndVertexShader);
+  }
+
+  // Color Process shader
+  common->Printf("Loading Color Process shader\n");
+  memset(&colorProcessShader, 0, sizeof(shaderProgram_t));
+
+  R_LoadGLSLShader(colorProcessShaderVP, &colorProcessShader, GL_VERTEX_SHADER);
+  R_LoadGLSLShader(colorProcessShaderFP, &colorProcessShader, GL_FRAGMENT_SHADER);
+
+  if ( !R_LinkGLSLShader(&colorProcessShader, "colorProcess") && !R_ValidateGLSLProgram(&colorProcessShader)) {
+    return false;
+  }
+  else {
+    RB_GLSL_GetUniformLocations(&colorProcessShader);
+  }
+
+  // Bumpy Environment shader
+  common->Printf("Loading Bumpy Environment shader\n");
+  memset(&bumpyEnvironmentShader, 0, sizeof(shaderProgram_t));
+
+  R_LoadGLSLShader(bumpyEnvironmentShaderVP, &bumpyEnvironmentShader, GL_VERTEX_SHADER);
+  R_LoadGLSLShader(bumpyEnvironmentShaderFP, &bumpyEnvironmentShader, GL_FRAGMENT_SHADER);
+
+  if ( !R_LinkGLSLShader(&bumpyEnvironmentShader, "bumpyEnvironment") && !R_ValidateGLSLProgram(&bumpyEnvironmentShader)) {
+    return false;
+  }
+  else {
+    RB_GLSL_GetUniformLocations(&bumpyEnvironmentShader);
   }
 
   return true;

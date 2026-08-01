@@ -57,11 +57,18 @@ extern const char* const heatHazeWithMaskShaderFP;
 // HeatHazeWithMaskAndVertex
 extern const char* const heatHazeWithMaskAndVertexShaderVP;
 extern const char* const heatHazeWithMaskAndVertexShaderFP;
+// ColorProcess
+extern const char* const colorProcessShaderVP;
+extern const char* const colorProcessShaderFP;
+// BumpyEnvironment
+extern const char* const bumpyEnvironmentShaderVP;
+extern const char* const bumpyEnvironmentShaderFP;
 
 // Those shaders are expected to be "public" (found by Materials)
 struct shaderProgram_s;
 extern struct shaderProgram_s* pheatHazeShader;
 extern struct shaderProgram_s* pheatHazeWithMaskShader;
 extern struct shaderProgram_s* pheatHazeWithMaskAndVertexShader;
+extern struct shaderProgram_s* pcolorProcessShader;
 
 #endif //D3WASM_GLSL_SHADERS_H

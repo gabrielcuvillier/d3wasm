@@ -1492,6 +1492,7 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			ss->conditionRegister = ParseExpression( src );
 			continue;
 		}
+		bool bProgramSet = false;
 		if ( !token.Icmp( "program" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
 				if (token ==  "heatHaze.vfp") {
@@ -1500,12 +1501,18 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 					newStage.program = pheatHazeWithMaskShader->program;
 				} else if (token ==  "heatHazeWithMaskAndVertex.vfp") {
 					newStage.program = pheatHazeWithMaskAndVertexShader->program;
+				} else if (token == "colorProcess.vfp") {
+					newStage.program = pcolorProcessShader->program;
 				}
+				bProgramSet = true;
 			}
 			continue;
 		}
 		if ( !token.Icmp( "fragmentProgram" ) ) {
 			if ( src.ReadTokenOnLine( &token ) ) {
+				if (bProgramSet) {
+					continue;
+				}
 				if (token ==  "heatHaze.vfp") {
 					newStage.program = pheatHazeShader->program;
 				} else if (token ==  "heatHazeWithMask.vfp") {
@@ -1517,6 +1524,9 @@ void idMaterial::ParseStage( idLexer &src, const textureRepeat_t trpDefault ) {
 			continue;
 		}
 		if ( !token.Icmp( "vertexProgram" ) ) {
+			if (bProgramSet) {
+				continue;
+			}
 			if ( src.ReadTokenOnLine( &token ) ) {
 				if (token ==  "heatHaze.vfp") {
 					newStage.program = pheatHazeShader->program;
