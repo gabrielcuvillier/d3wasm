@@ -123,6 +123,8 @@ bool idDeclEntityDef::Parse( const char *text, const int textLength ) {
 	}
 
 	game->CacheDictionaryMedia( &dict );
+	game->PrecacheScriptReferences( &dict );
+	game->PrecacheSpawnclassMedia( &dict );
 
 	return true;
 }
@@ -157,4 +159,6 @@ idDeclEntityDef::TouchData
 */
 void idDeclEntityDef::TouchData( void ) const {
 	game->CacheDictionaryMedia( &dict );
+	game->PrecacheSpawnclassMedia( &dict );
+	game->PrecacheScriptReferences( &dict );
 }

@@ -62,6 +62,7 @@ const int PREVIEW_Y = 31;
 const int PREVIEW_WIDTH = 398;
 const int PREVIEW_HEIGHT = 298;
 
+#ifndef __EMSCRIPTEN__
 void RandomizeStack(void) {
   // attempt to force uninitialized stack memory bugs
   int bytes = 4000000;
@@ -72,6 +73,7 @@ void RandomizeStack(void) {
     buf[i] = fill;
   }
 }
+#endif
 
 /*
 =================

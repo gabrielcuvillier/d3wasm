@@ -913,8 +913,6 @@ void idGameLocal::LoadMap( const char *mapName, int randseed ) {
 			mapFile = NULL;
 			Error( "Couldn't load %s", mapName );
 		}
-
-		session->PacifierUpdate();
 	}
 	mapFileName = mapFile->GetName();
 
@@ -1242,6 +1240,7 @@ void idGameLocal::InitFromNewMap( const char *mapName, idRenderWorld *renderWorl
 	if ( mapFileName.Length() ) {
 		MapShutdown();
 	}
+	program.ClearScriptNamesScanList();
 
 	Printf( "----- Game Map Init -----\n" );
 
@@ -1280,7 +1279,6 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 	idDict si;
 
 	if ( mapFileName.Length() ) {
-		common->DPrintf("ICI\n");
 		MapShutdown();
 	}
 	program.ClearScriptNamesScanList();
@@ -1321,6 +1319,7 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 
 	// precache the player
 	FindEntityDef("player_doommarine", false);
+	session->PacifierUpdate();
 
 	// Precache map script namespace, using Worldentity
 	idMapEntity *worldEnt = mapFile->GetEntity( 0 );
@@ -1352,10 +1351,17 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 		if ( !InhibitEntitySpawn( mapEnt->epairs ) ) {
 			// precache any media specified in the map entity
 			CacheDictionaryMedia( &mapEnt->epairs );
+			PrecacheScriptReferences( &mapEnt->epairs );
+			// no need to precache Spawnclass specific things, as spawnclass is not yet setup
+
 			// precache any media referenced by the class
 			const char *classname;
 			if ( mapEnt->epairs.GetString( "classname", "", &classname ) ) {
 				FindEntityDef( classname, false );
+			}
+
+			if ( ( i & 15 ) == 0 ) {
+				session->PacifierUpdate();
 			}
 		}
 	}
@@ -1515,6 +1521,12 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 		if (entDef) {
 			// precache any media specified in the entity
 			CacheDictionaryMedia( &entDef->dict );
+			PrecacheSpawnclassMedia( &entDef->dict );
+			PrecacheScriptReferences( &entDef->dict );
+
+			if ( ( i & 15 ) == 0 ) {
+				session->PacifierUpdate();
+			}
 		}
 	}
 
@@ -1578,8 +1590,6 @@ void idGameLocal::MapShutdown( void ) {
 	gamestate = GAMESTATE_SHUTDOWN;
 	//common->Printf("GAMESTATE_SHUTDOWN\n");
 
-	program.ClearScriptNamesScanList();
-
 #ifndef __EMSCRIPTEN__
 	if ( gameRenderWorld ) {
 		// clear any debug lines, text, and polygons
@@ -1633,17 +1643,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 
 	if ( dict == NULL ) {
 		return;
-	}
-
-	idStr spawnclass;
-	kv = dict->FindKey("spawnclass");
-	if (kv && kv->GetValue().Length() ) {
-		spawnclass = kv->GetValue();
-	}
-	idStr classname;
-	kv = dict->FindKey("classname");
-	if (kv && kv->GetValue().Length() ) {
-		classname = kv->GetValue();
 	}
 
 	kv = dict->MatchPrefix( "model" );
@@ -1799,59 +1798,10 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 		kv = dict->MatchPrefix( "audio", kv );
 	}
 
-	// Handle the case of "broken" models: might occur for idLight (the so called "broken lights") and idDamagable classes
 	idStr temp;
-	if (dict->GetString( "broken", "", temp ) ) {
-		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
-		// Only need to check the static model (and actually load it if needed)
-		renderModelManager->CheckModel( temp.c_str() );
-	}
-
 	// Never used in practice in D3 base game, but the code does support it
 	if (dict->GetString( "shader", "", temp ) ) {
 		declManager->FindType( DECL_MATERIAL, temp );
-	}
-
-	// Handle the case of "attached heads"
-	if (dict->GetString( "def_head", "", temp ) ) {
-		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
-		if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
-			// precache the render model
-			renderModelManager->FindModel( temp );
-		}
-	}
-
-	// Never used in practice in D3 base game, but the code does support it (for idTarget_SetModel)
-	if (dict->GetString( "newmodel", "", temp ) ) {
-		declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
-		if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
-			// precache the render model
-			renderModelManager->FindModel( temp );
-			// precache .cm files only
-			collisionModelManager->LoadModel( temp, true );
-		}
-	}
-
-	// Special shader used by idLight
-	if (dict->GetString( "mat_demonic", "", temp ) ) {
-		declManager->FindType( DECL_MATERIAL, temp );
-	}
-
-	// Only for the monster_boss_guardian_spawner def
-	if (dict->GetString( "lightning_model", "", temp ) ) {
-		common->Printf("Precaching model %s\n", temp.c_str());
-		// precache model
-		renderModelManager->FindModel( temp );
-	}
-
-	// Handle camera animations
-	kv = dict->MatchPrefix( "anim", NULL );
-	while( kv ) {
-		if ( kv->GetValue().Length() ) {
-			declManager->MediaPrint( "Precaching camera animation %s\n", kv->GetValue().c_str() );
-			animationLib.GetCameraAnim(kv->GetValue().c_str(), true);
-		}
-		kv = dict->MatchPrefix( "anim", kv );
 	}
 
 	// For some very specific cases where gui_parms holds references to video assets
@@ -1867,58 +1817,6 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 			}
 		}
 		kv = dict->MatchPrefix( "gui_parm", kv );
-	}
-
-	// Special case for idLights: handle the "_broken" suffix for models if there is no broken model provided
-	if (spawnclass == "idLight" || classname == "light") {
-		idStr temp;
-		if (!dict->GetString( "broken", "", temp ) ) {
-			idStr model;
-			if (dict->GetString( "model", "", model ) ) {
-				int	pos;
-				pos = model.Find( "." );
-				if ( pos < 0 ) {
-					pos = model.Length();
-				}
-				if ( pos > 0 ) {
-					model.Left( pos, temp );
-				}
-				temp += "_broken";
-				if ( pos > 0 ) {
-					temp += &model[ pos ];
-				}
-				declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
-				// Only need to check the static model (and actually load it if needed)
-				renderModelManager->CheckModel( temp.c_str() );
-			}
-		}
-	}
-
-	// Special handling for the player
-	if (spawnclass == "idPlayer") {
-		idUserInterface *gui = uiManager->Alloc();
-		if ( gui ) {
-			gui->InitFromFile( dict->GetString( "mphud", "guis/mphud.gui") );
-			uiManager->DeAlloc( gui );
-		}
-
-		gui = uiManager->Alloc();
-		if ( gui ) {
-			gui->InitFromFile( dict->GetString( "hud", "guis/hud.gui") );
-			uiManager->DeAlloc( gui );
-		}
-
-		gui = uiManager->Alloc();
-		if ( gui ) {
-			gui->InitFromFile( dict->GetString( "cursor", "guis/cursor.gui") );
-			uiManager->DeAlloc( gui );
-		}
-	}
-
-	PrecacheScriptReferences(dict);
-
-	if (gamestate == GAMESTATE_STARTUP) {
-		session->PacifierUpdate();
 	}
 }
 
@@ -1965,6 +1863,8 @@ void idGameLocal::SpawnPlayer( int clientNum ) {
 	if ( !SpawnEntityDef( args, &ent ) || !entities[ clientNum ] ) {
 		Error( "Failed to spawn player as '%s'", args.GetString( "classname" ) );
 	}
+
+	session->PacifierUpdate();
 
 	// make sure it's a compatible class
 	if ( !ent->IsType( idPlayer::Type ) ) {
@@ -3188,6 +3088,9 @@ bool idGameLocal::SpawnEntityDef( const idDict &args, idEntity **ent, bool setDe
 	}
 
 	spawnArgs.SetDefaults( &def->dict );
+	CacheDictionaryMedia( &spawnArgs) ;
+	PrecacheSpawnclassMedia( &spawnArgs );
+	PrecacheScriptReferences( &spawnArgs );
 
 	// check if we should spawn a class object
 	spawnArgs.GetString( "spawnclass", NULL, &spawn );
@@ -3396,8 +3299,14 @@ void idGameLocal::SpawnMapEntities( void ) {
 		if ( !InhibitEntitySpawn( args ) ) {
 			// precache any media specified in the map entity
 			CacheDictionaryMedia( &args );
+			PrecacheScriptReferences( &args );
+			// no need to precache Spawnclass specific things, as spawnclass is not yet setup
 
 			SpawnEntityDef( args );
+
+			if ( ( num & 15 ) == 0 ) {
+				session->PacifierUpdate();
+			}
 			num++;
 		} else {
 			inhibit++;
@@ -4556,12 +4465,8 @@ static void ActionScanCalls(const char *funcname,
                             const char *string2,
                             const char *filename,
                             int line) {
-	// Ignore if no string, or if string is a "func_*"/"target_*" or "light" entityDef (they are always loaded)
-	if (!string1
-		|| strlen(string1) == 0
-	    || !idStr::Icmpn(string1, "func_", strlen("func_"))
-	    || !idStr::Icmpn(string1, "target_", strlen("target_"))
-	    || !idStr::Icmp(string1, "light")) {
+	// Ignore if no string
+	if (!string1 || strlen(string1) == 0) {
 		return;
 	}
 
@@ -4756,6 +4661,7 @@ void idGameLocal::PrecacheGameData() {
 	declManager->FindType(DECL_PDA, "personal");
 
 	declManager->FindMaterial("sound/vo/video/welcome");
+	declManager->FindMaterial("sound/vo/video/novideo");
 
 	// Powerups
 	FindEntityDef( "powerup_berserk", false );
@@ -4766,6 +4672,10 @@ void idGameLocal::PrecacheGameData() {
 	// Weapon ammos
 	FindEntityDef( "ammo_names" );
 	FindEntityDef( "ammo_types" );
+
+	if (gamestate == GAMESTATE_STARTUP) {
+		session->PacifierUpdate();
+	}
 }
 
 /*
@@ -4832,3 +4742,158 @@ idGameLocal::GetMapLoadingGUI
 ===============
 */
 void idGameLocal::GetMapLoadingGUI( char gui[ MAX_STRING_CHARS ] ) { }
+
+
+/*
+===================
+idGameLocal::PrecacheSpawnclassMedia
+===================
+*/
+void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
+	idStr spawnclass;
+	const idKeyValue* kv = dict->FindKey("spawnclass");
+	if (kv && kv->GetValue().Length() ) {
+		spawnclass = kv->GetValue();
+	}
+	idStr classname;
+	kv = dict->FindKey("classname");
+	if (kv && kv->GetValue().Length() ) {
+		classname = kv->GetValue();
+	}
+
+	// Handle the case of "attached heads"
+	if (spawnclass == "idPlayer" || spawnclass == "idAI" || spawnclass == "idAFEntity_WithAttachedHead") {
+		idStr temp;
+		if (dict->GetString( "def_head", "", temp ) ) {
+			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( temp );
+			}
+		}
+	}
+
+	if (spawnclass == "idTarget_SetModel" ) {
+		idStr temp;
+		// Never used in practice in D3 base game, but the code does support it (for idTarget_SetModel)
+		if (dict->GetString( "newmodel", "", temp ) ) {
+			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
+				// precache the render model
+				renderModelManager->FindModel( temp );
+				// precache .cm files only
+				collisionModelManager->LoadModel( temp, true );
+			}
+		}
+	}
+
+	// very specific case for the "monster_boss_guardian_spawner" class that does very unorthodox things
+	if (classname == "monster_boss_guardian_spawner") {
+		idStr temp;
+		// "lightning_model" is a model, even though it does not start with "model" prefix
+		if (dict->GetString( "lightning_model", "", temp ) ) {
+			declManager->MediaPrint("Precaching model %s\n", temp.c_str());
+			// precache model
+			renderModelManager->FindModel( temp );
+		}
+		// "mtr_beam_skin" is a skin rather than a material starting with "mtr" prefix
+		if (dict->GetString( "mtr_beam_skin", "", temp ) ) {
+			declManager->MediaPrint( "Precaching skin %s\n", temp.c_str() );
+			// precache skin
+			renderModelManager->FindModel( temp );
+		}
+	}
+
+	// Handle camera animations
+	if ( spawnclass == "idCameraAnim"  ) {
+		kv = dict->MatchPrefix( "anim", NULL );
+		while( kv ) {
+			if ( kv->GetValue().Length() ) {
+				declManager->MediaPrint( "Precaching camera animation %s\n", kv->GetValue().c_str() );
+				animationLib.GetCameraAnim(kv->GetValue().c_str(), true);
+			}
+			kv = dict->MatchPrefix( "anim", kv );
+		}
+	}
+
+	// Special case for idMoveable
+	if ( spawnclass == "idMoveable" ) {
+		idStr temp;
+		int tempInt = 0;
+		// Handle the case of "broken" movable models: if a movable have a "health", look for the "broken" model field.
+		if ( dict->GetInt( "health", "", tempInt ) && tempInt > 0 ) {
+			if ( dict->GetString( "broken", "", temp ) && temp.Length() ) {
+				declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+				// Only need to check the static model (and actually load it if needed)
+				renderModelManager->CheckModel( temp.c_str() );
+			}
+		}
+	}
+
+	// Special case for idDamagable
+	if ( spawnclass == "idMoveable" || spawnclass == "idDamagable" ) {
+		idStr temp;
+		if ( dict->GetString( "broken", "", temp ) && temp.Length() ) {
+			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+			// Only need to check the static model (and actually load it if needed)
+			renderModelManager->CheckModel( temp.c_str() );
+		}
+	}
+
+	// Special case for idLights: handle the "_broken" suffix for models if there is no broken model provided
+	if ( spawnclass == "idLight" ) {
+		idStr temp;
+		// Special shader used by idLight
+		if (dict->GetString( "mat_demonic", "", temp ) ) {
+			declManager->FindType( DECL_MATERIAL, temp );
+		}
+		int tempInt = 0;
+		// Handle the case of "broken" light models: if a light have a "health", look for the "broken" model field.
+		// And if that field is empty, look for the model field with "_broken" suffix added to the model name
+		if ( dict->GetInt( "health", "0", tempInt ) && tempInt > 0) {
+			if ( !dict->GetString( "broken", "", temp ) ) {
+				idStr model;
+				if (dict->GetString( "model", "", model ) ) {
+					int	pos;
+					pos = model.Find( "." );
+					if ( pos < 0 ) {
+						pos = model.Length();
+					}
+					if ( pos > 0 ) {
+						model.Left( pos, temp );
+					}
+					temp += "_broken";
+					if ( pos > 0 ) {
+						temp += &model[ pos ];
+					}
+				}
+			}
+			if (temp.Length() > 0) {
+				declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
+				// Only need to check the static model (and actually load it if needed)
+				renderModelManager->CheckModel( temp.c_str() );
+			}
+		}
+	}
+
+	// Special handling for the player
+	if (spawnclass == "idPlayer") {
+		idUserInterface *gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "mphud", "guis/mphud.gui") );
+			uiManager->DeAlloc( gui );
+		}
+
+		gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "hud", "guis/hud.gui") );
+			uiManager->DeAlloc( gui );
+		}
+
+		gui = uiManager->Alloc();
+		if ( gui ) {
+			gui->InitFromFile( dict->GetString( "cursor", "guis/cursor.gui") );
+			uiManager->DeAlloc( gui );
+		}
+	}
+}

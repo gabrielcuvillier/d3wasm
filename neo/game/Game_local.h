@@ -454,9 +454,9 @@ public:
 	void					PrecacheScriptReferencesForFunction( const char* function );
 	void					PrecacheScriptReferencesForNamespace( const char* ns );
 	void					PrecacheScriptReferencesForFile( const char* type );
-
-	void					PrecacheGameData();
 	void					PrecacheScriptReferences(const idDict *dict);
+	void					PrecacheSpawnclassMedia( const idDict *args );
+	void					PrecacheGameData();
 
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;

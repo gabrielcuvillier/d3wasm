@@ -2216,7 +2216,9 @@ void idDeclLocal::ParseLocal( void ) {
 	// if no text source try to generate default text
 	if ( textSource == NULL ) {
 		generatedDefaultText = self->SetDefaultText();
-		declManagerLocal.MediaPrint( "parsing (generated) %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
+		if (generatedDefaultText) {
+			declManagerLocal.MediaPrint( "parsing (generated) %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
+		}
 	} else {
 		declManagerLocal.MediaPrint( "parsing %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
 	}

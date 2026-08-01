@@ -198,6 +198,8 @@ public:
 	virtual void				GetMapLoadingGUI( char gui[ MAX_STRING_CHARS ] ) = 0;
 
 	virtual void				PrecacheScriptReferencesForFunction( const char* function ) = 0;
+	virtual void				PrecacheScriptReferences(const idDict *dict) = 0;
+	virtual void				PrecacheSpawnclassMedia( const idDict *args )= 0;
 };
 
 extern idGame *					game;

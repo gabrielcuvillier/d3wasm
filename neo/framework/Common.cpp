@@ -2603,6 +2603,8 @@ void idCommonLocal::Init(int argc, char** argv) {
     console->LoadHistory();
 
     com_fullyInitialized = true;
+    common->DPrintf("Engine fully initialized.\n");
+
 #if !defined(__EMSCRIPTEN__)
   }
   catch ( idException& ) {

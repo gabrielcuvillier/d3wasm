@@ -535,7 +535,6 @@ bool idDeclVideo::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
-			common->Printf( "preview of video %s\n", preview.c_str() );
 			declManager->FindMaterial(preview);
 			continue;
 		}
@@ -672,7 +671,6 @@ bool idDeclAudio::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
-			common->Printf( "preview of audio %s\n", preview.c_str() );
 			declManager->FindMaterial(preview);
 			continue;
 		}
