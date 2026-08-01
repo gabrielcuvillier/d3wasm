@@ -184,7 +184,7 @@ if (EMSCRIPTEN)
     add_link_options(-sASYNCIFY_DEBUG=0)
     add_link_options(-sWASMFS=1)
     add_link_options(-sUSE_CLOSURE_COMPILER=1)
-    add_link_options(-sSTACK_SIZE=327680)  # 320K. Mostly because of large buffer on stack created in R_Specular2DTableImage()
+    add_link_options(-sSTACK_SIZE=327680)  # 320K. Looks like to be enough. Maybe increase to 512K for a safety net ?
     add_link_options(-sASYNCIFY_ONLY=@${CMAKE_SOURCE_DIR}/sys/wasm/asyncify.txt)
     add_link_options($<$<CONFIG:Debug>:-sASYNCIFY_STACK_SIZE=16384>)
     add_link_options(-sEXIT_RUNTIME=1)
