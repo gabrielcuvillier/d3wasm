@@ -301,6 +301,9 @@ Adds a new parameter for a function type.
 void idTypeDef::AddFunctionParm( idTypeDef *parmtype, const char *name ) {
 	if ( type != ev_function ) {
 		//throw idCompileError( "idTypeDef::AddFunctionParm : tried to add parameter on non-function type" );
+		idCompileError err( "idTypeDef::AddFunctionParm : tried to add parameter on non-function type" );
+		common->DWarning( err.error );
+		return;
 	}
 
 	parmTypes.Append( parmtype );
@@ -318,6 +321,9 @@ Adds a new field to an object type.
 void idTypeDef::AddField( idTypeDef *fieldtype, const char *name ) {
 	if ( type != ev_object ) {
 		//throw idCompileError( "idTypeDef::AddField : tried to add field to non-object type" );
+		idCompileError err( "idTypeDef::AddField : tried to add field to non-object type" );
+		common->DWarning( err.error );
+		return;
 	}
 
 	parmTypes.Append( fieldtype );
@@ -377,6 +383,9 @@ If type is an object, then returns the object's superclass
 idTypeDef *idTypeDef::SuperClass( void ) const {
 	if ( type != ev_object ) {
 		//throw idCompileError( "idTypeDef::SuperClass : tried to get superclass of a non-object type" );
+		idCompileError err( "idTypeDef::SuperClass : tried to get superclass of a non-object type" );
+		common->DWarning( err.error );
+		return NULL;
 	}
 
 	return auxType;
@@ -392,6 +401,9 @@ If type is a function, then returns the function's return type
 idTypeDef *idTypeDef::ReturnType( void ) const {
 	if ( type != ev_function ) {
 		//throw idCompileError( "idTypeDef::ReturnType: tried to get return type on non-function type" );
+		idCompileError err( "idTypeDef::ReturnType: tried to get return type on non-function type" );
+		common->DWarning( err.error );
+		return NULL;
 	}
 
 	return auxType;
@@ -407,6 +419,9 @@ If type is a function, then sets the function's return type
 void idTypeDef::SetReturnType( idTypeDef *returntype ) {
 	if ( type != ev_function ) {
 		//throw idCompileError( "idTypeDef::SetReturnType: tried to set return type on non-function type" );
+		idCompileError err( "idTypeDef::SetReturnType: tried to set return type on non-function type" );
+		common->DWarning( err.error );
+		return;
 	}
 
 	auxType = returntype;
@@ -422,6 +437,9 @@ If type is a field, then returns it's type
 idTypeDef *idTypeDef::FieldType( void ) const {
 	if ( type != ev_field ) {
 		//throw idCompileError( "idTypeDef::FieldType: tried to get field type on non-field type" );
+		idCompileError err( "idTypeDef::FieldType: tried to get field type on non-field type" );
+		common->DWarning( err.error );
+		return NULL;
 	}
 
 	return auxType;
@@ -437,6 +455,9 @@ If type is a field, then sets the function's return type
 void idTypeDef::SetFieldType( idTypeDef *fieldtype ) {
 	if ( type != ev_field ) {
 		//throw idCompileError( "idTypeDef::SetFieldType: tried to set return type on non-function type" );
+		idCompileError err( "idTypeDef::SetFieldType: tried to set return type on non-function type" );
+		common->DWarning( err.error );
+		return;
 	}
 
 	auxType = fieldtype;
@@ -452,6 +473,9 @@ If type is a pointer, then returns the type it points to
 idTypeDef *idTypeDef::PointerType( void ) const {
 	if ( type != ev_pointer ) {
 		//throw idCompileError( "idTypeDef::PointerType: tried to get pointer type on non-pointer" );
+		idCompileError err( "idTypeDef::PointerType: tried to get pointer type on non-pointer" );
+		common->DWarning( err.error );
+		return NULL;
 	}
 
 	return auxType;
@@ -467,6 +491,9 @@ If type is a pointer, then sets the pointer's type
 void idTypeDef::SetPointerType( idTypeDef *pointertype ) {
 	if ( type != ev_pointer ) {
 		//throw idCompileError( "idTypeDef::SetPointerType: tried to set type on non-pointer" );
+		idCompileError err( "idTypeDef::SetPointerType: tried to set type on non-pointer" );
+		common->DWarning( err.error );
+		return;
 	}
 
 	auxType = pointertype;
@@ -717,6 +744,9 @@ void idVarDef::SetValue( const eval_t &_value, bool constant ) {
 
 	default :
 		//throw idCompileError( va( "weird type on '%s'", Name() ) );
+		idCompileError err( va( "weird type on '%s'", Name() ) );
+		common->DWarning( err.error );
+		return;
 		break;
 	}
 }
@@ -1248,6 +1278,9 @@ byte *idProgram::ReserveMem(int size) {
 	numVariables += size;
 	if ( numVariables > sizeof( variables ) ) {
 		//throw idCompileError( va( "Exceeded global memory size (%zd bytes)", sizeof( variables ) ) );
+		idCompileError err( va( "Exceeded global memory size (%zd bytes)", sizeof( variables ) ) );
+		common->DWarning( err.error );
+		return NULL;
 	}
 
 	memset( res, 0, size );
@@ -1425,6 +1458,9 @@ idVarDef *idProgram::GetDef( const idTypeDef *type, const char *name, const idVa
 	// see if the name is already in use for another type
 	if ( bestDef && type && ( bestDef->TypeDef() != type ) ) {
 		//throw idCompileError( va( "Type mismatch on redeclaration of %s", name ) );
+		idCompileError err( va( "Type mismatch on redeclaration of %s", name ) );
+		common->DWarning( err.error );
+		return NULL;
 	}
 
 	return bestDef;
@@ -1585,6 +1621,9 @@ idProgram::AllocFunction
 function_t &idProgram::AllocFunction( idVarDef *def ) {
 	if ( functions.Num() >= functions.Max() ) {
 		//throw idCompileError( va( "Exceeded maximum allowed number of functions (%d)", functions.Max() ) );
+		idCompileError err( va( "Exceeded maximum allowed number of functions (%d)", functions.Max() ) );
+		common->DWarning( err.error );
+		return *functions.Alloc();
 	}
 
 	// fill in the dfunction
@@ -1635,6 +1674,9 @@ idProgram::AllocStatement
 statement_t *idProgram::AllocStatement( void ) {
 	if ( statements.Num() >= statements.Max() ) {
 		//throw idCompileError( va( "Exceeded maximum allowed number of statements (%d)", statements.Max() ) );
+		idCompileError err( va( "Exceeded maximum allowed number of statements (%d)", statements.Max() ) );
+		common->DWarning( err.error );
+		return NULL;
 	}
 	return statements.Alloc();
 }
@@ -1852,6 +1894,13 @@ bool idProgram::CompileText( const char *source, const char *text, bool console 
 			if ( ( def->Type() == ev_function ) && ( ( def->scope->Type() == ev_namespace ) || def->scope->TypeDef()->Inherits( &type_object ) ) ) {
 				if ( !def->value.functionPtr->eventdef && !def->value.functionPtr->firstStatement ) {
 					//throw idCompileError( va( "function %s was not defined\n", def->GlobalName() ) );
+					idCompileError err(va( "function %s was not defined\n", def->GlobalName() ));
+					if ( console ) {
+						gameLocal.Printf( "%s\n", err.error );
+						return false;
+					} else {
+						gameLocal.Error( "%s\n", err.error );
+					}
 				}
 			}
 		}
