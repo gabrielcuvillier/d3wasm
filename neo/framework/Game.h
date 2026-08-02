@@ -199,7 +199,8 @@ public:
 
 	virtual void				PrecacheScriptReferencesForFunction( const char* function ) = 0;
 	virtual void				PrecacheScriptReferences(const idDict *dict) = 0;
-	virtual void				PrecacheSpawnclassMedia( const idDict *args )= 0;
+	virtual void				PrecacheSpawnclassMedia( const idDict *args ) = 0;
+	virtual void				TouchEngineData() = 0;
 };
 
 extern idGame *					game;
