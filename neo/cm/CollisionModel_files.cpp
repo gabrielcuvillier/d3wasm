@@ -571,6 +571,8 @@ bool idCollisionModelManagerLocal::LoadCollisionModelFile( const char *name, uns
 		return false;
 	}
 
+	//common->Printf("[CollisionModelManagerLocal] Loading %s\n", fileName.c_str());
+
 	if ( !src->ExpectTokenString( CM_FILEID ) ) {
 		common->Warning( "%s is not an CM file.", fileName.c_str() );
 		delete src;

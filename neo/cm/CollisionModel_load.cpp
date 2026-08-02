@@ -104,6 +104,7 @@ void idCollisionModelManagerLocal::ParseProcNodes( idLexer *src ) {
 	src->ExpectTokenString( "}" );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idCollisionModelManagerLocal::LoadProcBSP
@@ -163,6 +164,7 @@ void idCollisionModelManagerLocal::LoadProcBSP( const char *name ) {
 
 	delete src;
 }
+#endif
 
 /*
 ===============================================================================
@@ -3181,6 +3183,7 @@ cm_model_t *idCollisionModelManagerLocal::LoadRenderModel( const char *fileName 
 	return model;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idCollisionModelManagerLocal::CollisionModelForMapEntity
@@ -3276,6 +3279,7 @@ cm_model_t *idCollisionModelManagerLocal::CollisionModelForMapEntity( const idMa
 
 	return model;
 }
+#endif
 
 /*
 ================
