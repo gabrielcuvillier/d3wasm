@@ -296,6 +296,8 @@ public:
 	idEntityPtr<idEntity>	lastGUIEnt;				// last entity with a GUI, used by Cmd_NextGUI_f
 	int						lastGUI;				// last GUI on the lastGUIEnt
 
+	const idDeclEntityDef*	aas_types;
+
 	// ---------------------- Public idGame Interface -------------------
 
 							idGameLocal();
@@ -457,6 +459,7 @@ public:
 	void					PrecacheScriptReferences(const idDict *dict);
 	void					PrecacheSpawnclassMedia( const idDict *args );
 	void					PrecacheGameData();
+	void					TouchEngineData();
 
 private:
 	const static int		INITIAL_SPAWN_COUNT = 1;

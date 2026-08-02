@@ -272,6 +272,8 @@ void idGameLocal::Clear( void ) {
 	savedEventQueue.Init();
 
 	memset( lagometer, 0, sizeof( lagometer ) );
+
+	aas_types = NULL;
 }
 
 
@@ -361,10 +363,11 @@ void idGameLocal::Init( void ) {
 	smokeParticles = new idSmokeParticles;
 
 	// set up the aas
-	dict = FindEntityDefDict( "aas_types" );
-	if ( !dict ) {
+	aas_types = FindEntityDef( "aas_types" );
+	if ( !aas_types ) {
 		Error( "Unable to find entityDef for 'aas_types'" );
 	}
+	dict = &aas_types->dict;
 
 	// allocate space for the aas
 	const idKeyValue *kv = dict->MatchPrefix( "type" );
@@ -4895,5 +4898,11 @@ void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
 			gui->InitFromFile( dict->GetString( "cursor", "guis/cursor.gui") );
 			uiManager->DeAlloc( gui );
 		}
+	}
+}
+
+void idGameLocal::TouchEngineData() {
+	if (aas_types) {
+		aas_types->Touch();
 	}
 }

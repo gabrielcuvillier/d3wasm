@@ -3407,6 +3407,8 @@ void idSessionLocal::TouchEngineData() {
     // UI
     uiManager->TouchEngineData();
 
+    game->TouchEngineData();
+
     if (matWipeMaterial) {
       matWipeMaterial->Touch();
     }
