@@ -270,6 +270,7 @@ void idTypeInfoTools::PrintType( const void *typePtr, const char *typeName ) {
 	WriteClass_r( typePtr, "", typeName, "", "", 0 );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idTypeInfoTools::WriteTypeToFile
@@ -281,6 +282,7 @@ void idTypeInfoTools::WriteTypeToFile( idFile *fp, const void *typePtr, const ch
 	idTypeInfoTools::Write = WriteVariable;
 	WriteClass_r( typePtr, "", typeName, "", "", 0 );
 }
+#endif
 
 /*
 ================
@@ -1378,7 +1380,6 @@ void TestSaveGame_f( const idCmdArgs &args ) {
 	}
 	cmdSystem->BufferCommandText( CMD_EXEC_NOW, "quit" );
 }
-#endif
 
 /*
 ================
@@ -1388,6 +1389,7 @@ WriteTypeToFile
 void WriteTypeToFile( idFile *fp, const void *typePtr, const char *typeName ) {
 	idTypeInfoTools::WriteTypeToFile( fp, typePtr, typeName );
 }
+#endif
 
 /*
 ================

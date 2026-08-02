@@ -737,6 +737,7 @@ void idVarDef::SetString( const char *string, bool constant ) {
 	idStr::Copynz( value.stringPtr, string, MAX_STRING_LEN );
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idVarDef::PrintInfo
@@ -822,6 +823,7 @@ void idVarDef::PrintInfo( idFile *file, int instructionPointer ) const {
 		break;
 	}
 }
+#endif
 
 /***********************************************************************
 

@@ -275,6 +275,7 @@ void idMarkerWindow::Activate(bool activate, idStr &act) {
 		statData = gui->State().GetString( "statData" );
 		numStats = 0;
 		if (statData.Length()) {
+#ifndef __ESCRIPTEN__
 			idFile *file = fileSystem->OpenFileRead(statData);
 			if (file) {
 				file->Read(&numStats, sizeof(numStats));
@@ -295,6 +296,7 @@ void idMarkerWindow::Activate(bool activate, idStr &act) {
 				}
 				fileSystem->CloseFile(file);
 			}
+#endif
 		}
 
 		if (numStats > 1 && background) {

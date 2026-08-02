@@ -40,6 +40,7 @@ If you have questions concerning this license or the applicable additional terms
 ===============================================================================
 */
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 Reachability_Write
@@ -51,6 +52,7 @@ bool Reachability_Write( idFile *fp, idReachability *reach ) {
 				reach->end.x, reach->end.y, reach->end.z, reach->edgeNum, (int) reach->travelTime );
 	return true;
 }
+#endif
 
 /*
 ================
@@ -90,6 +92,7 @@ void idReachability::CopyBase( idReachability &reach ) {
 ===============================================================================
 */
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 Reachability_Special_Write
@@ -108,6 +111,7 @@ bool Reachability_Special_Write( idFile *fp, idReachability_Special *reach ) {
 
 	return true;
 }
+#endif
 
 /*
 ================
@@ -458,7 +462,7 @@ bool idAASSettings::FromDict( const char *name, const idDict *dict ) {
 	return true;
 }
 
-
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idAASSettings::WriteToFile
@@ -493,6 +497,7 @@ bool idAASSettings::WriteToFile( idFile *fp ) const {
 	fp->WriteFloatString( "}\n" );
 	return true;
 }
+#endif
 
 /*
 ============

@@ -32,8 +32,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "renderer/Image.h"
 
+#ifndef __EMSCRIPTEN__
 #include <jpeglib.h>
 #include <jerror.h>
+#endif
 
 /*
 
@@ -78,7 +80,7 @@ void R_WriteTGA( const char *filename, const byte *data, int width, int height, 
 	Mem_Free (buffer);
 }
 
-
+#ifndef __EMSCRIPTEN__
 /*
 ================
 R_WritePalTGA
@@ -123,12 +125,16 @@ void R_WritePalTGA( const char *filename, const byte *data, const byte *palette,
 
 	Mem_Free (buffer);
 }
+#endif
 
 
-static void LoadBMP( const char *name, byte **pic, int *width, int *height, ID_TIME_T *timestamp );
 static void LoadTGA( const char *name, byte **pic, int *width, int *height, ID_TIME_T *timestamp );
+#ifndef __EMSCRIPTEN__
+static void LoadBMP( const char *name, byte **pic, int *width, int *height, ID_TIME_T *timestamp );
 static void LoadJPG( const char *name, byte **pic, int *width, int *height, ID_TIME_T *timestamp );
+#endif
 
+#ifndef __EMSCRIPTEN__
 
 /*
 ========================================================================
@@ -154,6 +160,7 @@ typedef struct {
 	unsigned char	data;			// unbounded
 } pcx_t;
 
+#endif
 
 /*
 ========================================================================
@@ -171,7 +178,7 @@ typedef struct _TargaHeader {
 	unsigned char	pixel_size, attributes;
 } TargaHeader;
 
-
+#ifndef __EMSCRIPTEN__
 
 /*
 =========================================================
@@ -505,6 +512,8 @@ static void LoadPCX32 ( const char *filename, byte **pic, int *width, int *heigh
 	R_StaticFree( palette );
 }
 
+#endif
+
 /*
 =========================================================
 
@@ -753,6 +762,8 @@ static void LoadTGA( const char *name, byte **pic, int *width, int *height, ID_T
 	fileSystem->FreeFile( buffer );
 }
 
+#ifndef __EMSCRIPTEN__
+
 /*
 =============
 LoadJPG
@@ -925,6 +936,8 @@ static void LoadJPG( const char *filename, unsigned char **pic, int *width, int 
 
   /* And we're done! */
 }
+
+#endif
 
 //===================================================================
 

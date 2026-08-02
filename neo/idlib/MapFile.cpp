@@ -213,6 +213,7 @@ idMapPatch *idMapPatch::Parse( idLexer &src, const idVec3 &origin, bool patchDef
 	return patch;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idMapPatch::Write
@@ -244,6 +245,7 @@ bool idMapPatch::Write( idFile *fp, int primitiveNum, const idVec3 &origin ) con
 
 	return true;
 }
+#endif
 
 /*
 ===============
@@ -476,6 +478,7 @@ idMapBrush *idMapBrush::ParseQ3( idLexer &src, const idVec3 &origin ) {
 	return brush;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idMapBrush::Write
@@ -506,6 +509,7 @@ bool idMapBrush::Write( idFile *fp, int primitiveNum, const idVec3 &origin ) con
 
 	return true;
 }
+#endif
 
 /*
 ===============
@@ -637,6 +641,7 @@ idMapEntity *idMapEntity::Parse( idLexer &src, bool worldSpawn, float version ) 
 	return mapEnt;
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ============
 idMapEntity::Write
@@ -674,6 +679,7 @@ bool idMapEntity::Write( idFile *fp, int entityNum ) const {
 
 	return true;
 }
+#endif
 
 /*
 ===============
