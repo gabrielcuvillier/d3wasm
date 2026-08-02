@@ -136,7 +136,7 @@
 <body>
 <div class="emscripten">
     <div id="title">
-        <b><a href="http://www.continuation-labs.com/projects/d3wasm" style="color: rgb(128,128,255)">D3wasm</a></b> -
+        <b><a href="https://www.continuation-labs.com/projects/d3wasm" style="color: rgb(128,128,255)">D3wasm</a></b> -
         An experimental port of <a href="https://en.wikipedia.org/wiki/Id_Tech_4" style="color: rgb(200,200,200)">id
         Tech 4</a> engine to
         <a href="https://emscripten.org/" style="color: rgb(200,200,200)">Emscripten</a> / <a
@@ -152,7 +152,7 @@
 </div>
 
 <div class="emscripten">Online demonstration running <b>Doom 3 Demo</b></div>
-<div class="emscripten"><b>Hint:</b> use HOME key instead of ESC key (go to main menu), and INSERT key instead of ` key
+<div class="emscripten"><b>Hint:</b> use HOME key instead of the ESC key (go to the main menu), and INSERT key instead of ` key
     (open console)
 </div>
 
@@ -166,17 +166,17 @@
 <div class="emscripten_border">
     <div id="help">
         <b>/help</b><br><br>
-        <b>Keyboard:</b><br> Use the HOME key to go to the main menu or skip cinematic (instead of ESC key), and INSERT
+        <b>Keyboard:</b><br> Use the HOME key to go to the main menu or skip cinematic (instead of the ESC key), and INSERT
         key to open the game console (instead of ~ or `).
         <br>Arrow keys are "WASD" by default and can be changed in-game.
         <br><br><b>Video:</b><br> Resolution is 960x640 by default (3:2 aspect ratio), and can be changed in-game. Use
-        Alt+Enter to restart video (ie. "vid-restart" command).
+        Alt+Enter to restart the video (i.e. "vid-restart" command).
     </div>
-    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    <canvas class="emscripten" id="canvas" tabindex=-1></canvas>
 </div>
 <div class="emscripten" id="infos" style="display: none">
-    All information about this port, including purpose, source code, technical details, and legal info can be found on
-    the <a href="http://www.continuation-labs.com/projects/d3wasm">project</a> page.
+    All information about this port, including purpose, source code, technical details, and legal info, can be found on
+    the <a href="https://www.continuation-labs.com/projects/d3wasm">project</a> page.
 </div>
 <div class="emscripten" id="disclaimer" style="text-align: justify; margin:auto; width: 75%; display: none">
     <br>Disclaimer: <br>The D3wasm project and this online demonstration are in no way associated with or supported by
@@ -196,33 +196,9 @@
     const statusElement = document.getElementById('status');
     const progressElement = document.getElementById('progress');
     const spinnerElement = document.getElementById('spinner');
-    const canvas = document.getElementById("canvas");
-
-    canvas.addEventListener("mousedown", () => {
-        if (!document.hasFocus()) {
-            canvas.focus();
-            return;
-        }
-
-        if (document.pointerLockElement === canvas) {
-            return;
-        }
-
-        try {
-            const result = canvas.requestPointerLock();
-
-            if (result && typeof result.catch === "function") {
-                result.catch((error) => {
-                    console.debug("Pointer lock refused:", error);
-                });
-            }
-        } catch (error) {
-            console.debug("Pointer lock refused:", error);
-        }
-    });
 
     function showHelp() {
-        var helpElement = document.getElementById('help');
+        const helpElement = document.getElementById('help');
         if (helpElement.style.display !== "block") {
             helpElement.style.display = "block";
         } else {
@@ -231,21 +207,22 @@
     }
 
     function showDisclaimer() {
-        var infosElement = document.getElementById('infos');
+        const infosElement = document.getElementById('infos');
         if (infosElement.style.display !== "block") {
             infosElement.style.display = "block";
         }
-        var disclaimerElement = document.getElementById('disclaimer');
+        const disclaimerElement = document.getElementById('disclaimer');
         if (disclaimerElement.style.display !== "block") {
             disclaimerElement.style.display = "block";
         }
     }
 
+    //noinspection ES6ConvertVarToLetConst, JSUnusedGlobalSymbols
     var Module = {
         preRun: [],
         postRun: [showDisclaimer],
         print: (function () {
-            var element = document.getElementById('output');
+            const element = document.getElementById('output');
             if (element) element.value = ''; // clear browser cache
             return function (text) {
                 if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
@@ -266,15 +243,18 @@
             console.error(text);
         },
         canvas: (function () {
-            var canvas = document.getElementById('canvas');
+            const canvas = document.getElementById('canvas');
 
             // As a default initial behavior, pop up an alert when webgl context is lost. To make your
             // application robust, you may want to override this behavior before shipping!
-            // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
             canvas.addEventListener("webglcontextlost", function (e) {
                 alert('WebGL context lost. You will need to reload the page.');
                 e.preventDefault();
             }, false);
+
+            canvas.addEventListener("contextmenu", (event) => {
+                event.preventDefault();
+            });
 
             return canvas;
         })(),
@@ -287,8 +267,8 @@
         setStatus: function (text) {
             if (!Module.setStatus.last) Module.setStatus.last = {time: Date.now(), text: ''};
             if (text === Module.setStatus.last.text) return;
-            var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-            var now = Date.now();
+            const m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+            const now = Date.now();
             if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
             Module.setStatus.last.time = now;
             Module.setStatus.last.text = text;
@@ -307,6 +287,7 @@
             statusElement.innerHTML = text;
         },
         totalDependencies: 0,
+
         monitorRunDependencies: function (left) {
             this.totalDependencies = Math.max(this.totalDependencies, left);
             Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
@@ -318,8 +299,7 @@
         }
     };
     Module.setStatus('Downloading...');
-    window.onerror = function (event) {
-        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+    window.onerror = function () {
         Module.setStatus('Exception thrown, see JavaScript console');
         spinnerElement.style.display = 'none';
         Module.setStatus = function (text) {
