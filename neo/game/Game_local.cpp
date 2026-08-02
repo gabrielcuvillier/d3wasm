@@ -4808,7 +4808,7 @@ void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
 		if (dict->GetString( "mtr_beam_skin", "", temp ) ) {
 			declManager->MediaPrint( "Precaching skin %s\n", temp.c_str() );
 			// precache skin
-			renderModelManager->FindModel( temp );
+			declManager->FindSkin( temp );
 		}
 	}
 
