@@ -270,6 +270,11 @@ public:
 
 	virtual const idMaterial*	GetCharSetMaterial() = 0;
 	virtual const idMaterial*	GetSplashscreenMaterial() = 0;
+
+#ifdef __EMSCRIPTEN__
+	virtual void				SetMediaLoadEnabled( bool enabled ) = 0;
+	virtual bool				IsMediaLoadEnabled( void ) const = 0;
+#endif
 };
 
 extern idCommon *		common;

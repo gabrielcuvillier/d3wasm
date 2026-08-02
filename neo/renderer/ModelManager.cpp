@@ -277,6 +277,12 @@ idRenderModel *idRenderModelManagerLocal::GetModel( const char *modelName, bool 
 			if ( !model->IsLoaded() ) {
 				// reload it if it was purged
 				//common->Printf( "[ModelManager] Reloading purged (1) %s\n", model->Name());
+#ifdef __EMSCRIPTEN__
+				if (!common->IsMediaLoadEnabled()) {
+					common->DWarning("Media loading forbidden during game loop: idRenderModelManagerLocal::GetModel\n");
+					return model;
+				}
+#endif
 				model->LoadModel();
 			} else if ( insideLevelLoad && !model->IsLevelLoadReferenced() ) {
 				// we are reusing a model already in memory, but
@@ -289,6 +295,13 @@ idRenderModel *idRenderModelManagerLocal::GetModel( const char *modelName, bool 
 			return model;
 		}
 	}
+
+#ifdef __EMSCRIPTEN__
+	if (!common->IsMediaLoadEnabled()) {
+		common->DWarning("Media loading forbidden during game loop: idRenderModelManagerLocal::GetModel\n");
+		return NULL;
+	}
+#endif
 
 	// see if we can load it
 

@@ -1514,6 +1514,12 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 
 			if ( image_preload.GetBool() && (!insideLevelLoad || forceLoadImages) && image->texnum == idImage::TEXTURE_NOT_LOADED ) {
 				//common->Printf( "[ImageManager] Reloading purged %s\n", image->imgName.c_str() );
+#ifdef __EMSCRIPTEN__
+				if (!common->IsMediaLoadEnabled()) {
+					common->DWarning("Media loading forbidden during game loop: idImageManager::ImageFromFile\n");
+					return image;
+				}
+#endif
 				image->ActuallyLoadImage( false );
 				declManager->MediaPrint( "%ix%i %s (reload for mixed references)\n", image->uploadWidth, image->uploadHeight, image->imgName.c_str() );
 			}
@@ -1545,6 +1551,12 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 	// load it if we aren't in a level preload
 	if ( image_preload.GetBool() && (!insideLevelLoad || forceLoadImages) ) {
 		//common->Printf( "[ImageManager] Loading %s\n", image->imgName.c_str() );
+#ifdef __EMSCRIPTEN__
+		if (!common->IsMediaLoadEnabled()) {
+			common->DWarning("Media loading forbidden during game loop: idImageManager::ImageFromFile\n");
+			return image;
+		}
+#endif
 		image->ActuallyLoadImage( false );
 		declManager->MediaPrint( "%ix%i %s\n", image->uploadWidth, image->uploadHeight, image->imgName.c_str() );
 	} else {

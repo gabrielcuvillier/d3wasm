@@ -3634,6 +3634,10 @@ cmHandle_t idCollisionModelManagerLocal::LoadModel( const char *modelName, const
 		return 0;
 	}
 
+#ifdef __EMSCRIPTEN__
+	if (common->IsMediaLoadEnabled()) {
+#endif
+
 	// try to load a .cm file
 	if ( LoadCollisionModelFile( modelName, 0 ) ) {
 		handle = FindModel( modelName );
@@ -3643,6 +3647,10 @@ cmHandle_t idCollisionModelManagerLocal::LoadModel( const char *modelName, const
 			common->Warning( "idCollisionModelManagerLocal::LoadModel: collision file for '%s' contains different model", modelName );
 		}
 	}
+
+#ifdef __EMSCRIPTEN__
+	}
+#endif
 
 	// if only precaching .cm files do not waste memory converting render models
 	if ( precache ) {

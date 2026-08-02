@@ -98,6 +98,12 @@ idSoundSample *idSoundCache::FindSound( const idStr& filename, bool loadOnDemand
 			if ( def->purged && !loadOnDemandOnly ) {
 				//common->Printf("[SoundCache] Reloading purged %s\n", filename.c_str());
 				declManager->MediaPrint( "%s\n", fname.c_str() );
+#ifdef __EMSCRIPTEN__
+				if (!common->IsMediaLoadEnabled()) {
+					common->DWarning("Media loading forbidden during game loop: idSoundCache::FindSound\n");
+					return def;
+				}
+#endif
 				def->Load();
 			}
 			return def;
@@ -124,6 +130,12 @@ idSoundSample *idSoundCache::FindSound( const idStr& filename, bool loadOnDemand
 	if ( !loadOnDemandOnly ) {
 		// this may make it a default sound if it can't be loaded
 		//common->Printf("[SoundCache] Loading %s\n", filename.c_str());
+#ifdef __EMSCRIPTEN__
+		if (!common->IsMediaLoadEnabled()) {
+			common->DWarning("Media loading forbidden during game loop: idSoundCache::FindSound\n");
+			return def;
+		}
+#endif
 		def->Load();
 	}
 

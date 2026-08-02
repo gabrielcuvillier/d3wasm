@@ -1103,6 +1103,13 @@ idMD5CameraAnim *idAnimManager::GetCameraAnim( const char *name, bool bInhibitEr
 		}
 	}
 
+#ifndef __EMSCRIPTEN__
+	if (!common->IsMediaLoadEnabled()) {
+		common->DWarning("Media loading forbidden during game loop: idAnimManager::GetCameraAnim\n");
+		return NULL;
+	}
+#endif
+
 	idMD5CameraAnim *cam = new idMD5CameraAnim;
 	if (!cam->InitFromFile(name, bInhibitErrors)) {
 		delete cam;

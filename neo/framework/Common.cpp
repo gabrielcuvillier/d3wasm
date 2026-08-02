@@ -230,6 +230,11 @@ public:
   virtual const idMaterial*	GetCharSetMaterial() { return charsetMaterial; }
   virtual const idMaterial*	GetSplashscreenMaterial() { return splashMaterial; }
 
+#ifdef __EMSCRIPTEN__
+  virtual void				SetMediaLoadEnabled( bool enabled ) { com_enableMediaLoad = enabled; }
+  virtual bool				IsMediaLoadEnabled( void ) const { return com_enableMediaLoad; }
+#endif
+
   // DG end
 
   void InitGame(void);
@@ -304,6 +309,10 @@ private:
   const idMaterial* splashMaterial;
   const idMaterial* charsetMaterial;
 
+#ifdef __EMSCRIPTEN__
+  bool com_enableMediaLoad = true;
+#endif
+
 #ifdef ID_WRITE_VERSION
   idCompressor *				config_compressor;
 #endif
@@ -338,6 +347,11 @@ idCommonLocal::idCommonLocal(void) {
 
   splashMaterial = NULL;
   charsetMaterial = NULL;
+
+  com_fullyInitialized = false;
+#ifdef __EMSCRIPTEN__
+  com_enableMediaLoad = true;
+#endif
 
 #ifdef ID_WRITE_VERSION
   config_compressor = NULL;
@@ -2101,6 +2115,11 @@ void idCommonLocal::Frame(void) {
 // Exceptions are disabled on Emscripten
 #else
   try {
+#endif
+
+#ifdef __EMSCRIPTEN__
+  // Just in case...
+  com_enableMediaLoad = true;
 #endif
 
   // pump all the events

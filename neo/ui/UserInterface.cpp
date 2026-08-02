@@ -195,6 +195,20 @@ void idUserInterfaceManagerLocal::ListGuis() const {
 }
 
 bool idUserInterfaceManagerLocal::CheckGui( const char *qpath ) const {
+#ifdef __EMSCRIPTEN__
+	const int key = guiCacheIndex.GenerateKey(qpath);
+	for ( int i = guiCacheIndex.First( key ); i != -1; i = guiCacheIndex.Next( i ) ) {
+		if (guiCacheSources[i].name == qpath) {
+			return true;
+		}
+	}
+
+	if (!common->IsMediaLoadEnabled()) {
+		common->DWarning("Media loading forbidden during game loop: idUserInterfaceManagerLocal::CheckGui\n");
+		return false;
+	}
+#endif
+
 	idFile *file = fileSystem->OpenFileRead( qpath );
 	if ( file ) {
 		fileSystem->CloseFile( file );
@@ -269,6 +283,13 @@ static compressedGuiSource_t UI_NewCompressedGuiSource(const char *qpath) {
 	compressedGui.buffer = 0;
 	compressedGui.compressed_len = 0;
 	compressedGui.original_len = 0;
+
+#ifdef __EMSCRIPTEN__
+	if (!common->IsMediaLoadEnabled()) {
+		common->DWarning("Media loading forbidden during game loop: idUserInterfaceManagerLocal::UI_NewCompressedGuiSource\n");
+		return compressedGui;
+	}
+#endif
 
 	// Read the original GUI file
 	char* file_buffer = 0;
