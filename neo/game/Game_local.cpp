@@ -1685,7 +1685,7 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 				// used by d3dm4 for some reason.. (no actual implementation)
 				|| !idStr::Icmp( kv->GetKey(), "guiColor" )
 				// used by alphalabs1
-				|| !idStr::Icmp( kv->GetKey(), "guiTarget" )) {
+				|| !idStr::Icmpn( kv->GetKey(), "guitarget", 9 )) {
 				// unfortunate flag names, they aren't actually a gui
 			} else {
 				declManager->MediaPrint( "Precaching gui %s\n", kv->GetValue().c_str() );
@@ -1812,10 +1812,10 @@ void idGameLocal::CacheDictionaryMedia( const idDict *dict ) {
 	while( kv ) {
 		if ( kv->GetValue().Length() ) {
 			idStr str = kv->GetValue();
-			if ( !idStr::Icmpn( str, "#str_", strlen("#str_") )) {
+			if ( !idStr::Icmpn( str, "#str_", 5 )) {
 				str = common->GetLanguageDict()->GetString(str);
 			}
-			if (!idStr::Icmpn( str, "video/", strlen("video/") ) || !idStr::Icmpn( str, "sound/", strlen("sound/") )) {
+			if (!idStr::Icmpn( str, "video/", 6 ) || !idStr::Icmpn( str, "sound/", 6 )) {
 				declManager->FindMaterial( str );
 			}
 		}
