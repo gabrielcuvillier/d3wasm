@@ -2488,6 +2488,10 @@ void idSessionLocal::UpdateScreen(bool outOfSequence) {
 //		common->FatalError( "idSessionLocal::UpdateScreen: recursively called" );
   }
 
+#ifdef __EMSCRIPTEN__
+  common->SetMediaLoadEnabled(false);
+#endif
+
   insideUpdateScreen = true;
 
   // if this is a long-operation update and we are in windowed mode,
@@ -2509,6 +2513,10 @@ void idSessionLocal::UpdateScreen(bool outOfSequence) {
   }
 
   insideUpdateScreen = false;
+
+#ifdef __EMSCRIPTEN__
+  common->SetMediaLoadEnabled(true);
+#endif
 }
 
 bool idSessionLocal::emsessionframe_pre() {
@@ -2614,6 +2622,10 @@ bool idSessionLocal::emsessionframe_last() {
     return false;
   }
 
+#ifdef __EMSCRIPTEN__
+  common->SetMediaLoadEnabled(false);
+#endif
+
   // check for user info changes
   if ( cvarSystem->GetModifiedFlags() & CVAR_USERINFO ) {
     mapSpawnData.userInfo[0] = *cvarSystem->MoveCVarsToDict(CVAR_USERINFO);
@@ -2684,6 +2696,10 @@ bool idSessionLocal::emsessionframe_last() {
       break;
     }
   }
+
+#ifdef __EMSCRIPTEN__
+  common->SetMediaLoadEnabled(true);
+#endif
 
   return true;
 }
