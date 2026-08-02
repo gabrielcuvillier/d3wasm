@@ -87,6 +87,13 @@ idCVar com_pid( "com_pid", "0", CVAR_INTEGER | CVAR_INIT | CVAR_SYSTEM, "process
 static int set_exit = 0;
 static char exit_spawn[ 1024 ] = { 0 };
 
+#ifdef __EMSCRIPTEN__
+void On_Posix_Exit()
+{
+	printf("D3wasm successfully exited.\n");
+}
+#endif
+
 /*
 ================
 Posix_Exit
@@ -96,9 +103,9 @@ void Posix_Exit(int ret) {
 #ifdef __EMSCRIPTEN__
 	// Cancel the main loop callback
 	emscripten_cancel_main_loop();
-#endif
 
-#ifndef __EMSCRIPTEN__
+	atexit(On_Posix_Exit);
+#else
 	if ( tty_enabled ) {
 		Sys_Printf( "shutdown terminal support\n" );
 		if ( tcsetattr( 0, TCSADRAIN, &tty_tc ) == -1 ) {
@@ -110,14 +117,13 @@ void Posix_Exit(int ret) {
 	if ( exit_spawn[0] ) {
 		Sys_DoStartProcess( exit_spawn, false );
 	}
-#endif
-
 	// in case of signal, handler tries a common->Quit
 	// we use set_exit to maintain a correct exit code
 	if ( set_exit ) {
 		exit( set_exit );
 	}
 	exit( ret );
+#endif
 }
 
 /*
