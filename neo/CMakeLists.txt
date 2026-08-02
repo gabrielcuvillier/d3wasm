@@ -470,7 +470,7 @@ set(src_idlib
         idlib/MapFile.cpp
         idlib/CmdArgs.cpp
         idlib/Token.cpp
-        idlib/Base64.cpp
+        #idlib/Base64.cpp
         idlib/Timer.cpp
         idlib/Heap.cpp
 )
