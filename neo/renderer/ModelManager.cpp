@@ -638,7 +638,7 @@ void idRenderModelManagerLocal::PrintMemInfo( MemInfo_t *mi ) {
 		idRenderModel	*model = localModelManager.models[sortIndex[i]];
 		int mem;
 
-		if ( !model->IsLoaded() ) {
+		if ( !model || !model->IsLoaded() ) {
 			continue;
 		}
 

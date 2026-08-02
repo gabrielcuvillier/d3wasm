@@ -276,7 +276,7 @@ void idSoundCache::PrintMemInfo( MemInfo_t *mi ) {
 		idSoundSample *sample = listCache[sortIndex[i]];
 
 		// this is strange
-		if ( !sample ) {
+		if ( !sample || sample->purged ) {
 			continue;
 		}
 
