@@ -4514,7 +4514,8 @@ static void ActionScanCalls(const char *funcname,
 		declManager->FindType(DECL_MATERIAL, string1, false);
 	} else if (!idStr::Icmp(eventname, "setModel")) {
 		if ( declManager->FindType(DECL_MODELDEF, string1, false) == NULL ) {
-			renderModelManager->FindModel(string1);
+			renderModelManager->FindModel( string1 );
+			collisionModelManager->LoadModel( string1, true );
 		}
 	} else if (!idStr::Icmp(eventname, "setSkin")) {
 		declManager->FindType(DECL_SKIN, string1);
@@ -4772,6 +4773,8 @@ void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
 			if ( declManager->FindType( DECL_MODELDEF, temp, false ) == NULL ) {
 				// precache the render model
 				renderModelManager->FindModel( temp );
+				// precache .cm files only
+				collisionModelManager->LoadModel( temp, true );
 			}
 		}
 	}
@@ -4798,6 +4801,8 @@ void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
 			declManager->MediaPrint("Precaching model %s\n", temp.c_str());
 			// precache model
 			renderModelManager->FindModel( temp );
+			// precache .cm files only
+			collisionModelManager->LoadModel( temp, true );
 		}
 		// "mtr_beam_skin" is a skin rather than a material starting with "mtr" prefix
 		if (dict->GetString( "mtr_beam_skin", "", temp ) ) {
@@ -4828,7 +4833,10 @@ void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
 			if ( dict->GetString( "broken", "", temp ) && temp.Length() ) {
 				declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
 				// Only need to check the static model (and actually load it if needed)
-				renderModelManager->CheckModel( temp.c_str() );
+				if (renderModelManager->CheckModel( temp.c_str() ) ) {
+					// the model also might needs collision
+					collisionModelManager->LoadModel( temp.c_str(), true );
+				}
 			}
 		}
 	}
@@ -4839,7 +4847,10 @@ void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
 		if ( dict->GetString( "broken", "", temp ) && temp.Length() ) {
 			declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
 			// Only need to check the static model (and actually load it if needed)
-			renderModelManager->CheckModel( temp.c_str() );
+			if (renderModelManager->CheckModel( temp.c_str() )) {
+				// the model also might needs collision
+				collisionModelManager->LoadModel( temp.c_str(), true );
+			}
 		}
 	}
 
@@ -4874,7 +4885,10 @@ void idGameLocal::PrecacheSpawnclassMedia( const idDict *dict ) {
 			if (temp.Length() > 0) {
 				declManager->MediaPrint( "Precaching model %s\n", temp.c_str() );
 				// Only need to check the static model (and actually load it if needed)
-				renderModelManager->CheckModel( temp.c_str() );
+				if ( renderModelManager->CheckModel( temp.c_str() ) ) {
+					// for broken light, the model also might needs collision
+					collisionModelManager->LoadModel( temp.c_str(), true );
+				}
 			}
 		}
 	}
