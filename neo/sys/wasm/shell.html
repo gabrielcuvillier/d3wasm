@@ -6,7 +6,7 @@
     <title>idTech 4 WebAssembly port - Doom 3 Demo</title>
     <style>
         body {
-            font-family: arial;
+            font-family: arial,sans-serif;
             margin: 0;
             background-color: black;
         }
@@ -26,34 +26,31 @@
         }
 
         div.emscripten_border {
-            border: 0px solid black;
+            border: 0 solid black;
             position: relative;
         }
 
         /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
         canvas.emscripten {
-            border: 0px none;
+            border: 0 none;
             background-color: black;
         }
 
         .spinner {
             height: 30px;
             width: 30px;
-            margin: 0;
-            margin-top: 0px;
-            margin-left: 20px;
+            margin: 0 0 0 20px;
             display: inline-block;
             vertical-align: top;
 
             -webkit-animation: rotation .8s linear infinite;
             -moz-animation: rotation .8s linear infinite;
-            -o-animation: rotation .8s linear infinite;
             animation: rotation 0.8s linear infinite;
 
-            border-left: 0px solid rgb(235, 235, 235);
-            border-right: 0px solid rgb(235, 235, 235);
-            border-bottom: 0px solid rgb(235, 235, 235);
-            border-top: 0px solid rgb(120, 120, 120);
+            border-left: 0 solid rgb(235, 235, 235);
+            border-right: 0 solid rgb(235, 235, 235);
+            border-bottom: 0 solid rgb(235, 235, 235);
+            border-top: 0 solid rgb(120, 120, 120);
 
             border-radius: 100%;
             background-color: rgb(189, 215, 46);
@@ -74,15 +71,6 @@
             }
             to {
                 -moz-transform: rotate(360deg);
-            }
-        }
-
-        @-o-keyframes rotation {
-            from {
-                -o-transform: rotate(0deg);
-            }
-            to {
-                -o-transform: rotate(360deg);
             }
         }
 
@@ -108,7 +96,7 @@
             position: absolute;
             background-color: black;
             right: 10px;
-            top:   10px;
+            top: 10px;
             border-width: 1px;
             border-color: gray;
             border-style: solid;
@@ -129,23 +117,14 @@
             width: 300px;
         }
 
-        #controls {
-            display: inline-block;
-            float: right;
-            vertical-align: top;
-            margin-top: 5px;
-            margin-right: 20px;
-        }
-
         #output {
             width: 100%;
             height: 200px;
-            margin: 0 auto;
-            margin-top: 0px;
-            border-left: 0px;
-            border-right: 0px;
-            padding-left: 0px;
-            padding-right: 0px;
+            margin: 0 auto 0;
+            border-left: 0;
+            border-right: 0;
+            padding-left: 0;
+            padding-right: 0;
             display: block;
             background-color: black;
             color: white;
@@ -158,35 +137,46 @@
 <div class="emscripten">
     <div id="title">
         <b><a href="http://www.continuation-labs.com/projects/d3wasm" style="color: rgb(128,128,255)">D3wasm</a></b> -
-        An experimental port of <a href="https://en.wikipedia.org/wiki/Id_Tech_4" style="color: rgb(200,200,200)">id Tech 4</a> engine to
-        <a href="https://emscripten.org/" style="color: rgb(200,200,200)">Emscripten</a> / <a href="https://webassembly.org/" style="color: rgb(200,200,200)">WebAssembly</a>
+        An experimental port of <a href="https://en.wikipedia.org/wiki/Id_Tech_4" style="color: rgb(200,200,200)">id
+        Tech 4</a> engine to
+        <a href="https://emscripten.org/" style="color: rgb(200,200,200)">Emscripten</a> / <a
+            href="https://webassembly.org/" style="color: rgb(200,200,200)">WebAssembly</a>
     </div>
     <div id="buttons">
-        <br><input type="checkbox" onclick="showHelp()">Show help</input>
+        <br>
+        <label>
+            <input type="checkbox" onclick="showHelp()">
+            Show help
+        </label>
     </div>
 </div>
 
 <div class="emscripten">Online demonstration running <b>Doom 3 Demo</b></div>
-<div class="emscripten"><b>Hint:</b> use HOME key instead of ESC key (go to main menu), and INSERT key instead of ` key (open console)</div>
+<div class="emscripten"><b>Hint:</b> use HOME key instead of ESC key (go to main menu), and INSERT key instead of ` key
+    (open console)
+</div>
 
 <div class="spinner" id='spinner'></div>
 <div class="emscripten" id="status">Downloading...</div>
 
 <div class="emscripten">
-    <progress value="0" max="100" id="progress" hidden=1></progress>
+    <progress value="0" max="100" id="progress" hidden="hidden"></progress>
 </div>
 
 <div class="emscripten_border">
     <div id="help">
         <b>/help</b><br><br>
-        <b>Keyboard:</b><br> Use the HOME key to go to the main menu or skip cinematic (instead of ESC key), and INSERT key to open game console (instead of ~ or `).
-        <br>Arrow keys are "WASD" by default, and can be changed in-game.
-        <br><br><b>Video:</b><br> Resolution is 960x640 by default (3:2 aspect ratio), and can be changed in-game. Use Alt+Enter to restart video (ie. "vid-restart" command).
-        </div>
+        <b>Keyboard:</b><br> Use the HOME key to go to the main menu or skip cinematic (instead of ESC key), and INSERT
+        key to open the game console (instead of ~ or `).
+        <br>Arrow keys are "WASD" by default and can be changed in-game.
+        <br><br><b>Video:</b><br> Resolution is 960x640 by default (3:2 aspect ratio), and can be changed in-game. Use
+        Alt+Enter to restart video (ie. "vid-restart" command).
+    </div>
     <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
 </div>
 <div class="emscripten" id="infos" style="display: none">
-    All information about this port, including purpose, source code, technical details, and legal info can be found on the <a href="http://www.continuation-labs.com/projects/d3wasm">project</a> page.
+    All information about this port, including purpose, source code, technical details, and legal info can be found on
+    the <a href="http://www.continuation-labs.com/projects/d3wasm">project</a> page.
 </div>
 <div class="emscripten" id="disclaimer" style="text-align: justify; margin:auto; width: 75%; display: none">
     <br>Disclaimer: <br>The D3wasm project and this online demonstration are in no way associated with or supported by
@@ -203,116 +193,139 @@
 <!--<textarea id="output" rows="8"></textarea> -->
 
 <script type='text/javascript'>
-  var statusElement = document.getElementById('status');
-  var progressElement = document.getElementById('progress');
-  var spinnerElement = document.getElementById('spinner');
+    const statusElement = document.getElementById('status');
+    const progressElement = document.getElementById('progress');
+    const spinnerElement = document.getElementById('spinner');
+    const canvas = document.getElementById("canvas");
 
-  function showHelp() {
-    var helpElement = document.getElementById('help');
-    if (helpElement.style.display != "block") {
-      helpElement.style.display = "block";
-    } else {
-      helpElement.style.display = "none";
-    }
-  }
-
-  function showDisclaimer() {
-    var infosElement = document.getElementById('infos');
-    if (infosElement.style.display != "block") {
-      infosElement.style.display = "block";
-    }
-    var disclaimerElement = document.getElementById('disclaimer');
-    if (disclaimerElement.style.display != "block") {
-      disclaimerElement.style.display = "block";
-    }
-  }
-
-  var Module = {
-    preRun: [],
-    postRun: [showDisclaimer],
-    print: (function () {
-      var element = document.getElementById('output');
-      if (element) element.value = ''; // clear browser cache
-      return function (text) {
-        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-        // These replacements are necessary if you render to raw HTML
-        //text = text.replace(/&/g, "&amp;");
-        //text = text.replace(/</g, "&lt;");
-        //text = text.replace(/>/g, "&gt;");
-        //text = text.replace('\n', '<br>', 'g');
-        console.log(text);
-        if (element) {
-          element.value += text + "\n";
-          element.scrollTop = element.scrollHeight; // focus on bottom
+    canvas.addEventListener("mousedown", () => {
+        if (!document.hasFocus()) {
+            canvas.focus();
+            return;
         }
-      };
-    })(),
-    printErr: function (text) {
-      if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-      console.error(text);
-    },
-    canvas: (function () {
-      var canvas = document.getElementById('canvas');
 
-      // As a default initial behavior, pop up an alert when webgl context is lost. To make your
-      // application robust, you may want to override this behavior before shipping!
-      // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
-      canvas.addEventListener("webglcontextlost", function (e) {
-        alert('WebGL context lost. You will need to reload the page.');
-        e.preventDefault();
-      }, false);
+        if (document.pointerLockElement === canvas) {
+            return;
+        }
 
-      return canvas;
-    })(),
-    hideStatus: function() {
-      statusElement.style.display = "none";
-    },
-    showStatus: function() {
-      statusElement.style.display = "inline-block";
-    },
-    setStatus: function (text) {
-      if (!Module.setStatus.last) Module.setStatus.last = {time: Date.now(), text: ''};
-      if (text === Module.setStatus.last.text) return;
-      var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-      var now = Date.now();
-      if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
-      Module.setStatus.last.time = now;
-      Module.setStatus.last.text = text;
-      if (m) {
-        text = m[1];
-        progressElement.value = parseInt(m[2]) * 100;
-        progressElement.max = parseInt(m[4]) * 100;
-        progressElement.hidden = false;
-        spinnerElement.hidden = false;
-      } else {
-        progressElement.value = null;
-        progressElement.max = null;
-        progressElement.hidden = true;
-        if (!text) spinnerElement.style.display = 'none';
-      }
-      statusElement.innerHTML = text;
-    },
-    totalDependencies: 0,
-    monitorRunDependencies: function (left) {
-      this.totalDependencies = Math.max(this.totalDependencies, left);
-      Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-      if (!left) {
-        Module.hideStatus();
-      }
-      else {
-        Module.showStatus();
-      }
+        try {
+            const result = canvas.requestPointerLock();
+
+            if (result && typeof result.catch === "function") {
+                result.catch((error) => {
+                    console.debug("Pointer lock refused:", error);
+                });
+            }
+        } catch (error) {
+            console.debug("Pointer lock refused:", error);
+        }
+    });
+
+    function showHelp() {
+        var helpElement = document.getElementById('help');
+        if (helpElement.style.display !== "block") {
+            helpElement.style.display = "block";
+        } else {
+            helpElement.style.display = "none";
+        }
     }
-  };
-  Module.setStatus('Downloading...');
-  window.onerror = function (event) {
-    // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
-    Module.setStatus('Exception thrown, see JavaScript console');
-    spinnerElement.style.display = 'none';
-    Module.setStatus = function (text) {
-      if (text) Module.printErr('[post-exception status] ' + text);
+
+    function showDisclaimer() {
+        var infosElement = document.getElementById('infos');
+        if (infosElement.style.display !== "block") {
+            infosElement.style.display = "block";
+        }
+        var disclaimerElement = document.getElementById('disclaimer');
+        if (disclaimerElement.style.display !== "block") {
+            disclaimerElement.style.display = "block";
+        }
+    }
+
+    var Module = {
+        preRun: [],
+        postRun: [showDisclaimer],
+        print: (function () {
+            var element = document.getElementById('output');
+            if (element) element.value = ''; // clear browser cache
+            return function (text) {
+                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                // These replacements are necessary if you render to raw HTML
+                //text = text.replace(/&/g, "&amp;");
+                //text = text.replace(/</g, "&lt;");
+                //text = text.replace(/>/g, "&gt;");
+                //text = text.replace('\n', '<br>', 'g');
+                console.log(text);
+                if (element) {
+                    element.value += text + "\n";
+                    element.scrollTop = element.scrollHeight; // focus on bottom
+                }
+            };
+        })(),
+        printErr: function (text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            console.error(text);
+        },
+        canvas: (function () {
+            var canvas = document.getElementById('canvas');
+
+            // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+            // application robust, you may want to override this behavior before shipping!
+            // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+            canvas.addEventListener("webglcontextlost", function (e) {
+                alert('WebGL context lost. You will need to reload the page.');
+                e.preventDefault();
+            }, false);
+
+            return canvas;
+        })(),
+        hideStatus: function () {
+            statusElement.style.display = "none";
+        },
+        showStatus: function () {
+            statusElement.style.display = "inline-block";
+        },
+        setStatus: function (text) {
+            if (!Module.setStatus.last) Module.setStatus.last = {time: Date.now(), text: ''};
+            if (text === Module.setStatus.last.text) return;
+            var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+            var now = Date.now();
+            if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
+            Module.setStatus.last.time = now;
+            Module.setStatus.last.text = text;
+            if (m) {
+                text = m[1];
+                progressElement.value = parseInt(m[2]) * 100;
+                progressElement.max = parseInt(m[4]) * 100;
+                progressElement.hidden = false;
+                spinnerElement.hidden = false;
+            } else {
+                progressElement.value = null;
+                progressElement.max = null;
+                progressElement.hidden = true;
+                if (!text) spinnerElement.style.display = 'none';
+            }
+            statusElement.innerHTML = text;
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function (left) {
+            this.totalDependencies = Math.max(this.totalDependencies, left);
+            Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+            if (!left) {
+                Module.hideStatus();
+            } else {
+                Module.showStatus();
+            }
+        }
     };
-  };
+    Module.setStatus('Downloading...');
+    window.onerror = function (event) {
+        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+        Module.setStatus('Exception thrown, see JavaScript console');
+        spinnerElement.style.display = 'none';
+        Module.setStatus = function (text) {
+            if (text) Module.printErr('[post-exception status] ' + text);
+        };
+    };
 </script>
 {{{ SCRIPT }}}
 </body>
