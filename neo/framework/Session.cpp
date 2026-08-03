@@ -664,6 +664,9 @@ Session_Died_f
 */
 static void Session_Died_f(const idCmdArgs& args) {
   sessLocal.UnloadMap();
+#ifdef __EMSCRIPTEN__
+  sessLocal.guiRestartMenu = uiManager->FindGui("guis/restart.gui", true, false, true);
+#endif
   sessLocal.SetGUI(sessLocal.guiRestartMenu, NULL);
 }
 
@@ -2952,10 +2955,14 @@ void idSessionLocal::Init() {
   guiMainMenu_MapList = uiManager->AllocListGUI();
   guiMainMenu_MapList->Config(guiMainMenu, "mapList");
   idAsyncNetwork::client.serverList.GUIConfig(guiMainMenu, "serverList");
+#ifndef __EMSCRIPTEN__
   guiRestartMenu = uiManager->FindGui("guis/restart.gui", true, false, true);
   guiGameOver = uiManager->FindGui("guis/gameover.gui", true, false, true);
+#endif
   guiMsg = uiManager->FindGui("guis/msg.gui", true, false, true);
+#ifndef __EMSCRIPTEN__
   guiIntro = uiManager->FindGui("guis/intro.gui", true, false, true);
+#endif
 
   matWipeMaterial = declManager->FindMaterial("wipeMaterial", false);
   matWipe2Material = declManager->FindMaterial("wipe2Material", false);

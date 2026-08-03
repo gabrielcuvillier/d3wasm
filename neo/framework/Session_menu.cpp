@@ -590,6 +590,11 @@ void idSessionLocal::HandleMainMenuCommands( const char *menuCommand ) {
 			// need to do this here to make sure com_frameTime is correct or the gui activates with a time that
 			// is "however long map load took" time in the past
 			common->GUIFrame( false, false );
+#ifdef __EMSCRIPTEN__
+			if (guiIntro == NULL) {
+				guiIntro = uiManager->FindGui("guis/intro.gui", true, false, true);
+			}
+#endif
 			SetGUI( guiIntro, NULL );
 			guiIntro->StateChanged( com_frameTime, true );
 			// stop playing the game sounds
