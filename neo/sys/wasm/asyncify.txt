@@ -1,5 +1,15 @@
-*OPFS*
-*wasmfs*
+(anonymous namespace)::OPFSBackend::createDirectory*
+(anonymous namespace)::OPFSDirectory::getChild*
+(anonymous namespace)::OPFSDirectory::getEntries*
+(anonymous namespace)::OPFSDirectory::insertDataFile*
+(anonymous namespace)::OPFSDirectory::insertDirectory*
+(anonymous namespace)::OPFSDirectory::removeChild*
+(anonymous namespace)::OPFSFile::close*
+(anonymous namespace)::OPFSFile::getSize*
+(anonymous namespace)::OPFSFile::open*
+(anonymous namespace)::OPFSFile::read*
+(anonymous namespace)::OPFSFile::setSize*
+(anonymous namespace)::OPFSFile::write*
 __fseeko
 __fseeko_unlocked
 __fstat
@@ -51,6 +61,8 @@ Com_ReloadEngine_f(idCmdArgs const&)
 Com_ReloadLanguage_f(idCmdArgs const&)
 Com_WriteConfig_f(idCmdArgs const&)
 Con_Dump_f(idCmdArgs const&)
+doMkdir*
+doOpen*
 dynCall_v
 emloopcb
 fclose
@@ -178,7 +190,7 @@ idDeclLocal::ParseLocal()
 idDeclLocal::Purge()
 idDeclLocal::Reload()
 idDeclLocal::Touch() const
-idDeclManagerLocal::BeginLevelLoad()
+idDeclManagerLocal::BeginLevelLoad(bool)
 idDeclManagerLocal::DeclByIndex(declType_t, int, bool)
 idDeclManagerLocal::EndLevelLoad()
 idDeclManagerLocal::FindMaterial(char const*, bool)
@@ -613,5 +625,25 @@ unzOpenInternal(void const*, zlib_filefunc64_32_def_s*, int)
 unzReadCurrentFile
 unzReOpen
 unzSetOffset64
-writeAtOffset(OffsetHandling, unsigned int, __wasi_ciovec_t const*, unsigned long, unsigned long*, unsigned long long)
+wasmfs::DataFile::Handle::close*
+wasmfs::DataFile::Handle::open*
+wasmfs::DataFile::Handle::read*
+wasmfs::DataFile::Handle::setSize*
+wasmfs::DataFile::Handle::write*
+wasmfs::Directory::Handle::getChild*
+wasmfs::Directory::Handle::getChild*
+wasmfs::Directory::Handle::getEntries*
+wasmfs::Directory::Handle::insertDataFile*
+wasmfs::Directory::Handle::insertDirectory*
+wasmfs::Directory::Handle::removeChild*
+wasmfs::OpenFileState::create*
+wasmfs::path::(anonymous namespace)::doParseFile*
+wasmfs::path::(anonymous namespace)::doParseParent*
+wasmfs::path::(anonymous namespace)::getChild*
+wasmfs::path::getFileAt*
+wasmfs::path::parseFile*
+wasmfs::path::parseParent*
+wasmfs_create_directory
+wasmfs_unmount
+writeAtOffset*
 WriteString(char const*, idFile*)
