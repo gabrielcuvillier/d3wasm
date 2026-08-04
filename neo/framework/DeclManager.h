@@ -267,7 +267,7 @@ public:
 	virtual void			Shutdown( void ) = 0;
 	virtual void			Reload( bool force ) = 0;
 
-	virtual void			BeginLevelLoad() = 0;
+	virtual void			BeginLevelLoad(bool newMap) = 0;
 	virtual void			EndLevelLoad() = 0;
 
 							// Registers a new decl type.

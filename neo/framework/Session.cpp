@@ -36,6 +36,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "renderer/ModelManager.h"
 
 #include "framework/Session_local.h"
+#include "renderer/Image.h"
 
 #ifdef __EMSCRIPTEN__
 #include "emscripten.h"
@@ -1537,18 +1538,22 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
   }
 #endif
 
-  // set the loading gui that we will wipe to
-  LoadLoadingGui(mapString);
+  declManager->BeginLevelLoad(!reloadingSameMap);
 
   // note which media we are going to need to load
   if ( !reloadingSameMap ) {
-    declManager->BeginLevelLoad();
+    common->Printf("INSIDE LEVEL LOAD = TRUE\n");
     renderSystem->BeginLevelLoad();
     soundSystem->BeginLevelLoad();
   }
 
   uiManager->BeginLevelLoad();
-  uiManager->Reload(true);
+
+  // Touch Engine Data
+  TouchEngineData();
+
+  // set the loading gui that we will wipe to
+  LoadLoadingGui(mapString);
 
   // cause prints to force screen updates as a pacifier,
   // and draw the loading gui instead of game draws
@@ -1622,6 +1627,9 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
     game->InitFromNewMap(fullMapName + ".map", rw, sw, /*idAsyncNetwork::server.IsActive()*/ false,
                          idAsyncNetwork::client.IsActive(), Sys_Milliseconds());
   }
+  // GAMESTATE = ACTIVE
+
+  common->Printf("About to Spawn Player\n");
 
   if ( !idAsyncNetwork::IsActive() && !loadingSaveGame ) {
     // spawn players
@@ -1630,16 +1638,23 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
     }
   }
 
+  // Remove all the unecessary GUIs
+  uiManager->EndLevelLoad();
+
+  // The reload the existing ones to reset everything
+  uiManager->Reload(true);
+
+  declManager->EndLevelLoad();
+
   // actually purge/load the media
   if ( !reloadingSameMap ) {
-    declManager->EndLevelLoad();
     renderSystem->EndLevelLoad();
     soundSystem->EndLevelLoad(mapString.c_str());
 #ifndef __EMSCRIPTEN__
     SetBytesNeededForMapLoad(mapString.c_str(), fileSystem->GetReadCount());
 #endif
+    common->Printf("INSIDE LEVEL LOAD = FALSE\n");
   }
-  uiManager->EndLevelLoad();
 
   if ( !idAsyncNetwork::IsActive() && !loadingSaveGame ) {
     // run a few frames to allow everything to settle
@@ -3403,6 +3418,7 @@ idSessionLocal::TouchEngineData
 ================
 */
 void idSessionLocal::TouchEngineData() {
+  common->Printf("TouchEngineData\n");
   globalImages->ForceLoadImages(true);
   {
     // RenderSystem
@@ -3437,4 +3453,5 @@ void idSessionLocal::TouchEngineData() {
     }
   }
   globalImages->ForceLoadImages(false);
+  common->Printf("TouchEngineData End\n");
 }
