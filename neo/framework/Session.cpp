@@ -2965,6 +2965,8 @@ void idSessionLocal::Init() {
   if ( !guiMainMenu ) {
     guiMainMenu = uiManager->FindGui("guis/demo_mainmenu.gui", true, false, true);
     demoversion = ( guiMainMenu != NULL );
+  }
+  if (guiMainMenu) {
     guiMainMenu->SetGlobal(true);
   }
   guiMainMenu_MapList = uiManager->AllocListGUI();
