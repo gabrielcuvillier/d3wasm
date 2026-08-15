@@ -383,6 +383,7 @@ idUserInterfaceLocal::idUserInterfaceLocal() {
 	time = 0;
 	refs = 1;
 	timeStamp = 0;
+	global = false;
 }
 
 idUserInterfaceLocal::~idUserInterfaceLocal() {

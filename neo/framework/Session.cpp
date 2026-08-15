@@ -948,8 +948,10 @@ void idSessionLocal::StartPlayingRenderDemo(idStr demoName) {
   // bring up the loading screen manually, since demos won't
   // call ExecuteMapChange()
   guiLoading = uiManager->FindGui("guis/map/loading.gui", true, false, true);
-  if (guiLoading)
+  if (guiLoading) {
     guiLoading->SetStateString("demo", common->GetLanguageDict()->GetString("#str_02087"));
+    guiLoading->SetGlobal(true);
+  }
   readDemo = new idDemoFile;
   demoName.DefaultFileExtension(".demo");
   if ( !readDemo->OpenForReading(demoName)) {
@@ -965,8 +967,9 @@ void idSessionLocal::StartPlayingRenderDemo(idStr demoName) {
   insideExecuteMapChange = true;
   UpdateScreen();
   insideExecuteMapChange = false;
-  if (guiLoading)
+  if (guiLoading) {
     guiLoading->SetStateString("demo", "");
+  }
 
   // setup default render demo settings
   // that's default for <= Doom3 v1.1
@@ -1369,11 +1372,13 @@ void idSessionLocal::LoadLoadingGui(const char* mapName) {
   else {
     guiLoading = uiManager->FindGui("guis/map/loading.gui", true, false, true);
   }
-  globalImages->ForceLoadImages(false);
 
   if (guiLoading) {
     guiLoading->SetStateFloat("map_loading", 0.0f);
+    uiManager->Touch(guiLoading->Name());
   }
+  globalImages->ForceLoadImages(false);
+
 
 }
 
@@ -2966,6 +2971,7 @@ void idSessionLocal::Init() {
   if ( !guiMainMenu ) {
     guiMainMenu = uiManager->FindGui("guis/demo_mainmenu.gui", true, false, true);
     demoversion = ( guiMainMenu != NULL );
+    guiMainMenu->SetGlobal(true);
   }
   guiMainMenu_MapList = uiManager->AllocListGUI();
   guiMainMenu_MapList->Config(guiMainMenu, "mapList");
@@ -2975,6 +2981,9 @@ void idSessionLocal::Init() {
   guiGameOver = uiManager->FindGui("guis/gameover.gui", true, false, true);
 #endif
   guiMsg = uiManager->FindGui("guis/msg.gui", true, false, true);
+  if (guiMsg) {
+    guiMsg->SetGlobal(true);
+  }
 #ifndef __EMSCRIPTEN__
   guiIntro = uiManager->FindGui("guis/intro.gui", true, false, true);
 #endif

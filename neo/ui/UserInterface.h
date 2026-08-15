@@ -118,6 +118,7 @@ public:
 	virtual void				SetCursor( float x, float y ) = 0;
 	virtual float				CursorX() = 0;
 	virtual float				CursorY() = 0;
+	virtual void				SetGlobal( bool b ) = 0;
 };
 
 

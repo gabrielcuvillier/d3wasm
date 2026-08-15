@@ -90,6 +90,7 @@ public:
 	void						ClearRefs() { refs = 0; }
 	void						AddRef() { refs++; }
 	int							GetRefs() { return refs; }
+	void						SetGlobal( bool b ) { global = b; }
 
 	void						RecurseSetKeyBindingNames( idWindow *window );
 	idStr						&GetPendingCmd() { return pendingCmd; };
@@ -102,6 +103,7 @@ private:
 	bool						loading;
 	bool						interactive;
 	bool						uniqued;
+	bool						global;
 
 	idDict						state;
 	idWindow *					desktop;
