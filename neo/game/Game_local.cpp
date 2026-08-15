@@ -1322,7 +1322,10 @@ bool idGameLocal::InitFromSaveGame( const char *mapName, idRenderWorld *renderWo
 
 	// precache the player
 	FindEntityDef("player_doommarine", false);
-	session->PacifierUpdate();
+
+	if (gamestate == GAMESTATE_STARTUP) {
+		session->PacifierUpdate();
+	}
 
 	// Precache map script namespace, using Worldentity
 	idMapEntity *worldEnt = mapFile->GetEntity( 0 );
