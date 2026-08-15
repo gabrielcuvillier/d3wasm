@@ -105,6 +105,7 @@ public:
 	virtual					~idDeclLocal() {};
 	virtual const char *		GetName( void ) const;
 	virtual declType_t			GetType( void ) const;
+	virtual const char*			GetTypeName( void ) const;
 	virtual declState_t			GetState( void ) const;
 	virtual bool				IsImplicit( void ) const;
 	virtual bool				IsValid( void ) const;
@@ -162,6 +163,7 @@ private:
 	int							checksum;				// checksum of the decl text
 	declType_t					type;					// decl type
 	declState_t					declState;				// decl state
+	bool						parseCompleted;			//
 	int							index;					// index in the per-type list
 
 	bool						parsedOutsideLevelLoad;	// these decls will never be purged
@@ -199,7 +201,8 @@ public:
 	virtual void				Init( void );
 	virtual void				Shutdown( void );
 	virtual void				Reload( bool force );
-	virtual void				BeginLevelLoad(bool newMap);
+	virtual void				CleanupForLevelLoad();
+	virtual void				BeginLevelLoad();
 	virtual void				EndLevelLoad();
 	virtual void				RegisterDeclType( const char *typeName, declType_t type, idDecl *(*allocator)( void ) );
 	virtual void				RegisterDeclFolder( const char *folder, const char *extension, declType_t defaultType );
@@ -241,8 +244,6 @@ public:
 
 	idDeclType *				GetDeclType( int type ) const { return declTypes[type]; }
 	const idDeclFile *			GetImplicitDeclFile( void ) const { return &implicitDecls; }
-
-	void						TouchDeclForLoad( idDeclLocal *decl );
 
 private:
 	idList<idDeclType *>		declTypes;
@@ -772,6 +773,7 @@ int idDeclFile::LoadAndParse() {
 		newDecl->sourceTextLength = size;
 		newDecl->sourceLine = sourceLine;
 		newDecl->declState = DS_UNPARSED;
+		newDecl->parseCompleted = false;
 
 		// if it is currently in use, reparse it immedaitely
 		if ( reparse ) {
@@ -938,25 +940,42 @@ void idDeclManagerLocal::Reload( bool force ) {
 
 /*
 ===================
-idDeclManagerLocal::BeginLevelLoad
+idDeclManagerLocal::CleanupForLevelLoad
 ===================
 */
-void idDeclManagerLocal::BeginLevelLoad(bool newMap) {
-	insideLevelLoad = true;
-
-	// If this is the same map, do not purge anything
-	if (!newMap)
-		return;
-
+void idDeclManagerLocal::CleanupForLevelLoad() {
+	common->Printf( "----- Cleaning up Decls -----\n" );
 	// clear all the referencedThisLevel flags and purge all the data
 	// so the next reference will cause a reparse
 	for ( int i = 0; i < DECL_MAX_TYPES; i++ ) {
 		int	num = linearLists[i].Num();
 		for ( int j = 0 ; j < num ; j++ ) {
 			idDeclLocal *decl = linearLists[i][j];
+			// mark the Decl as not being referenced by the current level
+			decl->referencedThisLevel = false;
+
+			// never purge Decls that were referenced outside level load,
+			// like the console and menu graphics
+			if ( decl->parsedOutsideLevelLoad ) {
+				// but remove their outside level load flag. So that they need to be touched at least once
+				// in order to be kept afterward
+				decl->parsedOutsideLevelLoad = false;
+				continue;
+			}
+
+			// Purge the Decl if it was not referenced outside of a level load
 			decl->Purge();
 		}
 	}
+}
+
+/*
+===================
+idDeclManagerLocal::BeginLevelLoad
+===================
+*/
+void idDeclManagerLocal::BeginLevelLoad() {
+	insideLevelLoad = true;
 }
 
 /*
@@ -967,8 +986,17 @@ idDeclManagerLocal::EndLevelLoad
 void idDeclManagerLocal::EndLevelLoad() {
 	insideLevelLoad = false;
 
-	// we don't need to do anything here, but the image manager, model manager,
-	// and sound sample manager will need to free media that was not referenced
+	// purge the Decls that are neither referenced by current level nor loaded outside of a level
+	for ( int i = 0; i < DECL_MAX_TYPES; i++ ) {
+		int	num = linearLists[i].Num();
+		for ( int j = 0 ; j < num ; j++ ) {
+			idDeclLocal *decl = linearLists[i][j];
+			if (decl->declState == DS_PARSED && !decl->referencedThisLevel && !decl->parsedOutsideLevelLoad) {
+				common->Printf("[DeclManager] Purging standalone Decl %s %s\n", decl->GetTypeName(), decl->GetName());
+				decl->Purge();
+			}
+		}
+	}
 }
 
 /*
@@ -1156,16 +1184,67 @@ const idDecl *idDeclManagerLocal::FindType( declType_t type, const char *name, b
 	// if it hasn't been parsed yet, parse it now
 	if ( decl->declState == DS_UNPARSED ) {
 		decl->ParseLocal();
-		decl->parsedOutsideLevelLoad = decl->parsedOutsideLevelLoad || !insideLevelLoad;
+
+		// mark it as referenced
+		decl->referencedThisLevel = true;
+		decl->everReferenced = true;
+
+		// setup the outside level flag, which is the opposite of inside level flag
+		decl->parsedOutsideLevelLoad = !insideLevelLoad;
+
+		if ( insideLevelLoad ) {
+			//common->Printf("[DeclManager] New Level Decl %s %s\n", decl->GetTypeName(), decl->GetName());
+		} else {
+			common->Printf("[DeclManager] New Outside Decl %s %s\n", decl->GetTypeName(), decl->GetName());
+		}
 	} else {
-		if (!decl->referencedThisLevel) {
-			TouchDeclForLoad(decl);
+		if (!decl->parseCompleted) {
+			return decl->self ;
+		}
+
+		// check whether this is the first time this Decl is referenced
+		bool firstTimeReferenced = !decl->referencedThisLevel;
+
+		// mark it as referenced
+		decl->referencedThisLevel = true;
+		decl->everReferenced = true;
+
+		// if we are inside a level load, we may need to "absorb" any outside level referenced Decl
+		// this is intended behavior!
+		if ( insideLevelLoad ) {
+			if (decl->parsedOutsideLevelLoad) {
+				common->Printf("[DeclManager] Absorb Decl to Level %s %s\n", decl->GetTypeName(), decl->GetName());
+				decl->parsedOutsideLevelLoad = false;
+			} else {
+				if (firstTimeReferenced) {
+					common->Printf("[DeclManager] Define Decl to Level %s %s\n", decl->GetTypeName(), decl->GetName());
+				}
+			}
+		}
+		// if we are not in a level load...
+		else {
+			// ...and it is not an Outside decl
+			if (!decl->parsedOutsideLevelLoad) {
+				// ...and it is the first time we reference it, set it as outside
+				if (firstTimeReferenced) {
+					common->Printf("[DeclManager] Define Decl as Outside %s %s\n", decl->GetTypeName(), decl->GetName());
+					decl->parsedOutsideLevelLoad = true;
+				} else {
+					// if it has already been referenced, do not touch its outside status as it might has been referenced from the level
+				}
+			} else {
+				// if it is an outside decl, this is just a regular outside reference. Do not do anything
+			}
+		}
+
+		// If it is the first time we reference it, we need to touch it in order to refresh its dependent Decls
+		if (firstTimeReferenced) {
+			//common->Printf("[DeclManager] Touching Decl %s %s\n", decl->GetTypeName(), decl->GetName());
+			if (decl->self) {
+				decl->self->TouchData();
+			}
 		}
 	}
-
-	// mark it as referenced
-	decl->referencedThisLevel = true;
-	decl->everReferenced = true;
 
 	return decl->self;
 }
@@ -1233,10 +1312,6 @@ const idDecl *idDeclManagerLocal::DeclByIndex( declType_t type, int index, bool 
 
 	if ( forceParse && decl->declState == DS_UNPARSED ) {
 		decl->ParseLocal();
-	} else {
-		if (forceParse && !decl->referencedThisLevel) {
-			TouchDeclForLoad(decl);
-		}
 	}
 
 	return decl->self;
@@ -1423,6 +1498,7 @@ idDecl *idDeclManagerLocal::CreateNewDecl( declType_t type, const char *name, co
 	decl->name = canonicalName;
 	decl->type = type;
 	decl->declState = DS_UNPARSED;
+	decl->parseCompleted = false;
 	decl->AllocateSelf();
 	idStr header = declTypes[typeIndex]->typeName;
 	idStr defaultText = decl->self->DefaultDefinition();
@@ -1763,6 +1839,7 @@ idDeclLocal *idDeclManagerLocal::FindTypeWithoutParsing( declType_t type, const 
 	decl->name = canonicalName;
 	decl->type = type;
 	decl->declState = DS_UNPARSED;
+	decl->parseCompleted = false;
 	decl->textSource = NULL;
 	decl->textLength = 0;
 	decl->sourceFile = &implicitDecls;
@@ -1776,23 +1853,6 @@ idDeclLocal *idDeclManagerLocal::FindTypeWithoutParsing( declType_t type, const 
 
 	return decl;
 }
-
-/*
-=================
-idDeclManagerLocal::TouchDecl
-=================
-*/
-void idDeclManagerLocal::TouchDeclForLoad( idDeclLocal* decl ) {
-	common->Printf("[DeclManager] Touching DECL %d %s\n", decl->GetType(), decl->GetName());
-	decl->referencedThisLevel = true;
-	decl->everReferenced = true;
-	decl->parsedOutsideLevelLoad = decl->parsedOutsideLevelLoad || !insideLevelLoad;
-	if (decl->self) {
-		decl->self->TouchData();
-	}
-}
-
-
 
 /*
 ====================================================================================
@@ -1820,6 +1880,7 @@ idDeclLocal::idDeclLocal( void ) {
 	type = DECL_ENTITYDEF;
 	index = 0;
 	declState = DS_UNPARSED;
+	parseCompleted = false;
 	parsedOutsideLevelLoad = false;
 	referencedThisLevel = false;
 	everReferenced = false;
@@ -1844,6 +1905,15 @@ idDeclLocal::GetType
 */
 declType_t idDeclLocal::GetType( void ) const {
 	return type;
+}
+
+/*
+=================
+idDeclLocal::GetTypeName
+=================
+*/
+const char * idDeclLocal::GetTypeName( void ) const {
+	return declManagerLocal.declTypes[(int)type]->typeName.c_str();
 }
 
 /*
@@ -1880,6 +1950,7 @@ idDeclLocal::Invalidate
 */
 void idDeclLocal::Invalidate( void ) {
 	declState = DS_UNPARSED;
+	parseCompleted = false;
 }
 
 /*
@@ -2110,7 +2181,7 @@ void idDeclLocal::MakeDefault() {
 	static int recursionLevel;
 	const char *defaultText;
 
-	declManagerLocal.MediaPrint( "DEFAULTED\n" );
+	declManagerLocal.MediaPrint( "DEFAULTED %s %s\n", GetTypeName(), GetName() );
 	declState = DS_DEFAULTED;
 
 	AllocateSelf();
@@ -2130,6 +2201,8 @@ void idDeclLocal::MakeDefault() {
 
 	// parse
 	self->Parse( defaultText, strlen( defaultText ) );
+
+	parseCompleted = true;
 
 	// we could still eventually hit the recursion if we have enough Error() calls inside Parse...
 	--recursionLevel;
@@ -2240,12 +2313,12 @@ void idDeclLocal::ParseLocal( void ) {
 	if ( textSource == NULL ) {
 		generatedDefaultText = self->SetDefaultText();
 		if (generatedDefaultText) {
-			//common->Printf( "[DeclManager] parsing (generated) %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
+			//common->Printf( "[DeclManager] parsing (generated) %s %s\n", GetTypeName(), GetName() );
 		} else {
-			//common->Printf( "[DeclManager] defauled %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
+			//common->Printf( "[DeclManager] DEFAULTED %s %s\n", GetTypeName(), GetName() );
 		}
 	} else {
-		//common->Printf( "[DeclManager] parsing %s %s\n", declManagerLocal.declTypes[type]->typeName.c_str(), name.c_str() );
+		//common->Printf( "[DeclManager] parsing %s %s\n", GetTypeName(), GetName() );
 	}
 
 	// indent for DEFAULTED or media file references
@@ -2265,6 +2338,8 @@ void idDeclLocal::ParseLocal( void ) {
 	GetText( declText );
 	self->Parse( declText, GetTextLength() );
 
+	parseCompleted = true;
+
 	// free generated text
 	if ( generatedDefaultText ) {
 		Mem_Free( textSource );
@@ -2281,18 +2356,12 @@ idDeclLocal::Purge
 =================
 */
 void idDeclLocal::Purge( void ) {
-	// never purge things that were referenced outside level load,
-	// like the console and menu graphics
-	if ( parsedOutsideLevelLoad ) {
-		referencedThisLevel = false;
-		return;
-	}
-
-	referencedThisLevel = false;
+	// Make them "default"
 	MakeDefault();
 
 	// the next Find() for this will re-parse the real data
 	declState = DS_UNPARSED;
+	parseCompleted = false;
 }
 
 /*

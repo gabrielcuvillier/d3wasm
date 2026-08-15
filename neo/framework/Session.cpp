@@ -1543,19 +1543,20 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
   }
 #endif
 
-  declManager->BeginLevelLoad(!reloadingSameMap);
 
   // note which media we are going to need to load
   if ( !reloadingSameMap ) {
-    common->Printf("INSIDE LEVEL LOAD = TRUE\n");
-    renderSystem->BeginLevelLoad();
+    declManager->CleanupForLevelLoad();
     soundSystem->BeginLevelLoad();
+    renderSystem->BeginLevelLoad();
+
+    // Touch Engine Data
+    TouchEngineData();
+
+    declManager->BeginLevelLoad();
   }
 
   uiManager->BeginLevelLoad();
-
-  // Touch Engine Data
-  TouchEngineData();
 
   // set the loading gui that we will wipe to
   LoadLoadingGui(mapString);
@@ -1632,9 +1633,6 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
     game->InitFromNewMap(fullMapName + ".map", rw, sw, /*idAsyncNetwork::server.IsActive()*/ false,
                          idAsyncNetwork::client.IsActive(), Sys_Milliseconds());
   }
-  // GAMESTATE = ACTIVE
-
-  common->Printf("About to Spawn Player\n");
 
   if ( !idAsyncNetwork::IsActive() && !loadingSaveGame ) {
     // spawn players
@@ -1646,13 +1644,9 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
   // Remove all the unecessary GUIs
   uiManager->EndLevelLoad();
 
-  // The reload the existing ones to reset everything
-  uiManager->Reload(true);
-
-  declManager->EndLevelLoad();
-
   // actually purge/load the media
   if ( !reloadingSameMap ) {
+    declManager->EndLevelLoad();
     renderSystem->EndLevelLoad();
     soundSystem->EndLevelLoad(mapString.c_str());
 #ifndef __EMSCRIPTEN__
@@ -2108,11 +2102,6 @@ bool idSessionLocal::LoadGame(const char* saveName) {
   memFile->SetForceOwnership(true);
   savegameFile = memFile;
 #endif
-
-  if ( savegameFile == NULL ) {
-    common->Warning("Couldn't open savegame file %s", in.c_str());
-    return false;
-  }
 
   loadingSaveGame = true;
 

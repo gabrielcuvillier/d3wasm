@@ -107,6 +107,7 @@ public:
 	virtual					~idDeclBase() {};
 	virtual const char *	GetName( void ) const = 0;
 	virtual declType_t		GetType( void ) const = 0;
+	virtual const char *	GetTypeName( void ) const = 0;
 	virtual declState_t		GetState( void ) const = 0;
 	virtual bool			IsImplicit( void ) const = 0;
 	virtual bool			IsValid( void ) const = 0;
@@ -148,6 +149,8 @@ public:
 
 							// Returns the decl type.
 	declType_t				GetType( void ) const { return base->GetType(); }
+
+	const char *			GetTypeName( void ) const { return base->GetTypeName(); }
 
 							// Returns the decl state which is usefull for finding out if a decl defaulted.
 	declState_t				GetState( void ) const { return base->GetState(); }
@@ -267,7 +270,8 @@ public:
 	virtual void			Shutdown( void ) = 0;
 	virtual void			Reload( bool force ) = 0;
 
-	virtual void			BeginLevelLoad(bool newMap) = 0;
+	virtual void			CleanupForLevelLoad( void ) = 0;
+	virtual void			BeginLevelLoad() = 0;
 	virtual void			EndLevelLoad() = 0;
 
 							// Registers a new decl type.

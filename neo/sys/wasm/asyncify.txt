@@ -89,9 +89,9 @@ getU4(idFile*)
 getVX(idFile*)
 id*::ReadFromSaveGame*(idFile*)
 id*::Restore*(idRestoreGame*)
-id*RestorePState*(idRestoreGame*)
 id*::Save*(idSaveGame*)*
 id*::WriteToSaveGame*(idFile*)*
+id*RestorePState*(idRestoreGame*)
 id*SavePState*(idSaveGame*)
 idAASFileLocal::Load(idStr const&, unsigned int)
 idAASFileManagerLocal::LoadAAS(char const*, unsigned int)
@@ -194,7 +194,8 @@ idDeclLocal::ParseLocal()
 idDeclLocal::Purge()
 idDeclLocal::Reload()
 idDeclLocal::Touch() const
-idDeclManagerLocal::BeginLevelLoad(bool)
+idDeclManagerLocal::BeginLevelLoad()
+idDeclManagerLocal::CleanupForLevelLoad()
 idDeclManagerLocal::DeclByIndex(declType_t, int, bool)
 idDeclManagerLocal::EndLevelLoad()
 idDeclManagerLocal::FindMaterial(char const*, bool)
@@ -206,7 +207,6 @@ idDeclManagerLocal::RegisterDeclFolder(char const*, char const*, declType_t)
 idDeclManagerLocal::Reload(bool)
 idDeclManagerLocal::ReloadDecls_f(idCmdArgs const&)
 idDeclManagerLocal::TouchDecl_f(idCmdArgs const&)
-idDeclManagerLocal::TouchDeclForLoad(idDeclLocal*)
 idDeclModelDef::Parse(char const*, int)
 idDeclModelDef::ParseAnim(idLexer&, int)
 idDeclModelDef::TouchData() const
@@ -506,6 +506,7 @@ idUserInterfaceLocal::ReadFromDemoFile(idDemoFile*)
 idUserInterfaceLocal::Redraw(int)
 idUserInterfaceLocal::StateChanged(int, bool)
 idUserInterfaceManagerLocal::CheckGui(char const*) const
+idUserInterfaceManagerLocal::EndLevelLoad()
 idUserInterfaceManagerLocal::FindGui(char const*, bool, bool, bool)
 idUserInterfaceManagerLocal::GetGuiSource(char const*)
 idUserInterfaceManagerLocal::Init()
@@ -635,7 +636,6 @@ wasmfs::DataFile::Handle::open*
 wasmfs::DataFile::Handle::read*
 wasmfs::DataFile::Handle::setSize*
 wasmfs::DataFile::Handle::write*
-wasmfs::Directory::Handle::getChild*
 wasmfs::Directory::Handle::getChild*
 wasmfs::Directory::Handle::getEntries*
 wasmfs::Directory::Handle::insertDataFile*
