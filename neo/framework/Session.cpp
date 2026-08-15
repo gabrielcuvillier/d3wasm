@@ -2091,6 +2091,11 @@ bool idSessionLocal::LoadGame(const char* saveName) {
   // only allow loads from the game directory because we don't want a base game to load
   idStr game = cvarSystem->GetCVarString("fs_game");
   savegameFile = fileSystem->OpenFileRead(in, true, game.Length() ? game : NULL);
+
+  if ( savegameFile == NULL ) {
+    common->Warning("Couldn't open savegame file %s", in.c_str());
+    return false;
+  }
 #ifndef __EMSCRIPTEN__
 #else
   // Hijack the savegame file into memory instead
