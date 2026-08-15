@@ -100,7 +100,7 @@ const idMaterial*   idUserInterfaceManagerLocal::GetThumbImage() {
 void idUserInterfaceManagerLocal::Touch( const char *name ) {
 	idUserInterface *gui = Alloc();
 	gui->InitFromFile( name );
-//	delete gui;
+	DeAlloc( gui );
 }
 
 void idUserInterfaceManagerLocal::WritePrecacheCommands( idFile *f ) {
@@ -122,12 +122,8 @@ void idUserInterfaceManagerLocal::BeginLevelLoad() {
 	int c = guis.Num();
 	for ( int i = 0; i < c; i++ ) {
 		if ( (guis[ i ]->GetDesktop()->GetFlags() & WIN_MENUGUI) == 0 ) {
+			common->Printf( "[UIManager] clearing refs %s.\n", guis[ i ]->Name() ? guis[ i ]->Name() : "<NULL>" );
 			guis[ i ]->ClearRefs();
-			/*
-			delete guis[ i ];
-			guis.RemoveIndex( i );
-			i--; c--;
-			*/
 		}
 	}
 }
@@ -135,6 +131,10 @@ void idUserInterfaceManagerLocal::BeginLevelLoad() {
 void idUserInterfaceManagerLocal::EndLevelLoad() {
 	int c = guis.Num();
 	for ( int i = 0; i < c; i++ ) {
+		if ( guis[i]->global ) {
+			common->Printf( "[UIManager] keeping global gui as is %s.\n", guis[i]->GetSourceFile() );
+			continue;
+		}
 		if ( guis[i]->GetRefs() == 0 ) {
 			//common->Printf( "purging %s.\n", guis[i]->GetSourceFile() );
 
@@ -148,10 +148,18 @@ void idUserInterfaceManagerLocal::EndLevelLoad() {
 				}
 			}
 			if ( remove ) {
+				common->Printf( "[UIManager] purging gui %s.\n", guis[i]->GetSourceFile() );
 				delete guis[ i ];
 				guis.RemoveIndex( i );
 				i--; c--;
+			} else {
+				common->Printf( "[UIManager] reloading gui referenced by material %s.\n", guis[i]->GetSourceFile() );
+				guis[i]->InitFromFile( guis[i]->GetSourceFile() );
 			}
+		}
+		else {
+			common->Printf( "[UIManager] reloading %s.\n", guis[i]->GetSourceFile() );
+			guis[i]->InitFromFile( guis[i]->GetSourceFile() );
 		}
 	}
 }
@@ -447,6 +455,8 @@ bool idUserInterfaceLocal::InitFromFile( const char *qpath, bool rebuild, bool c
 
 	source = qpath;
 	state.Set( "text", "Test Text!" );
+
+	//common->DPrintf( "[UIManager] Loading GUI: %s\n", qpath );
 
 	idParser src( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
 
