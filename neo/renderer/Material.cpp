@@ -2828,4 +2828,7 @@ void idMaterial::TouchData( void ) const {
 			}
 		}
 	}
+	if (gui) {
+		uiManager->Touch(gui->Name());
+	}
 }
