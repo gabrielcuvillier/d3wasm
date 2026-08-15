@@ -3427,7 +3427,6 @@ idSessionLocal::TouchEngineData
 ================
 */
 void idSessionLocal::TouchEngineData() {
-  common->Printf("TouchEngineData\n");
   globalImages->ForceLoadImages(true);
   {
     // RenderSystem
@@ -3448,11 +3447,14 @@ void idSessionLocal::TouchEngineData() {
       matWipe2Material->Touch();
     }
 
-    // guiMainMenu;
+    if (guiMainMenu) {
+      uiManager->Touch( guiMainMenu->Name() );
+    }
+
+    // Intentionally do not do anything with those:
     // guiRestartMenu;
     // guiLoading;
     // guiIntro;
-    // guiGameOver;
 
     if (blankLevelShotMaterial) {
       blankLevelShotMaterial->Touch();
@@ -3462,5 +3464,4 @@ void idSessionLocal::TouchEngineData() {
     }
   }
   globalImages->ForceLoadImages(false);
-  common->Printf("TouchEngineData End\n");
-}
+  }
