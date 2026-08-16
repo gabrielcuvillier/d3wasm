@@ -4484,22 +4484,21 @@ static void ActionScanCalls(const char *funcname,
 
 	if (!string2) {
 		common->DPrintf(
-			"%s (%s) %s \"%s\" at %s:%d\n",
-			funcname,
+			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d\n)",
+			string1,
 			optype,
 			eventname,
-			string1,
+			funcname,
 			filename,
 			line
 		);
 	} else {
 		common->DPrintf(
-			"%s calls (%s) %s \"%s\" \"%s\" at %s:%d\n",
-			funcname,
+			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d\n)",
+			string2,
 			optype,
 			eventname,
-			string1,
-			string2,
+			funcname,
 			filename,
 			line
 		);
@@ -4922,4 +4921,5 @@ void idGameLocal::TouchEngineData() {
 	if (aas_types) {
 		aas_types->Touch();
 	}
+	mpGame.Reset();
 }
