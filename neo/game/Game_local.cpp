@@ -4484,7 +4484,7 @@ static void ActionScanCalls(const char *funcname,
 
 	if (!string2) {
 		common->DPrintf(
-			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d\n)",
+			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d)\n",
 			string1,
 			optype,
 			eventname,
@@ -4494,7 +4494,7 @@ static void ActionScanCalls(const char *funcname,
 		);
 	} else {
 		common->DPrintf(
-			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d\n)",
+			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d)\n",
 			string2,
 			optype,
 			eventname,
