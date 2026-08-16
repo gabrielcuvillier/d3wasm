@@ -1375,6 +1375,7 @@ void idSessionLocal::LoadLoadingGui(const char* mapName) {
 
   if (guiLoading) {
     guiLoading->SetStateFloat("map_loading", 0.0f);
+    guiLoading->SetGlobal(true);
     uiManager->Touch(guiLoading->Name());
   }
   globalImages->ForceLoadImages(false);
@@ -1641,8 +1642,12 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
     }
   }
 
-  // Remove all the unecessary GUIs
+  // Remove all the unecessary GUIs, and reload the other ones
   uiManager->EndLevelLoad();
+
+  if (guiLoading) {
+    guiLoading->SetGlobal(false);
+  }
 
   // actually purge/load the media
   if ( !reloadingSameMap ) {
