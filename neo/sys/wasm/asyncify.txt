@@ -3,6 +3,7 @@
 (anonymous namespace)::OPFSDirectory::getEntries*
 (anonymous namespace)::OPFSDirectory::insertDataFile*
 (anonymous namespace)::OPFSDirectory::insertDirectory*
+(anonymous namespace)::OPFSDirectory::insertMove*
 (anonymous namespace)::OPFSDirectory::removeChild*
 (anonymous namespace)::OPFSDirectory::~OPFSDirectory*
 (anonymous namespace)::OPFSFile::close*
@@ -13,6 +14,7 @@
 (anonymous namespace)::OPFSFile::setSize*
 (anonymous namespace)::OPFSFile::write*
 (anonymous namespace)::OPFSFile::~OPFSFile*
+__fdopen
 __fseeko
 __fseeko_unlocked
 __fstat
@@ -40,9 +42,12 @@ __wasi_fd_close
 __wasi_fd_read
 __wasi_fd_seek
 __wasi_fd_write
+_bisect_forward_serialno
+_fetch_and_process_packet
 _fetch_headers
 _get_next_page
 _get_prev_page_serial
+_initial_pcmoffset
 _ov_open1
 _ov_open2
 _seek_helper
@@ -79,10 +84,12 @@ fread_file_func
 FS_ReadOGG(void*, unsigned long, unsigned long, void*)
 FS_SeekOGG(void*, long long, int)
 fseek
+fseek64_file_func
 fwrite
 fwrite_file_func
 gameError*
 getbytes(idFile*, int)
+getcwd
 getF4(idFile*)
 getI2(idFile*)
 getI4(idFile*)
@@ -574,7 +581,10 @@ open
 opendir
 ov_open_callbacks
 ov_openFile(idFile*, OggVorbis_File*)
+ov_pcm_seek
 ov_raw_seek
+ov_read_filter
+ov_read_float
 R_AsyncScreenShot_f(idCmdArgs const&)
 R_Benchmark_f(idCmdArgs const&)
 R_InitMaterials()
@@ -611,6 +621,10 @@ Session_TimeDemo_f(idCmdArgs const&)
 Session_TimeDemoQuit_f(idCmdArgs const&)
 SoundReloadSounds_f(idCmdArgs const&)
 stat
+stdio_close
+stdio_read
+stdio_seek
+stdio_write
 Sys_FileTimeStamp(_IO_FILE*)
 Sys_ListFiles(char const*, char const*, idList<idStr>&)
 Sys_Mkdir(char const*)
@@ -620,6 +634,7 @@ unz64local_CheckCurrentFileCoherencyHeader(unz64_s*, unsigned int*, unsigned lon
 unz64local_getByte(zlib_filefunc64_32_def_s const*, void*, int*)
 unz64local_GetCurrentFileInfoInternal(void*, unz_file_info64_s*, unz_file_info64_internal_s*, char*, unsigned long, void*, unsigned long, char*, unsigned long)
 unz64local_getLong(zlib_filefunc64_32_def_s const*, void*, unsigned long*)
+unz64local_getLong64(zlib_filefunc64_32_def_s const*, void*, unsigned long long*)
 unz64local_getShort(zlib_filefunc64_32_def_s const*, void*, unsigned long*)
 unz64local_SearchCentralDir(zlib_filefunc64_32_def_s const*, void*)
 unz64local_SearchCentralDir64(zlib_filefunc64_32_def_s const*, void*)
@@ -639,6 +654,7 @@ unzSetOffset64
 wasmfs::DataFile::Handle::close*
 wasmfs::DataFile::Handle::flush*
 wasmfs::DataFile::Handle::open*
+wasmfs::DataFile::Handle::preloadFromJS*
 wasmfs::DataFile::Handle::read*
 wasmfs::DataFile::Handle::setSize*
 wasmfs::DataFile::Handle::write*
@@ -647,6 +663,7 @@ wasmfs::Directory::Handle::getEntries*
 wasmfs::Directory::Handle::insertDataFile*
 wasmfs::Directory::Handle::insertDirectory*
 wasmfs::Directory::Handle::removeChild*
+wasmfs::FileTable::FileTable()
 wasmfs::OpenFileState::create*
 wasmfs::path::(anonymous namespace)::doParseFile*
 wasmfs::path::(anonymous namespace)::doParseParent*
@@ -655,7 +672,10 @@ wasmfs::path::getFileAt*
 wasmfs::path::getFileFrom*
 wasmfs::path::parseFile*
 wasmfs::path::parseParent*
+wasmfs::WasmFS::preloadFiles()
+wasmfs::WasmFS::~WasmFS()
 wasmfs_create_directory
+wasmfs_flush
 wasmfs_unmount
 writeAtOffset*
 WriteString(char const*, idFile*)
