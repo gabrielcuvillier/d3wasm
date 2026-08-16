@@ -182,6 +182,8 @@ if (EMSCRIPTEN)
     add_link_options(-sINITIAL_HEAP=402653184) # 384MB. Going below might lead to crashes after a couple of levels played.
     add_link_options(-sASYNCIFY=1)
     add_link_options(-sASYNCIFY_DEBUG=0)
+    #add_link_options(-sASYNCIFY_ADVISE=1)
+    #add_link_options(-sASYNCIFY_IGNORE_INDIRECT=1)
     add_link_options(-sWASMFS=1)
     add_link_options(-sSTACK_SIZE=327680)  # 320K. Looks like to be enough. Maybe increase to 512K for a safety net ?
     add_link_options(-sASYNCIFY_ONLY=@${CMAKE_SOURCE_DIR}/sys/wasm/asyncify.txt)
