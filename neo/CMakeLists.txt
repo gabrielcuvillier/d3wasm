@@ -152,7 +152,7 @@ else ()
     add_compile_options(--use-port=sdl2)
     add_compile_options(--use-port=zlib)
     add_compile_options(--use-port=vorbis)
-    #add_compile_options(--use-port=ogg)
+    add_compile_options(--use-port=ogg)
     #add_compile_options(--use-port=libjpeg)
 
     # fix for OpenAL include dir
@@ -181,7 +181,7 @@ if (EMSCRIPTEN)
     add_link_options(--shell-file ${CMAKE_SOURCE_DIR}/sys/wasm/shell.html)
     add_link_options(-sINITIAL_HEAP=402653184) # 384MB. Going below might lead to crashes after a couple of levels played.
     add_link_options(-sASYNCIFY=1)
-    add_link_options(-sASYNCIFY_DEBUG=0)
+    #add_link_options(-sASYNCIFY_DEBUG=0)
     #add_link_options(-sASYNCIFY_ADVISE=1)
     #add_link_options(-sASYNCIFY_IGNORE_INDIRECT=1)
     add_link_options(-sWASMFS=1)
