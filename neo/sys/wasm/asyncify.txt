@@ -4,12 +4,15 @@
 (anonymous namespace)::OPFSDirectory::insertDataFile*
 (anonymous namespace)::OPFSDirectory::insertDirectory*
 (anonymous namespace)::OPFSDirectory::removeChild*
+(anonymous namespace)::OPFSDirectory::~OPFSDirectory*
 (anonymous namespace)::OPFSFile::close*
+(anonymous namespace)::OPFSFile::flush*
 (anonymous namespace)::OPFSFile::getSize*
 (anonymous namespace)::OPFSFile::open*
 (anonymous namespace)::OPFSFile::read*
 (anonymous namespace)::OPFSFile::setSize*
 (anonymous namespace)::OPFSFile::write*
+(anonymous namespace)::OPFSFile::~OPFSFile*
 __fseeko
 __fseeko_unlocked
 __fstat
@@ -116,7 +119,7 @@ idCmdSystem::ArgCompletion_MapName(idCmdArgs const&, void (*)(char const*))
 idCmdSystem::ArgCompletion_ModelName(idCmdArgs const&, void (*)(char const*))
 idCmdSystem::ArgCompletion_SaveGame(idCmdArgs const&, void (*)(char const*))
 idCmdSystemLocal::ArgCompletion(char const*, void (*)(char const*))
-idCmdSystemLocal::ArgCompletion_FolderExtension*
+idCmdSystemLocal::ArgCompletion_FolderExtension(idCmdArgs const&, void (*)(char const*), char const*, int, *)
 idCmdSystemLocal::BufferCommandText(cmdExecution_t, char const*)
 idCmdSystemLocal::Exec_f(idCmdArgs const&)
 idCmdSystemLocal::ExecuteCommandBuffer()
@@ -588,7 +591,7 @@ R_ScreenshotFilename(int&, char const*, idStr&)
 R_TouchGui_f(idCmdArgs const&)
 R_VidRestart_f(idCmdArgs const&)
 R_WriteTGA(char const*, unsigned char const*, int, int, bool)
-readAtOffset(OffsetHandling, unsigned int, __wasi_iovec_t const*, unsigned long, unsigned long*, unsigned long long)
+readAtOffset*
 readdir
 readlink
 ReadString(idFile*)
@@ -633,6 +636,7 @@ unzReadCurrentFile
 unzReOpen
 unzSetOffset64
 wasmfs::DataFile::Handle::close*
+wasmfs::DataFile::Handle::flush*
 wasmfs::DataFile::Handle::open*
 wasmfs::DataFile::Handle::read*
 wasmfs::DataFile::Handle::setSize*
@@ -647,6 +651,7 @@ wasmfs::path::(anonymous namespace)::doParseFile*
 wasmfs::path::(anonymous namespace)::doParseParent*
 wasmfs::path::(anonymous namespace)::getChild*
 wasmfs::path::getFileAt*
+wasmfs::path::getFileFrom*
 wasmfs::path::parseFile*
 wasmfs::path::parseParent*
 wasmfs_create_directory
