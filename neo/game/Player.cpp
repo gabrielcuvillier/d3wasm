@@ -5316,8 +5316,9 @@ void idPlayer::UpdatePDAInfo( bool updatePDASel ) {
 				}
 				if ( vid ) {
 #ifdef __EMSCRIPTEN__
-					const idMaterial* roq_shader = declManager->FindMaterial( vid->GetRoq(), false);
-					const idSoundShader* snd_shader = declManager->FindSound( vid->GetWave(), false);
+					const idMaterial* roq_shader = declManager->FindMaterial( vid->GetRoq(), true);
+					const idSoundShader* snd_shader = declManager->FindSound( vid->GetWave(), true);
+					const idMaterial* preview_shader = declManager->FindMaterial( vid->GetPreview(), true);
 #endif
 					pdaVideo = vid->GetRoq();
 					pdaVideoWave = vid->GetWave();
@@ -5351,8 +5352,8 @@ void idPlayer::UpdatePDAInfo( bool updatePDASel ) {
 				}
 				if ( aud ) {
 #ifdef __EMSCRIPTEN__
-					const idSoundShader* wave_shader = declManager->FindSound( aud->GetWave(), false);
-					const idMaterial* preview_shader = declManager->FindMaterial( aud->GetPreview(), false);
+					const idSoundShader* wave_shader = declManager->FindSound( aud->GetWave(), true);
+					const idMaterial* preview_shader = declManager->FindMaterial( aud->GetPreview(), true);
 #endif
 					pdaAudio = aud->GetWave();
 					objectiveSystem->SetStateString( "PDAAudioTitle", aud->GetAudioName() );

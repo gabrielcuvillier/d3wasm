@@ -535,7 +535,8 @@ bool idDeclVideo::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
-			declManager->FindMaterial(preview);
+			// Don't load the material now, this is done on purpose by the PDA manager
+			//declManager->FindMaterial(preview);
 			continue;
 		}
 
@@ -671,7 +672,8 @@ bool idDeclAudio::Parse( const char *text, const int textLength ) {
 		if ( !token.Icmp( "preview") ) {
 			src.ReadToken( &token );
 			preview = token;
-			declManager->FindMaterial(preview);
+			// Don't load the material now, this is done on purpose by the PDA manager
+			//declManager->FindMaterial(preview);
 			continue;
 		}
 
