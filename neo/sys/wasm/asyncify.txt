@@ -673,7 +673,7 @@ wasmfs::path::getFileFrom*
 wasmfs::path::parseFile*
 wasmfs::path::parseParent*
 wasmfs::WasmFS::preloadFiles()
-wasmfs::WasmFS::~WasmFS()
+wasmfs::WasmFS::~WasmFS*
 wasmfs_create_directory
 wasmfs_flush
 wasmfs_unmount
