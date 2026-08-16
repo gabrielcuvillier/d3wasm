@@ -169,6 +169,9 @@ void idMultiplayerGame::Reset() {
 	spectateGui = uiManager->FindGui( "guis/spectate.gui", true, false, true );
 	guiChat = uiManager->FindGui( "guis/chat.gui", true, false, true );
 	mainGui = uiManager->FindGui( "guis/mpmain.gui", true, false, true );
+	if (mainGui) {
+		mainGui->SetGlobal(true);
+	}
 	mapList = uiManager->AllocListGUI( );
 	mapList->Config( mainGui, "mapList" );
 	// set this GUI so that our Draw function is still called when it becomes the active/fullscreen GUI
@@ -177,6 +180,9 @@ void idMultiplayerGame::Reset() {
 	mainGui->SetStateInt( "com_machineSpec", cvarSystem->GetCVarInteger( "com_machineSpec" ) );
 	SetMenuSkin();
 	msgmodeGui = uiManager->FindGui( "guis/mpmsgmode.gui", true, false, true );
+	if (msgmodeGui) {
+		msgmodeGui->SetGlobal(true);
+	}
 	msgmodeGui->SetStateBool( "gameDraw", true );
 	ClearGuis();
 	ClearChatData();
