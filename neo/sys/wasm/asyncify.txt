@@ -45,6 +45,7 @@ _get_next_page
 _get_prev_page_serial
 _ov_open1
 _ov_open2
+_seek_helper
 ActionScanCalls(char const*, char const*, char const*, char const*, char const*, char const*, int)
 ASE_Load(char const*)
 call_zopen64
