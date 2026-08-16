@@ -249,6 +249,7 @@ int Sys_ListFiles( const char *directory, const char *extension, idStrList &list
 	return list.Num();
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 Posix_Cwd
@@ -264,6 +265,7 @@ const char *Posix_Cwd( void ) {
 
 	return cwd;
 }
+#endif
 
 /*
 =================
