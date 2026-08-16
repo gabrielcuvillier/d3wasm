@@ -192,10 +192,11 @@ if (EMSCRIPTEN)
     add_link_options(-sENVIRONMENT=web)
     add_link_options(-sSTRICT=1)
     add_link_options(-sINCOMING_MODULE_JS_API=canvas,monitorRunDependencies,preRun,postRun,print,printErr,setStatus)
+    add_link_options(-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE='$addRunDependency')
     add_link_options(--use-port=sdl2)
     add_link_options(--use-port=zlib)
     add_link_options(--use-port=vorbis)
-    #add_link_options(--use-port=ogg)
+    add_link_options(--use-port=ogg)
     #add_link_options(--use-port=libjpeg)
     add_link_options(-lopenal)    # OpenAL
     add_link_options(-lEGL)       # EGL
