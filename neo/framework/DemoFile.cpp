@@ -58,7 +58,9 @@ idDemoFile::~idDemoFile
 ================
 */
 idDemoFile::~idDemoFile() {
+#ifndef __EMSCRIPTEN__
 	Close();
+#endif
 }
 
 /*
