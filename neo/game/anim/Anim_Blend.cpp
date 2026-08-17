@@ -4993,6 +4993,7 @@ void idGameEdit::ANIM_CreateAnimFrame( const idRenderModel *model, const idMD5An
 	}
 }
 
+#ifndef __EMSCRIPTEN__
 /*
 =====================
 idGameEdit::ANIM_CreateMeshForAnim
@@ -5070,6 +5071,7 @@ idRenderModel *idGameEdit::ANIM_CreateMeshForAnim( idRenderModel *model, const c
 
 	return newmodel;
 }
+#endif
 
 
 /***********************************************************************

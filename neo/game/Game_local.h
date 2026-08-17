@@ -359,7 +359,9 @@ public:
 	bool					NextMap( void );	// returns wether serverinfo settings have been modified
 	static void				NextMap_f( const idCmdArgs &args );
 
+#ifndef __EMSCRIPTEN__
 	idMapFile *				GetLevelMap( void );
+#endif
 	const char *			GetMapName( void ) const;
 
 	int						NumAAS( void ) const;

@@ -260,7 +260,9 @@ public:
 	virtual int					ANIM_GetLength( const idMD5Anim *anim );
 	virtual int					ANIM_GetNumFrames( const idMD5Anim *anim );
 	virtual void				ANIM_CreateAnimFrame( const idRenderModel *model, const idMD5Anim *anim, int numJoints, idJointMat *frame, int time, const idVec3 &offset, bool remove_origin_offset );
+#ifndef __EMSCRIPTEN__
 	virtual idRenderModel *		ANIM_CreateMeshForAnim( idRenderModel *model, const char *classname, const char *animname, int frame, bool remove_origin_offset );
+#endif
 
 	// Articulated Figure calls for AF editor and Radiant.
 	virtual bool				AF_SpawnEntity( const char *fileName );
@@ -306,10 +308,9 @@ public:
 	virtual void				PlayerGetEyePosition( idVec3 &org ) const;
 
 	// In game map editing support.
-	virtual const idDict *		MapGetEntityDict( const char *name ) const;
 #ifndef __EMSCRIPTEN__
+	virtual const idDict *		MapGetEntityDict( const char *name ) const;
 	virtual void				MapSave( const char *path = NULL ) const;
-#endif
 	virtual void				MapSetEntityKeyVal( const char *name, const char *key, const char *val ) const ;
 	virtual void				MapCopyDictToEntity( const char *name, const idDict *dict ) const;
 	virtual int					MapGetUniqueMatchingKeyVals( const char *key, const char *list[], const int max ) const;
@@ -317,7 +318,7 @@ public:
 	virtual int					MapGetEntitiesMatchingClassWithString( const char *classname, const char *match, const char *list[], const int max ) const;
 	virtual void				MapRemoveEntity( const char *name ) const;
 	virtual void				MapEntityTranslate( const char *name, const idVec3 &v ) const;
-
+#endif
 };
 
 extern idGameEdit *				gameEdit;

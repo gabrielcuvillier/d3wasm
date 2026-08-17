@@ -2559,6 +2559,7 @@ idGameLocal::HandleMainMenuCommands
 */
 void idGameLocal::HandleMainMenuCommands( const char *menuCommand, idUserInterface *gui ) { }
 
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idGameLocal::GetLevelMap
@@ -2586,6 +2587,7 @@ idMapFile *idGameLocal::GetLevelMap( void ) {
 
 	return mapFile;
 }
+#endif
 
 /*
 ================

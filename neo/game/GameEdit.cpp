@@ -987,7 +987,7 @@ void idGameEdit::PlayerGetEyePosition( idVec3 &org ) const {
 	org = gameLocal.GetLocalPlayer()->GetEyePosition();
 }
 
-
+#ifndef __EMSCRIPTEN__
 /*
 ================
 idGameEdit::MapGetEntityDict
@@ -1004,7 +1004,6 @@ const idDict *idGameEdit::MapGetEntityDict( const char *name ) const {
 	return NULL;
 }
 
-#ifndef __EMSCRIPTEN__
 /*
 ================
 idGameEdit::MapSave
@@ -1016,7 +1015,6 @@ void idGameEdit::MapSave( const char *path ) const {
 		mapFile->Write( (path) ? path : mapFile->GetName(), ".map");
 	}
 }
-#endif
 
 /*
 ================
@@ -1155,3 +1153,4 @@ void idGameEdit::MapEntityTranslate( const char *name, const idVec3 &v ) const {
 		}
 	}
 }
+#endif
