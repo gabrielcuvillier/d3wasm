@@ -2659,8 +2659,10 @@ void idCommonLocal::Shutdown(void) {
   //idAsyncNetwork::server.Kill();
   idAsyncNetwork::client.Shutdown();
 
-  // save persistent console history
-  console->SaveHistory();
+  if (com_errorEntered != 0) {
+    // save persistent console history
+    console->SaveHistory();
+  }
 
   // game specific shut down
   ShutdownGame(false);
