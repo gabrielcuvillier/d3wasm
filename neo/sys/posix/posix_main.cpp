@@ -99,7 +99,7 @@ void Posix_Exit(int ret) {
 	// Cancel the main loop callback
 	emscripten_cancel_main_loop();
 
-	printf("d3wasm exited.\n");
+	printf("d3wasm exited (%d).\n", ret);
 #else
 	if ( tty_enabled ) {
 		Sys_Printf( "shutdown terminal support\n" );
