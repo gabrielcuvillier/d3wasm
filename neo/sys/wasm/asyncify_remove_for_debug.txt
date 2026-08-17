@@ -1,0 +1,17 @@
+operator new(unsigned long)
+std::__2::*
+out
+SDL_AtomicLock
+pop_arg
+printf_core
+__vfprintf_internal
+wasmfs::Directory::Handle::cacheChild*
+wasmfs::Directory::Handle::mountChild*
+SDL_UpdateSteamVirtualGamepadInfo
+SDL_WaitEventTimeout
+__abort_message
+wasmfs_flush
+idImageManager::ImageFromFile*
+idPort::~idPort*
+idPort::Close*
+idMultiplayerGame::SwitchToTeam*
