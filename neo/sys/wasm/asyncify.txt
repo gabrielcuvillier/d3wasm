@@ -696,6 +696,7 @@ SDL_VIDPIDIncludedHintChanged
 Sess_WritePrecache_f(idCmdArgs const&)
 Session_DevMap_f(idCmdArgs const&)
 Session_Died_f(idCmdArgs const&)
+Session_StartNewGame_f(idCmdArgs const&)
 Session_Disconnect_f(idCmdArgs const&)
 Session_Map_f(idCmdArgs const&)
 Session_NextMap_f(idCmdArgs const&)

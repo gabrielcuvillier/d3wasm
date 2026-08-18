@@ -667,8 +667,40 @@ static void Session_Died_f(const idCmdArgs& args) {
   sessLocal.UnloadMap();
 #ifdef __EMSCRIPTEN__
   sessLocal.guiRestartMenu = uiManager->FindGui("guis/restart.gui", true, false, true);
+  if (sessLocal.guiRestartMenu) {
+    uiManager->Touch(sessLocal.guiRestartMenu->Name());
+  }
 #endif
   sessLocal.SetGUI(sessLocal.guiRestartMenu, NULL);
+}
+
+/*
+================
+Session_StartNewGame_f
+================
+*/
+static void Session_StartNewGame_f(const idCmdArgs& args) {
+  cvarSystem->SetCVarInteger( "g_skill", sessLocal.guiMainMenu->State().GetInt( "skill" ) );
+  if ( args.Argc() > 1 ) {
+    sessLocal.StartNewGame( args.Argv( 1 ) );
+  } else {
+    sessLocal.StartNewGame( "game/mars_city1" );
+  }
+  sessLocal.guiIntro = uiManager->FindGui("guis/intro.gui", true, false, true);
+  if (sessLocal.guiIntro) {
+    uiManager->Touch(sessLocal.guiIntro->Name());
+  }
+  // need to do this here to make sure com_frameTime is correct or the gui activates with a time that
+  // is "however long map load took" time in the past
+  common->GUIFrame( false, false );
+
+  sessLocal.SetGUI( sessLocal.guiIntro, NULL );
+  sessLocal.guiIntro->StateChanged( com_frameTime, true );
+  // stop playing the game sounds
+  soundSystem->SetPlayingSoundWorld( sessLocal.menuSoundWorld );
+
+  // Hack: for some reason, we need to reload the main menu, otherwise it stays in the faded status
+  sessLocal.guiMainMenu->InitFromFile( sessLocal.guiMainMenu->Name() );
 }
 
 #ifndef NO_RENDERDEMO_WRITE
@@ -951,6 +983,7 @@ void idSessionLocal::StartPlayingRenderDemo(idStr demoName) {
   if (guiLoading) {
     guiLoading->SetStateString("demo", common->GetLanguageDict()->GetString("#str_02087"));
     guiLoading->SetGlobal(true);
+    uiManager->Touch(guiLoading->Name());
   }
   readDemo = new idDemoFile;
   demoName.DefaultFileExtension(".demo");
@@ -1263,6 +1296,9 @@ void idSessionLocal::StartPlayingCmdDemo(const char* demoName) {
   }
 
   guiLoading = uiManager->FindGui("guis/map/loading.gui", true, false, true);
+  if (guiLoading) {
+    uiManager->Touch(guiLoading->Name());
+  }
   //cmdDemoFile->Read(&loadGameTime, sizeof(loadGameTime));
 
   LoadCmdDemoFromFile(cmdDemoFile);
@@ -2913,6 +2949,7 @@ void idSessionLocal::Init() {
                         idCmdSystem::ArgCompletion_MapName);
 
   cmdSystem->AddCommand("died", Session_Died_f, CMD_FL_SYSTEM, "");
+  cmdSystem->AddCommand("startnewgame", Session_StartNewGame_f, CMD_FL_SYSTEM, "");
 
 #ifndef NO_CMDDEMO
   cmdSystem->AddCommand("writeCmdDemo", Session_WriteCmdDemo_f, CMD_FL_SYSTEM, "writes a command demo");
