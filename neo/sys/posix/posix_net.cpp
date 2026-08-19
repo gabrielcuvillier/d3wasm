@@ -490,6 +490,7 @@ bool idPort::GetPacketBlocking( netadr_t &net_from, void *data, int &size, int m
 			return false;
 		} else {
 			common->Error( "idPort::GetPacketBlocking: select failed: %s\n", strerror( errno ) );
+			return false;
 		}
 	}
 

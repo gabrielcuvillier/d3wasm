@@ -87,6 +87,7 @@ void idImage::UploadCompressedNormalMap( int width, int height, const byte *rgba
 	normals = (byte *)_alloca( row * height );
 	if ( !normals ) {
 		common->Error( "R_UploadCompressedNormalMap: _alloca failed" );
+		return;
 	}
 
 	in = rgba;
@@ -330,6 +331,7 @@ void idImage::GenerateImage( const byte *pic, int width, int height,
 
 	if ( scaled_width != width || scaled_height != height ) {
 		common->Error( "R_CreateImage: not a power of 2 image" );
+		return;
 	}
 
 	// Optionally modify our width/height based on options/hardware

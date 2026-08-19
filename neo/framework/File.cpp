@@ -111,6 +111,7 @@ int FS_WriteFloatString( char *buf, const char *fmt, va_list argPtr ) {
 						break;
 					default:
 						common->Error( "FS_WriteFloatString: invalid format %s", format.c_str() );
+						return 0;
 						break;
 				}
 				fmt++;
@@ -132,6 +133,7 @@ int FS_WriteFloatString( char *buf, const char *fmt, va_list argPtr ) {
 						break;
 					default:
 						common->Error( "FS_WriteFloatString: unknown escape character \'%c\'", *fmt );
+						return 0;
 						break;
 				}
 				fmt++;

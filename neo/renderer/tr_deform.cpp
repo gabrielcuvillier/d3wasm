@@ -177,9 +177,11 @@ static int edgeVerts[6][2] = {
 
 	if ( tri->numVerts & 3 ) {
 		common->Error( "R_AutospriteDeform: shader had odd vertex count" );
+		return;
 	}
 	if ( tri->numIndexes != ( tri->numVerts >> 2 ) * 6 ) {
 		common->Error( "R_AutospriteDeform: autosprite had odd index count" );
+		return;
 	}
 
 	// we need the view direction to project the minor axis of the tube
@@ -830,6 +832,7 @@ static void AddTriangleToIsland_r( const srfTriangles_t *tri, int triangleNum, b
 	// add to the current island
 	if ( island->numTris == MAX_EYEBALL_TRIS ) {
 		common->Error( "MAX_EYEBALL_TRIS" );
+		return;
 	}
 	island->tris[island->numTris] = triangleNum;
 	island->numTris++;

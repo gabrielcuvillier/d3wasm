@@ -1637,6 +1637,7 @@ void idSessionLocal::ExecuteMapChange(bool noFadeWipe) {
   // let the renderSystem load all the geometry
   if ( !rw->InitFromMap(fullMapName)) {
     common->Error("couldn't load %s", fullMapName.c_str());
+    return;
   }
 
   // for the synchronous networking we needed to roll the angles over from
@@ -2356,6 +2357,7 @@ void idSessionLocal::AdvanceRenderDemo(bool singleFrameOnly) {
       continue;
     }
     common->Error("Bad render demo token");
+    return;
   }
 
   if ( com_showDemo.GetBool()) {
@@ -2715,6 +2717,7 @@ bool idSessionLocal::emsessionframe_last() {
     // we should have waited long enough
     if ( numCmdsToRun < fixedTic ) {
       common->Error("idSessionLocal::Frame: numCmdsToRun < fixedTic");
+      return false;
     }
     // we may need to dump older commands
     lastGameTic = latchedTicNumber - fixedTic;

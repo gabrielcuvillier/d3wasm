@@ -3827,6 +3827,7 @@ const idDict * idFileSystemLocal::GetMapDecl( int idecl ) {
 		mapDef = static_cast<const idDeclEntityDef *>( mapDecl );
 		if ( !mapDef ) {
 			common->Error( "idFileSystemLocal::GetMapDecl %d: not found\n", idecl );
+			return NULL;
 		}
 		mapDict = mapDef->dict;
 		mapDict.Set( "path", mapDef->GetName() );

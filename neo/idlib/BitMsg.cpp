@@ -113,11 +113,13 @@ void idBitMsg::WriteBits( int value, int numBits ) {
 
 	if ( !writeData ) {
 		idLib::common->Error( "idBitMsg::WriteBits: cannot write to message" );
+		return;
 	}
 
 	// check if the number of bits is valid
 	if ( numBits == 0 || numBits < -31 || numBits > 32 ) {
 		idLib::common->Error( "idBitMsg::WriteBits: bad numBits %i", numBits );
+		return;
 	}
 
 	// check for value overflows

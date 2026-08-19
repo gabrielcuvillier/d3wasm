@@ -246,6 +246,7 @@ const char *idDemoFile::ReadHashString() {
 	if ( index < -1 || index >= demoStrings.Num() ) {
 		Close();
 		common->Error( "demo hash index out of range" );
+		return NULL;
 	}
 
 	return demoStrings[index]->c_str();

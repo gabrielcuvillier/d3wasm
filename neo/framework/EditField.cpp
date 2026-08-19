@@ -573,6 +573,7 @@ void idEditField::Draw( int x, int y, int width, bool showCursor, const idMateri
 	// extract <drawLen> characters from the field at <prestep>
 	if ( drawLen >= MAX_EDIT_LINE ) {
 		common->Error( "drawLen >= MAX_EDIT_LINE" );
+		return;
 	}
 
 	memcpy( str, buffer + prestep, drawLen );

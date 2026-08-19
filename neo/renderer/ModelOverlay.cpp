@@ -250,6 +250,7 @@ void idRenderModelOverlay::AddOverlaySurfacesToModel( idRenderModel *baseModel )
 
 	if ( baseModel->IsDynamicModel() != DM_STATIC ) {
 		common->Error( "idRenderModelOverlay::AddOverlaySurfacesToModel: baseModel is not a static model" );
+		return;
 	}
 
 	assert( dynamic_cast<idRenderModelStatic *>(baseModel) != NULL );

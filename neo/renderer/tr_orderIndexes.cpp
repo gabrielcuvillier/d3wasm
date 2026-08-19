@@ -149,6 +149,7 @@ void R_OrderIndexes( int numIndexes, glIndex_t *indexes ) {
 		}
 		if ( tri == numTris ) {
 			common->Error( "R_OrderIndexes: ran out of unused tris" );
+			return;
 		}
 
 		c_starts++;

@@ -461,6 +461,7 @@ idInteraction::AllocAndLink
 idInteraction *idInteraction::AllocAndLink( idRenderEntityLocal *edef, idRenderLightLocal *ldef ) {
 	if ( !edef || !ldef ) {
 		common->Error( "idInteraction::AllocAndLink: NULL parm" );
+		return NULL;
 	}
 
 	idRenderWorldLocal *renderWorld = edef->world;
@@ -504,6 +505,7 @@ idInteraction *idInteraction::AllocAndLink( idRenderEntityLocal *edef, idRenderL
 		int index = ldef->index * renderWorld->interactionTableWidth + edef->index;
 		if ( renderWorld->interactionTable[index] != NULL ) {
 			common->Error( "idInteraction::AllocAndLink: non NULL table entry" );
+			return NULL;
 		}
 		renderWorld->interactionTable[ index ] = interaction;
 	}
@@ -596,6 +598,7 @@ void idInteraction::UnlinkAndFree( void ) {
 		int index = this->lightDef->index * renderWorld->interactionTableWidth + this->entityDef->index;
 		if ( renderWorld->interactionTable[index] != this ) {
 			common->Error( "idInteraction::UnlinkAndFree: interactionTable wasn't set" );
+			return;
 		}
 		renderWorld->interactionTable[index] = NULL;
 	}

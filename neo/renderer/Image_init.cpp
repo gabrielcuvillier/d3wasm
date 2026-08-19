@@ -1376,6 +1376,7 @@ idImage *idImageManager::AllocImage( const char *name ) {
 
 	if (strlen(name) >= MAX_IMAGE_NAME ) {
 		common->Error ("idImageManager::AllocImage: \"%s\" is too long\n", name);
+		return NULL;
 	}
 
 	hash = idStr( name ).FileNameHash();
@@ -1475,6 +1476,7 @@ idImage	*idImageManager::ImageFromFile( const char *_name, textureFilter_t filte
 			}
 			if ( image->cubeFiles != cubeMap ) {
 				common->Error( "Image '%s' has been referenced with conflicting cube map states", _name );
+				return NULL;
 			}
 
 			if ( image->filter != filter || image->repeat != repeat ) {

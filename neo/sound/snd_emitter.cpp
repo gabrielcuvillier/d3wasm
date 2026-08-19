@@ -589,6 +589,7 @@ idSoundEmitterLocal::UpdateEmitter
 void idSoundEmitterLocal::UpdateEmitter( const idVec3 &origin, int listenerId, const soundShaderParms_t *parms ) {
 	if ( !parms ) {
 		common->Error( "idSoundEmitterLocal::UpdateEmitter: NULL parms" );
+		return;
 	}
 	if ( soundWorld && soundWorld->writeDemo ) {
 		soundWorld->writeDemo->WriteInt( DS_SOUND );
@@ -868,6 +869,7 @@ idSoundEmitterLocal::ModifySound
 void idSoundEmitterLocal::ModifySound( const s_channelType channel, const soundShaderParms_t *parms ) {
 	if ( !parms ) {
 		common->Error( "idSoundEmitterLocal::ModifySound: NULL parms" );
+		return;
 	}
 	if ( idSoundSystemLocal::s_showStartSound.GetInteger() ) {
 		common->Printf( "ModifySound(%i,%i)\n", index, channel );

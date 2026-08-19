@@ -3406,6 +3406,7 @@ void idCollisionModelManagerLocal::BuildModels( const idMapFile *mapFile ) {
 	if ( !LoadCollisionModelFile( mapFile->GetName(), mapFile->GetGeometryCRC() ) ) {
 #ifdef __EMSCRIPTEN__
 		common->Error("Skipping building Collision models\n");
+		return;
 #else
 		if ( !mapFile->GetNumEntities() ) {
 			return;
@@ -3420,6 +3421,7 @@ void idCollisionModelManagerLocal::BuildModels( const idMapFile *mapFile ) {
 
 			if ( numModels >= MAX_SUBMODELS ) {
 				common->Error( "idCollisionModelManagerLocal::BuildModels: more than %d collision models", MAX_SUBMODELS );
+				return;
 				break;
 			}
 			models[numModels] = CollisionModelForMapEntity( mapEnt );
@@ -3458,6 +3460,7 @@ void idCollisionModelManagerLocal::LoadMap( const idMapFile *mapFile ) {
 
 	if ( mapFile == NULL ) {
 		common->Error( "idCollisionModelManagerLocal::LoadMap: NULL mapFile" );
+		return;
 	}
 
 	// check whether we can keep the current collision map based on the mapName and mapFileTime

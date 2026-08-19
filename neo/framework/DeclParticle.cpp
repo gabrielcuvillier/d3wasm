@@ -1052,6 +1052,7 @@ void idParticleStage::ParticleOrigin( particleGen_t *g, idVec3 &origin ) const {
 			}
 			default: {
 				common->Error( "idParticleStage::ParticleOrigin: bad customPathType" );
+				return;
 			}
 		}
 

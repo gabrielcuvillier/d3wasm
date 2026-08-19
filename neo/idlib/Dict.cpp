@@ -443,6 +443,7 @@ static void WriteString( const char *s, idFile *f ) {
 	int	len = strlen( s );
 	if ( len >= MAX_STRING_CHARS-1 ) {
 		idLib::common->Error( "idDict::WriteToFileHandle: bad string" );
+		return;
 	}
 	f->Write( s, strlen(s) + 1 );
 }
@@ -598,6 +599,7 @@ static idStr ReadString( idFile *f ) {
 	}
 	if ( len == MAX_STRING_CHARS ) {
 		idLib::common->Error( "idDict::ReadFromFileHandle: bad string" );
+		return idStr();
 	}
 
 	return idStr( str );

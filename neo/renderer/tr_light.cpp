@@ -771,6 +771,7 @@ void R_AddLightSurfaces(void) {
     const idMaterial* lightShader = light->lightShader;
     if ( !lightShader ) {
       common->Error("R_AddLightSurfaces: NULL lightShader");
+      return;
     }
 
     // see if we are suppressing the light in this view
@@ -902,12 +903,14 @@ void R_AddLightSurfaces(void) {
 
       if ( !light->parms.prelightModel->NumSurfaces()) {
         common->Error("no surfs in prelight model '%s'", light->parms.prelightModel->Name());
+        return;
       }
 
       srfTriangles_t* tri = light->parms.prelightModel->Surface(0)->geometry;
       if ( !tri->shadowVertexes ) {
         common->Error("R_AddLightSurfaces: prelight model '%s' without shadowVertexes",
                       light->parms.prelightModel->Name());
+        return;
       }
 
       // these shadows will all have valid bounds, and can be culled normally
@@ -1005,6 +1008,7 @@ idRenderModel* R_EntityDefDynamicModel(idRenderEntityLocal* def) {
 
   if ( !model ) {
     common->Error("R_EntityDefDynamicModel: NULL model");
+    return NULL;
   }
 
   if ( model->IsDynamicModel() == DM_STATIC ) {

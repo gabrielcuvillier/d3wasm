@@ -68,6 +68,7 @@ idVertexCache::ActuallyFree
 void idVertexCache::ActuallyFree( vertCache_t *block ) {
 	if (!block) {
 		common->Error( "idVertexCache Free: NULL pointer" );
+		return;
 	}
 
 	if ( block->user ) {
@@ -243,6 +244,7 @@ void idVertexCache::Alloc( void *data, int size, vertCache_t **buffer, bool inde
 
 	if ( size <= 0 ) {
 		common->Error( "idVertexCache::Alloc: size = %i\n", size );
+		return;
 	}
 
 	// if we can't find anything, it will be NULL
@@ -366,6 +368,7 @@ idVertexCache::Touch
 void idVertexCache::Touch( vertCache_t *block ) {
 	if ( !block ) {
 		common->Error( "idVertexCache Touch: NULL pointer" );
+		return;
 	}
 
 	if ( block->tag == TAG_FREE ) {
@@ -441,6 +444,7 @@ vertCache_t	*idVertexCache::AllocFrameTemp( void *data, int size, bool indexBuff
 
 	if ( size <= 0 ) {
 		common->Error( "idVertexCache::AllocFrameTemp: size = %i\n", size );
+		return NULL;
 	}
 
 	if (indexBuffer)

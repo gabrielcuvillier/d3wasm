@@ -277,6 +277,7 @@ void idAsyncClient::DisconnectFromServer( void ) {
 
 		if ( !channel.SendReliableMessage( msg ) ) {
 			common->Error( "client->server reliable messages overflow\n" );
+			return;
 		}
 
 		SendEmptyToServer( true );
@@ -597,6 +598,7 @@ void idAsyncClient::SendUserInfoToServer( void ) {
 
 	if ( !channel.SendReliableMessage( msg ) ) {
 		common->Error( "client->server reliable messages overflow\n" );
+		return;
 	}
 
 	sessLocal.mapSpawnData.userInfo[clientNum] = info;
@@ -813,6 +815,7 @@ void idAsyncClient::ProcessUnreliableServerMessage( const idBitMsg &msg ) {
 				numUsercmds = msg.ReadByte();
 				if ( numUsercmds > MAX_USERCMD_RELAY ) {
 					common->Error( "snapshot %d contains too many user commands for client %d", snapshotSequence, i );
+					return;
 					break;
 				}
 				for ( j = 0; j < numUsercmds; j++ ) {
@@ -920,6 +923,7 @@ void idAsyncClient::ProcessReliableMessagePure( const idBitMsg &msg ) {
 
 	if ( !channel.SendReliableMessage( outMsg ) ) {
 		common->Error( "client->server reliable messages overflow\n" );
+		return;
 	}
 }
 
@@ -1019,6 +1023,7 @@ void idAsyncClient::ProcessReliableServerMessages( void ) {
 				if ( !game->ClientApplySnapshot( clientNum, sequence ) ) {
 					session->Stop();
 					common->Error( "couldn't apply snapshot %d", sequence );
+					return;
 				}
 				break;
 			}
@@ -1696,6 +1701,7 @@ void idAsyncClient::SendReliableGameMessage( const idBitMsg &msg ) {
 	outMsg.WriteData( msg.GetData(), msg.GetSize() );
 	if ( !channel.SendReliableMessage( outMsg ) ) {
 		common->Error( "client->server reliable messages overflow\n" );
+		return;
 	}
 }
 

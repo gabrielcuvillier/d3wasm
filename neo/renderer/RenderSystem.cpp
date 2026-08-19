@@ -715,6 +715,7 @@ void	idRenderSystemLocal::CropRenderSize( int width, int height, bool makePowerO
 
 	if ( width < 1 || height < 1 ) {
 		common->Error( "CropRenderSize: bad sizes" );
+		return;
 	}
 
 #ifndef NO_RENDERDEMO_WRITE
@@ -769,6 +770,7 @@ void	idRenderSystemLocal::CropRenderSize( int width, int height, bool makePowerO
 
 	if ( currentRenderCrop == MAX_RENDER_CROPS ) {
 		common->Error( "idRenderSystemLocal::CropRenderSize: currentRenderCrop == MAX_RENDER_CROPS" );
+		return;
 	}
 
 	currentRenderCrop++;
@@ -793,6 +795,7 @@ void idRenderSystemLocal::UnCrop() {
 
 	if ( currentRenderCrop < 1 ) {
 		common->Error( "idRenderSystemLocal::UnCrop: currentRenderCrop < 1" );
+		return;
 	}
 
 	// close any gui drawing

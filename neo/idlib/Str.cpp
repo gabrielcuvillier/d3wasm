@@ -1441,6 +1441,7 @@ void idStr::Append( char *dest, int size, const char *src ) {
 	l1 = strlen( dest );
 	if ( l1 >= size ) {
 		idLib::common->Error( "idStr::Append: already overflowed" );
+		return;
 	}
 	idStr::Copynz( dest + l1, src, size - l1 );
 }
@@ -1518,6 +1519,7 @@ int idStr::snPrintf( char *dest, int size, const char *fmt, ...) {
 		//       the old intended behavior, maybe for compat with mod DLLs using
 		//       the old version of the function or something?
 		idLib::common->Error( "idStr::snPrintf: overflowed buffer" );
+		return 0;
 	}
 	if ( len >= size ) {
 		idLib::common->Warning( "idStr::snPrintf: overflow of %i in %i\n", len, size );

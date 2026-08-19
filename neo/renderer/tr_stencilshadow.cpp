@@ -649,6 +649,7 @@ static void R_AddSilEdges( const srfTriangles_t *tri, unsigned short *pointCull,
 		sil = tri->silEdges + i;
 		if ( sil->p1 < 0 || sil->p1 > numPlanes || sil->p2 < 0 || sil->p2 > numPlanes ) {
 			common->Error( "Bad sil planes" );
+			return;
 		}
 
 		// an edge will be a silhouette edge if the face on one side
@@ -689,6 +690,7 @@ static void R_AddSilEdges( const srfTriangles_t *tri, unsigned short *pointCull,
 			v2 = remap[ sil->v2 ];
 			if ( v1 < 0 || v2 < 0 ) {
 				common->Error( "R_AddSilEdges: bad remap[]" );
+				return;
 			}
 		}
 
@@ -897,6 +899,7 @@ static void R_CreateShadowVolumeInFrustum( const idRenderEntityLocal *ent,
 			}
 			if ( remap[i1] == -1 || remap[i2] == -1 || remap[i3] == -1 ) {
 				common->Error( "R_CreateShadowVolumeInFrustum: bad remap[]" );
+				return;
 			}
 			shadowIndexes[numShadowIndexes++] = remap[i3];
 			shadowIndexes[numShadowIndexes++] = remap[i2];
@@ -1173,10 +1176,12 @@ srfTriangles_t *R_CreateShadowVolume( const idRenderEntityLocal *ent,
 
 	if ( tri->numIndexes < 0 ) {
 		common->Error( "R_CreateShadowVolume: tri->numIndexes = %i", tri->numIndexes );
+		return NULL;
 	}
 
 	if ( tri->numVerts < 0 ) {
 		common->Error( "R_CreateShadowVolume: tri->numVerts = %i", tri->numVerts );
+		return NULL;
 	}
 
 	tr.pc.c_createShadowVolumes++;

@@ -7408,6 +7408,7 @@ void idPlayer::CalculateRenderView( void ) {
 
 	if ( renderView->fov_y == 0 ) {
 		common->Error( "renderView->fov_y == 0" );
+		return;
 	}
 
 	if ( g_showviewpos.GetBool() ) {

@@ -130,8 +130,10 @@ static void ASE_ParseBracedBlock( void (*parser)( const char *token ) )
 			--indent;
 			if ( indent == 0 )
 				break;
-			else if ( indent < 0 )
+			else if ( indent < 0 ) {
 				common->Error( "Unexpected '}'" );
+				return;
+			}
 		}
 		else
 		{
@@ -156,8 +158,10 @@ static void ASE_SkipEnclosingBraces( void )
 			indent--;
 			if ( indent == 0 )
 				break;
-			else if ( indent < 0 )
+			else if ( indent < 0 ) {
 				common->Error( "Unexpected '}'" );
+				return;
+			}
 		}
 	}
 }
@@ -500,10 +504,12 @@ static void ASE_KeyMESH_NORMALS( const char *token )
 
 		if ( num >= pMesh->numFaces || num < 0 ) {
 			common->Error( "MESH_NORMALS face index out of range: %i", num );
+			return;
 		}
 
 		if ( num != ase.currentFace ) {
 			common->Error( "MESH_NORMALS face index != currentFace" );
+			return;
 		}
 
 		ASE_GetToken( false );
@@ -531,6 +537,7 @@ static void ASE_KeyMESH_NORMALS( const char *token )
 
 		if ( num >= pMesh->numVertexes || num < 0 ) {
 			common->Error( "MESH_NORMALS vertex index out of range: %i", num );
+			return;
 		}
 
 		f = &pMesh->faces[ ase.currentFace - 1 ];
@@ -543,6 +550,7 @@ static void ASE_KeyMESH_NORMALS( const char *token )
 
 		if ( v == 3 ) {
 			common->Error( "MESH_NORMALS vertex index doesn't match face" );
+			return;
 		}
 
 		ASE_GetToken( false );
@@ -655,6 +663,7 @@ static void ASE_KeyMESH( const char *token )
 	{
 		if ( !pMesh->faces ) {
 			common->Error( "*MESH_TFACELIST before *MESH_FACE_LIST" );
+			return;
 		}
 		ase.currentFace = 0;
 		VERBOSE( ( ".....parsing MESH_TFACE_LIST\n" ) );
@@ -664,6 +673,7 @@ static void ASE_KeyMESH( const char *token )
 	{
 		if ( !pMesh->faces ) {
 			common->Error( "*MESH_CFACELIST before *MESH_FACE_LIST" );
+			return;
 		}
 		ase.currentFace = 0;
 		VERBOSE( ( ".....parsing MESH_CFACE_LIST\n" ) );

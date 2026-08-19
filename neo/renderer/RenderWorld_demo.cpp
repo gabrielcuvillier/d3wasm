@@ -119,7 +119,8 @@ bool		idRenderWorldLocal::ProcessDemoCommand( idDemoFile *readDemo, renderView_t
 			readDemo->ReadChar( header.mapname[i] );
 		// the internal version value got replaced by DS_VERSION at toplevel
 		if ( header.version != 4 ) {
-				common->Error( "Demo version mismatch.\n" );
+			common->Error( "Demo version mismatch.\n" );
+			return false;
 		}
 
 		if ( r_showDemo.GetBool() ) {
@@ -256,6 +257,7 @@ bool		idRenderWorldLocal::ProcessDemoCommand( idDemoFile *readDemo, renderView_t
 
 	default:
 		common->Error( "Bad token in demo stream" );
+			return false;
 	}
 
 	return false;
@@ -489,6 +491,7 @@ void	idRenderWorldLocal::ReadRenderLight( ) {
 	session->readDemo->ReadInt( index );
 	if ( index < 0 ) {
 		common->Error( "ReadRenderLight: index < 0 " );
+		return;
 	}
 
 	session->readDemo->ReadMat3( light.axis );
@@ -651,6 +654,7 @@ void	idRenderWorldLocal::ReadRenderEntity() {
 	session->readDemo->ReadInt( index );
 	if ( index < 0 ) {
 		common->Error( "ReadRenderEntity: index < 0" );
+		return;
 	}
 
 	session->readDemo->ReadInt( hModel );

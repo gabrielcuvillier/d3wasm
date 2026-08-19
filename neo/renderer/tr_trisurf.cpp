@@ -498,6 +498,7 @@ void R_FreeStaticTriSurf( srfTriangles_t *tri ) {
 
 	if ( tri->nextDeferredFree ) {
 		common->Error( "R_FreeStaticTriSurf: freed a freed triangle" );
+		return;
 	}
 	frame = frameData;
 
@@ -676,19 +677,23 @@ void R_RangeCheckIndexes( const srfTriangles_t *tri ) {
 
 	if ( tri->numIndexes < 0 ) {
 		common->Error( "R_RangeCheckIndexes: numIndexes < 0" );
+		return;
 	}
 	if ( tri->numVerts < 0 ) {
 		common->Error( "R_RangeCheckIndexes: numVerts < 0" );
+		return;
 	}
 
 	// must specify an integral number of triangles
 	if ( tri->numIndexes % 3 != 0 ) {
 		common->Error( "R_RangeCheckIndexes: numIndexes %% 3" );
+		return;
 	}
 
 	for ( i = 0 ; i < tri->numIndexes ; i++ ) {
 		if ( tri->indexes[i] < 0 || tri->indexes[i] >= tri->numVerts ) {
 			common->Error( "R_RangeCheckIndexes: index out of range" );
+			return;
 		}
 	}
 
@@ -1954,6 +1959,7 @@ void R_RemoveUnusedVerts( srfTriangles_t *tri ) {
 		index = tri->indexes[i];
 		if ( index < 0 || index >= tri->numVerts ) {
 			common->Error( "R_RemoveUnusedVerts: bad index" );
+			return;
 		}
 		mark[ index ] = 1;
 
@@ -1961,6 +1967,7 @@ void R_RemoveUnusedVerts( srfTriangles_t *tri ) {
 			index = tri->silIndexes[i];
 			if ( index < 0 || index >= tri->numVerts ) {
 				common->Error( "R_RemoveUnusedVerts: bad index" );
+				return;
 			}
 			mark[ index ] = 1;
 		}

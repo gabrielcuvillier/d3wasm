@@ -892,6 +892,7 @@ int idRenderModelMD5::NearestJoint( int surfaceNum, int a, int b, int c ) const 
 
 	if ( surfaceNum > meshes.Num() ) {
 		common->Error( "idRenderModelMD5::NearestJoint: surfaceNum > meshes.Num()" );
+		return 0;
 	}
 
 	for ( mesh = meshes.Ptr(), i = 0; i < meshes.Num(); i++, mesh++ ) {

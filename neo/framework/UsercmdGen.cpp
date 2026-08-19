@@ -908,6 +908,9 @@ usercmd_t idUsercmdGenLocal::TicCmd( int ticNumber ) {
 	// but all other code should never ask for anything > com_ticNumber
 	if ( ticNumber > com_ticNumber+1 ) {
 		common->Error( "idUsercmdGenLocal::TicCmd ticNumber > com_ticNumber" );
+		usercmd_t ret;
+		memset(&ret, 0, sizeof(usercmd_t));
+		return ret;
 	}
 
 	if ( ticNumber <= com_ticNumber - MAX_BUFFERED_USERCMD ) {

@@ -48,6 +48,7 @@ srfTriangles_t *R_PolytopeSurface( int numPlanes, const idPlane *planes, idWindi
 
 	if ( numPlanes > MAX_POLYTOPE_PLANES ) {
 		common->Error( "R_PolytopeSurface: more than %d planes", MAX_POLYTOPE_PLANES );
+		return NULL;
 	}
 
 	numVerts = 0;

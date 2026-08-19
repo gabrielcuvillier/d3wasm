@@ -279,18 +279,22 @@ static void LoadBMP( const char *name, byte **pic, int *width, int *height, ID_T
 	if ( bmpHeader.id[0] != 'B' && bmpHeader.id[1] != 'M' )
 	{
 		common->Error( "LoadBMP: only Windows-style BMP files supported (%s)\n", name );
+		return;
 	}
 	if ( bmpHeader.fileSize != length )
 	{
 		common->Error( "LoadBMP: header size does not match file size (%u vs. %d) (%s)\n", bmpHeader.fileSize, length, name );
+		return;
 	}
 	if ( bmpHeader.compression != 0 )
 	{
 		common->Error( "LoadBMP: only uncompressed BMP files supported (%s)\n", name );
+		return;
 	}
 	if ( bmpHeader.bitsPerPixel < 8 )
 	{
 		common->Error( "LoadBMP: monochrome and 4-bit BMP files not supported (%s)\n", name );
+		return;
 	}
 
 	columns = bmpHeader.width;
@@ -357,6 +361,7 @@ static void LoadBMP( const char *name, byte **pic, int *width, int *height, ID_T
 				break;
 			default:
 				common->Error( "LoadBMP: illegal pixel_size '%d' in file '%s'\n", bmpHeader.bitsPerPixel, name );
+					return;
 				break;
 			}
 		}
@@ -578,20 +583,24 @@ static void LoadTGA( const char *name, byte **pic, int *width, int *height, ID_T
 
 	if ( targa_header.image_type != 2 && targa_header.image_type != 10 && targa_header.image_type != 3 ) {
 		common->Error( "LoadTGA( %s ): Only type 2 (RGB), 3 (gray), and 10 (RGB) TGA images supported\n", name );
+		return;
 	}
 
 	if ( targa_header.colormap_type != 0 ) {
 		common->Error( "LoadTGA( %s ): colormaps not supported\n", name );
+		return;
 	}
 
 	if ( ( targa_header.pixel_size != 32 && targa_header.pixel_size != 24 ) && targa_header.image_type != 3 ) {
 		common->Error( "LoadTGA( %s ): Only 32 or 24 bit images supported (no colormaps)\n", name );
+		return;
 	}
 
 	if ( targa_header.image_type == 2 || targa_header.image_type == 3 ) {
 		numBytes = targa_header.width * targa_header.height * ( targa_header.pixel_size >> 3 );
 		if ( numBytes > fileSize - 18 - targa_header.id_length ) {
 			common->Error( "LoadTGA( %s ): incomplete file\n", name );
+			return;
 		}
 	}
 
@@ -656,6 +665,7 @@ static void LoadTGA( const char *name, byte **pic, int *width, int *height, ID_T
 					break;
 				default:
 					common->Error( "LoadTGA( %s ): illegal pixel_size '%d'\n", name, targa_header.pixel_size );
+						return;
 					break;
 				}
 			}
@@ -690,6 +700,7 @@ static void LoadTGA( const char *name, byte **pic, int *width, int *height, ID_T
 								break;
 						default:
 							common->Error( "LoadTGA( %s ): illegal pixel_size '%d'\n", name, targa_header.pixel_size );
+							return;
 							break;
 					}
 
@@ -735,6 +746,7 @@ static void LoadTGA( const char *name, byte **pic, int *width, int *height, ID_T
 									break;
 							default:
 								common->Error( "LoadTGA( %s ): illegal pixel_size '%d'\n", name, targa_header.pixel_size );
+								return;
 								break;
 						}
 						column++;

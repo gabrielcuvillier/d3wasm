@@ -214,11 +214,13 @@ void idRenderWorldLocal::UpdateEntityDef( qhandle_t entityHandle, const renderEn
 
 	if ( !re->hModel && !re->callback ) {
 		common->Error( "idRenderWorld::UpdateEntityDef: NULL hModel" );
+		return;
 	}
 
 	// create new slots if needed
 	if ( entityHandle < 0 || entityHandle > LUDICROUS_INDEX ) {
 		common->Error( "idRenderWorld::UpdateEntityDef: index = %i", entityHandle );
+		return;
 	}
 	while ( entityHandle >= entityDefs.Num() ) {
 		entityDefs.Append( NULL );
@@ -397,6 +399,7 @@ void idRenderWorldLocal::UpdateLightDef( qhandle_t lightHandle, const renderLigh
 	// create new slots if needed
 	if ( lightHandle < 0 || lightHandle > LUDICROUS_INDEX ) {
 		common->Error( "idRenderWorld::UpdateLightDef: index = %i", lightHandle );
+		return;
 	}
 	while ( lightHandle >= lightDefs.Num() ) {
 		lightDefs.Append( NULL );
@@ -700,6 +703,7 @@ void idRenderWorldLocal::RenderScene( const renderView_t *renderView ) {
 
 	if ( renderView->fov_x <= 0 || renderView->fov_y <= 0 ) {
 		common->Error( "idRenderWorld::RenderScene: bad FOVs: %f, %f", renderView->fov_x, renderView->fov_y );
+		return;
 	}
 
 	// close any gui drawing
@@ -815,6 +819,7 @@ int idRenderWorldLocal::NumPortalsInArea( int areaNum ) {
 
 	if ( areaNum >= numPortalAreas || areaNum < 0 ) {
 		common->Error( "idRenderWorld::NumPortalsInArea: bad areanum %i", areaNum );
+		return 0;
 	}
 	area = &portalAreas[areaNum];
 
@@ -835,9 +840,11 @@ exitPortal_t idRenderWorldLocal::GetPortal( int areaNum, int portalNum ) {
 	int				count;
 	portal_t		*portal;
 	exitPortal_t	ret;
+	memset( &ret, 0, sizeof( ret ) );
 
 	if ( areaNum > numPortalAreas ) {
 		common->Error( "idRenderWorld::GetPortal: areaNum > numAreas" );
+		return ret;
 	}
 	area = &portalAreas[areaNum];
 
@@ -891,6 +898,7 @@ int idRenderWorldLocal::PointInArea( const idVec3 &point ) const {
 			nodeNum = -1 - nodeNum;
 			if ( nodeNum >= numPortalAreas ) {
 				common->Error( "idRenderWorld::PointInArea: area out of range" );
+				return -1;
 			}
 			return nodeNum;
 		}
@@ -1400,6 +1408,7 @@ void idRenderWorldLocal::AddEntityRefToArea( idRenderEntityLocal *def, portalAre
 
 	if ( !def ) {
 		common->Error( "idRenderWorldLocal::AddEntityRefToArea: NULL def" );
+		return;
 	}
 
 	ref = areaReferenceAllocator.Alloc();

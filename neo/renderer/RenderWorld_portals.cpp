@@ -958,6 +958,7 @@ bool	idRenderWorldLocal::AreasAreConnected( int areaNum1, int areaNum2, portalCo
 	}
 	if ( areaNum1 > numPortalAreas || areaNum2 > numPortalAreas || areaNum1 < 0 || areaNum2 < 0 ) {
 		common->Error( "idRenderWorldLocal::AreAreasConnected: bad parms: %i, %i", areaNum1, areaNum2 );
+		return false;
 	}
 
 	int	attribute = 0;
@@ -970,6 +971,7 @@ bool	idRenderWorldLocal::AreasAreConnected( int areaNum1, int areaNum2, portalCo
 	}
 	if ( attribute >= NUM_PORTAL_ATTRIBUTES || ( 1 << attribute ) != (int)connection ) {
 		common->Error( "idRenderWorldLocal::AreasAreConnected: bad connection number: %i\n", (int)connection );
+		return false;
 	}
 
 	return portalAreas[areaNum1].connectedAreaNum[attribute] == portalAreas[areaNum2].connectedAreaNum[attribute];
@@ -990,6 +992,7 @@ void		idRenderWorldLocal::SetPortalState( qhandle_t portal, int blockTypes ) {
 
 	if ( portal < 1 || portal > numInterAreaPortals ) {
 		common->Error( "SetPortalState: bad portal number %i", portal );
+		return;
 	}
 	int	old = doublePortals[portal-1].blockingBits;
 	if ( old == blockTypes ) {
@@ -1028,6 +1031,7 @@ int		idRenderWorldLocal::GetPortalState( qhandle_t portal ) {
 
 	if ( portal < 1 || portal > numInterAreaPortals ) {
 		common->Error( "GetPortalState: bad portal number %i", portal );
+		return 0;
 	}
 
 	return doublePortals[portal-1].blockingBits;

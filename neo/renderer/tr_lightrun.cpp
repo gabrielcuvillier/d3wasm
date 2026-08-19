@@ -458,6 +458,7 @@ void R_CreateLightRefs( idRenderLightLocal *light ) {
 	// we should never be able to get a stupid number of points...
 	if ( tri->numVerts > MAX_LIGHT_VERTS ) {
 		common->Error( "R_CreateLightRefs: %i points in frustumTris!", tri->numVerts );
+		return;
 	}
 	for ( i = 0 ; i < tri->numVerts ; i++ ) {
 		points[i] = tri->verts[i].xyz;

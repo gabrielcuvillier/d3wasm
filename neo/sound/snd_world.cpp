@@ -331,6 +331,7 @@ void idSoundWorldLocal::ProcessDemoCommand( idDemoFile *readDemo ) {
 		readDemo->ReadInt( index );
 		if ( index < 1 || index > emitters.Num() ) {
 			common->Error( "idSoundWorldLocal::ProcessDemoCommand: bad emitter number" );
+			return;
 		}
 		if ( index == emitters.Num() ) {
 			// append a brand new one
@@ -1112,6 +1113,7 @@ void idSoundWorldLocal::ReadFromSaveGame( idFile *savefile ) {
 		}
 		if ( handle != i ) {
 			common->Error( "idSoundWorldLocal::ReadFromSaveGame: index mismatch" );
+			return;
 		}
 		def = emitters[i];
 
@@ -1140,6 +1142,7 @@ void idSoundWorldLocal::ReadFromSaveGame( idFile *savefile ) {
 		while ( channel >= 0 ) {
 			if ( channel > SOUND_MAX_CHANNELS ) {
 				common->Error( "idSoundWorldLocal::ReadFromSaveGame: channel > SOUND_MAX_CHANNELS" );
+				return;
 			}
 
 			idSoundChannel *chan = &def->channels[channel];
@@ -1246,6 +1249,7 @@ idSoundEmitter	*idSoundWorldLocal::EmitterForIndex( int index ) {
 	}
 	if ( index >= emitters.Num() ) {
 		common->Error( "idSoundWorldLocal::EmitterForIndex: %i > %i", index, emitters.Num() );
+		return NULL;
 	}
 	return emitters[index];
 }
@@ -1949,6 +1953,7 @@ to is in Db (sigh), over is in seconds
 void	idSoundWorldLocal::FadeSoundClasses( const int soundClass, const float to, const float over ) {
 	if ( soundClass < 0 || soundClass >= SOUND_MAX_CLASSES ) {
 		common->Error( "idSoundWorldLocal::FadeSoundClasses: bad soundClass %i", soundClass );
+		return;
 	}
 
 	idSoundFade	*fade = &soundClassFade[ soundClass ];

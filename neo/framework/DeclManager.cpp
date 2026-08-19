@@ -1305,6 +1305,7 @@ const idDecl *idDeclManagerLocal::DeclByIndex( declType_t type, int index, bool 
 	}
 	if ( index < 0 || index >= linearLists[ typeIndex ].Num() ) {
 		common->Error( "idDeclManager::DeclByIndex: out of range" );
+		return NULL;
 	}
 	idDeclLocal *decl = linearLists[ typeIndex ][ index ];
 

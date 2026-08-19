@@ -622,10 +622,12 @@ void idRenderModelStatic::FinishSurfaces() {
 		if ( surf->geometry == NULL || surf->shader == NULL ) {
 			MakeDefaultModel();
 			common->Error( "Model %s, surface %i had NULL geometry", name.c_str(), i );
+			return;
 		}
 		if ( surf->shader == NULL ) {
 			MakeDefaultModel();
 			common->Error( "Model %s, surface %i had NULL shader", name.c_str(), i );
+			return;
 		}
 	}
 
@@ -905,6 +907,7 @@ bool idRenderModelStatic::ConvertASEToModelSurfaces( const struct aseModel_s *as
 
 				if ( v < 0 || v >= mesh->numVertexes ) {
 					common->Error( "ConvertASEToModelSurfaces: bad vertex index in ASE file %s", name.c_str() );
+					return false;
 				}
 
 				// collapse the position if it was slightly offset
@@ -915,6 +918,7 @@ bool idRenderModelStatic::ConvertASEToModelSurfaces( const struct aseModel_s *as
 					tv = mesh->faces[j].tVertexNum[k];
 					if ( tv < 0 || tv >= mesh->numTVertexes ) {
 						common->Error( "ConvertASEToModelSurfaces: bad tex coord index in ASE file %s", name.c_str() );
+						return false;
 					}
 					// collapse the tex coord if it was slightly offset
 					tv = tvRemap[tv];
@@ -1750,6 +1754,7 @@ bool idRenderModelStatic::ConvertMAToModelSurfaces (const struct maModel_s *ma )
 
 				if ( v < 0 || v >= mesh->numVertexes ) {
 					common->Error( "ConvertMAToModelSurfaces: bad vertex index in MA file %s", name.c_str() );
+					return false;
 				}
 
 				// collapse the position if it was slightly offset
@@ -1760,6 +1765,7 @@ bool idRenderModelStatic::ConvertMAToModelSurfaces (const struct maModel_s *ma )
 					tv = mesh->faces[j].tVertexNum[k];
 					if ( tv < 0 || tv >= mesh->numTVertexes ) {
 						common->Error( "ConvertMAToModelSurfaces: bad tex coord index in MA file %s", name.c_str() );
+						return false;
 					}
 					// collapse the tex coord if it was slightly offset
 					tv = tvRemap[tv];

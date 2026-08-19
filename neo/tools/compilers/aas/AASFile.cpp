@@ -384,9 +384,11 @@ bool idAASSettings::FromDict( const char *name, const idDict *dict ) {
 
 	if ( !dict->GetVector( "mins", "0 0 0", bounds[ 0 ] ) ) {
 		common->Error( "Missing 'mins' in entityDef '%s'", name );
+		return false;
 	}
 	if ( !dict->GetVector( "maxs", "0 0 0", bounds[ 1 ] ) ) {
 		common->Error( "Missing 'maxs' in entityDef '%s'", name );
+		return false;
 	}
 
 	numBoundingBoxes = 1;
@@ -394,30 +396,37 @@ bool idAASSettings::FromDict( const char *name, const idDict *dict ) {
 
 	if ( !dict->GetBool( "usePatches", "0", usePatches ) ) {
 		common->Error( "Missing 'usePatches' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetBool( "writeBrushMap", "0", writeBrushMap ) ) {
 		common->Error( "Missing 'writeBrushMap' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetBool( "playerFlood", "0", playerFlood ) ) {
 		common->Error( "Missing 'playerFlood' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetBool( "allowSwimReachabilities", "0", allowSwimReachabilities ) ) {
 		common->Error( "Missing 'allowSwimReachabilities' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetBool( "allowFlyReachabilities", "0", allowFlyReachabilities ) ) {
 		common->Error( "Missing 'allowFlyReachabilities' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetString( "fileExtension", "", fileExtension ) ) {
 		common->Error( "Missing 'fileExtension' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetVector( "gravity", "0 0 -1066", gravity ) ) {
 		common->Error( "Missing 'gravity' in entityDef '%s'", name );
+		return false;
 	}
 	gravityDir = gravity;
 	gravityValue = gravityDir.Normalize();
@@ -425,38 +434,47 @@ bool idAASSettings::FromDict( const char *name, const idDict *dict ) {
 
 	if ( !dict->GetFloat( "maxStepHeight", "0", maxStepHeight ) ) {
 		common->Error( "Missing 'maxStepHeight' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetFloat( "maxBarrierHeight", "0", maxBarrierHeight ) ) {
 		common->Error( "Missing 'maxBarrierHeight' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetFloat( "maxWaterJumpHeight", "0", maxWaterJumpHeight ) ) {
 		common->Error( "Missing 'maxWaterJumpHeight' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetFloat( "maxFallHeight", "0", maxFallHeight ) ) {
 		common->Error( "Missing 'maxFallHeight' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetFloat( "minFloorCos", "0", minFloorCos ) ) {
 		common->Error( "Missing 'minFloorCos' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetInt( "tt_barrierJump", "0", tt_barrierJump ) ) {
 		common->Error( "Missing 'tt_barrierJump' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetInt( "tt_startCrouching", "0", tt_startCrouching ) ) {
 		common->Error( "Missing 'tt_startCrouching' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetInt( "tt_waterJump", "0", tt_waterJump ) ) {
 		common->Error( "Missing 'tt_waterJump' in entityDef '%s'", name );
+		return false;
 	}
 
 	if ( !dict->GetInt( "tt_startWalkOffLedge", "0", tt_startWalkOffLedge ) ) {
 		common->Error( "Missing 'tt_startWalkOffLedge' in entityDef '%s'", name );
+		return false;
 	}
 
 	return true;
@@ -545,6 +563,7 @@ bool idAASSettings::ValidEntity( const char *classname ) const {
 
 		if ( !ValidForBounds( bounds ) ) {
 			common->Error( "%s cannot use %s\n", classname, fileExtension.c_str() );
+			return false;
 		}
 
 		return true;
