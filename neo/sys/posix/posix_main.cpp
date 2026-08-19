@@ -271,7 +271,9 @@ Sys_Init
 void Sys_Init( void ) {
 	Posix_InitConsoleInput();
 	com_pid.SetInteger( getpid() );
+#ifndef __EMSCRIPTEN__
 	common->Printf( "pid: %d\n", com_pid.GetInteger() );
+#endif
 	common->Printf( "%d MB System Memory\n", Sys_GetSystemRam() );
 }
 
