@@ -179,7 +179,7 @@ if (EMSCRIPTEN)
     # add_link_options(--pre-js ${CMAKE_SOURCE_DIR}/sys/wasm/pre-full.js)
     add_link_options(--pre-js ${CMAKE_SOURCE_DIR}/sys/wasm/pre-wasmfs.js)
     add_link_options(--shell-file ${CMAKE_SOURCE_DIR}/sys/wasm/shell.html)
-    add_link_options(-sINITIAL_HEAP=402653184) # 384MB. Going below might lead to crashes after a couple of levels played.
+    add_link_options(-sINITIAL_HEAP=486539264) # 464MB (384MB for game + 80 MB for demo1). Going below might lead to crashes after a couple of levels played.
     add_link_options(-sASYNCIFY=1)
     add_link_options(-sWASMFS=1)
     add_link_options(-sSTACK_SIZE=327680)  # 320K. Looks like to be enough. Maybe increase to 512K for a safety net ?
