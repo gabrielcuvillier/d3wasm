@@ -2659,7 +2659,7 @@ void idCommonLocal::Shutdown(void) {
   //idAsyncNetwork::server.Kill();
   idAsyncNetwork::client.Shutdown();
 
-  if (com_errorEntered != 0) {
+  if (com_errorEntered == ERP_NONE) {
     // save persistent console history
     console->SaveHistory();
   }
