@@ -710,7 +710,7 @@ void idFileSystemLocal::CopyFile( const char *fromOSPath, const char *toOSPath )
 	int		len;
 	byte	*buf;
 
-	common->Printf( "copy %s to %s\n", fromOSPath, toOSPath );
+	common->DPrintf( "copy %s to %s\n", fromOSPath, toOSPath );
 	f = OpenOSFile( fromOSPath, "rb" );
 	if ( !f ) {
 		return;
@@ -1296,13 +1296,27 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 	if ( !f ) {
 		return NULL;
 	}
+
+#ifndef __EMSCRIPTEN__
+#else
+	idStr baseName = zipfile;
+	baseName.StripPath();
+	// temporary copy the pak file to memory to speedup the initial loading process. It will be removed by the
+	// end of the function
+	CopyFile(zipfile, va("/memfs/%s", baseName.c_str()));
+#endif
+
 	fseek( f, 0, SEEK_END );
 	len = ftell( f );
 	fclose( f );
 
 	fs_numHeaderLongs = 0;
 
+#ifndef __EMSCRIPTEN__
 	uf = unzOpen( zipfile );
+#else
+	uf = unzOpen( va("/memfs/%s", baseName.c_str()) );
+#endif
 	err = unzGetGlobalInfo64( uf, &gi );
 
 	if ( err != UNZ_OK ) {
@@ -1359,6 +1373,10 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 			delete[] buildBuffer;
 			delete pack;
 			Mem_Free( fs_headerLongs );
+#ifndef __EMSCRIPTEN__
+#else
+			remove( va("/memfs/%s", baseName.c_str()) );
+#endif
 			return NULL;
 		}
 	}
@@ -1390,6 +1408,11 @@ pack_t *idFileSystemLocal::LoadZipFile( const char *zipfile ) {
 	pack->checksum = LittleInt( pack->checksum );
 
 	Mem_Free( fs_headerLongs );
+
+#ifndef __EMSCRIPTEN__
+#else
+	remove( va("/memfs/%s", baseName.c_str()) );
+#endif
 
 	return pack;
 }
@@ -2690,11 +2713,18 @@ void idFileSystemLocal::Init( void ) {
 #ifdef __EMSCRIPTEN__
 
 	backend_t backend = wasmfs_create_opfs_backend();
+	backend_t backend_mem = wasmfs_create_js_file_backend();
+
 	int err = 0;
 
 	err = wasmfs_create_directory(getenv("OPFS_ROOT"), 0777, backend);
 	if (err != 0 && errno != EEXIST)
 		common->Warning( "OPFS mount returned %d (errno=%d)\n", err, errno);
+
+	err = wasmfs_create_directory("/memfs", 0777, backend_mem);
+	if (err != 0 && errno != EEXIST)
+		common->Warning( "MEMFS mount returned %d (errno=%d)\n", err, errno);
+
 
 #endif
 
@@ -2807,6 +2837,7 @@ void idFileSystemLocal::Shutdown( bool reloading ) {
 #ifdef __EMSCRIPTEN__
 	if (!reloading) {
 		wasmfs_unmount(getenv("OPFS_ROOT"));
+		wasmfs_unmount("/memfs");
 	}
 #endif
 }
@@ -3155,6 +3186,40 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 				if ( !FilenameCompare( pakFile->name, relativePath ) ) {
 					idFile_InZip *file = ReadFileFromZip( pak, pakFile, relativePath );
 
+					/*FILE* fp = OpenOSFile( va("/memfs/%s", relativePath), "rb" );
+					if (fp) {
+						idFile_Permanent *fileP = new idFile_Permanent();
+						fileP->o = fp;
+						fileP->name = va("/memfs/%s", relativePath);
+						fileP->fullPath = va("/memfs/%s", relativePath);
+						fileP->mode = ( 1 << FS_READ );
+						fileP->fileSize = DirectFileLength( fileP->o );
+						CloseFile(file);
+						return fileP;
+					}
+
+					FILE	*f;
+					int		len;
+					byte	*buf;
+
+					common->Printf( "copy %s\n", va("%s/%s", pak->pakFilename.c_str(), relativePath));
+					file->Seek( 0, FS_SEEK_END );
+					len = file->Tell( );
+					file->Seek( 0, FS_SEEK_SET );
+
+					buf = (byte *)Mem_Alloc( len );
+					file->Read( buf, len );
+					CloseFile(file);
+
+					CreateOSPath( va("/memfs/%s", relativePath) );
+					f = OpenOSFile( va("/memfs/%s", relativePath), "wb" );
+
+					if ( fwrite( buf, 1, len, f ) != (unsigned int)len ) {
+						common->FatalError( "short write in idFileSystemLocal::CopyFile()\n" );
+					}
+					fclose( f );
+					Mem_Free( buf );*/
+
 					if ( foundInPak ) {
 						*foundInPak = pak;
 					}
@@ -3170,6 +3235,14 @@ idFile *idFileSystemLocal::OpenFileReadFlags( const char *relativePath, int sear
 					if ( fs_debug.GetInteger( ) ) {
 						common->Printf( "idFileSystem::OpenFileRead: %s (found in '%s')\n", relativePath, pak->pakFilename.c_str() );
 					}
+
+					/*idFile_Permanent *fileP = new idFile_Permanent();
+					fileP->o = OpenOSFile( va("/memfs/%s", relativePath), "rb" );
+					fileP->name = va("/memfs/%s", relativePath);
+					fileP->fullPath = va("/memfs/%s", relativePath);
+					fileP->mode = ( 1 << FS_READ );
+					fileP->fileSize = DirectFileLength( fileP->o );*/
+
 					return file;
 				}
 			}
