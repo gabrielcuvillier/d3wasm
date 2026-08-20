@@ -992,7 +992,7 @@ void idDeclManagerLocal::EndLevelLoad() {
 		for ( int j = 0 ; j < num ; j++ ) {
 			idDeclLocal *decl = linearLists[i][j];
 			if (decl->declState == DS_PARSED && !decl->referencedThisLevel && !decl->parsedOutsideLevelLoad) {
-				common->Printf("[DeclManager] Purging standalone Decl %s %s\n", decl->GetTypeName(), decl->GetName());
+				//common->Printf("[DeclManager] Purging standalone Decl %s %s\n", decl->GetTypeName(), decl->GetName());
 				decl->Purge();
 			}
 		}
@@ -1195,7 +1195,7 @@ const idDecl *idDeclManagerLocal::FindType( declType_t type, const char *name, b
 		if ( insideLevelLoad ) {
 			//common->Printf("[DeclManager] New Level Decl %s %s\n", decl->GetTypeName(), decl->GetName());
 		} else {
-			common->Printf("[DeclManager] New Outside Decl %s %s\n", decl->GetTypeName(), decl->GetName());
+			//common->Printf("[DeclManager] New Outside Decl %s %s\n", decl->GetTypeName(), decl->GetName());
 		}
 	} else {
 		if (!decl->parseCompleted) {
@@ -1213,11 +1213,11 @@ const idDecl *idDeclManagerLocal::FindType( declType_t type, const char *name, b
 		// this is intended behavior!
 		if ( insideLevelLoad ) {
 			if (decl->parsedOutsideLevelLoad) {
-				common->Printf("[DeclManager] Absorb Decl to Level %s %s\n", decl->GetTypeName(), decl->GetName());
+				//common->Printf("[DeclManager] Absorb Decl to Level %s %s\n", decl->GetTypeName(), decl->GetName());
 				decl->parsedOutsideLevelLoad = false;
 			} else {
 				if (firstTimeReferenced) {
-					common->Printf("[DeclManager] Define Decl to Level %s %s\n", decl->GetTypeName(), decl->GetName());
+					//common->Printf("[DeclManager] Define Decl to Level %s %s\n", decl->GetTypeName(), decl->GetName());
 				}
 			}
 		}
@@ -1227,7 +1227,7 @@ const idDecl *idDeclManagerLocal::FindType( declType_t type, const char *name, b
 			if (!decl->parsedOutsideLevelLoad) {
 				// ...and it is the first time we reference it, set it as outside
 				if (firstTimeReferenced) {
-					common->Printf("[DeclManager] Define Decl as Outside %s %s\n", decl->GetTypeName(), decl->GetName());
+					//common->Printf("[DeclManager] Define Decl as Outside %s %s\n", decl->GetTypeName(), decl->GetName());
 					decl->parsedOutsideLevelLoad = true;
 				} else {
 					// if it has already been referenced, do not touch its outside status as it might has been referenced from the level

@@ -122,7 +122,7 @@ void idUserInterfaceManagerLocal::BeginLevelLoad() {
 	int c = guis.Num();
 	for ( int i = 0; i < c; i++ ) {
 		if ( ( guis[ i ]->GetDesktop()->GetFlags() & WIN_MENUGUI) == 0 || !guis[i]->global ) {
-			common->Printf( "[UIManager] clearing refs %s.\n", guis[ i ]->Name() ? guis[ i ]->Name() : "<NULL>" );
+			//common->Printf( "[UIManager] clearing refs %s.\n", guis[ i ]->Name() ? guis[ i ]->Name() : "<NULL>" );
 			guis[ i ]->ClearRefs();
 		}
 	}
@@ -144,21 +144,21 @@ void idUserInterfaceManagerLocal::EndLevelLoad() {
 				}
 			}
 			if ( remove ) {
-				common->Printf( "[UIManager] purging gui %s.\n", guis[i]->GetSourceFile() );
+				//common->Printf( "[UIManager] purging gui %s.\n", guis[i]->GetSourceFile() );
 				delete guis[ i ];
 				guis.RemoveIndex( i );
 				i--; c--;
 			} else {
-				common->Printf( "[UIManager] reloading gui referenced by material %s.\n", guis[i]->GetSourceFile() );
+				//common->Printf( "[UIManager] reloading gui referenced by material %s.\n", guis[i]->GetSourceFile() );
 				guis[i]->InitFromFile( guis[i]->GetSourceFile() );
 			}
 		}
 		else {
 			if ( guis[i]->global ) {
-				common->Printf( "[UIManager] keeping global gui as is %s.\n", guis[i]->GetSourceFile() );
+				//common->Printf( "[UIManager] keeping global gui as is %s.\n", guis[i]->GetSourceFile() );
 				continue;
 			}
-			common->Printf( "[UIManager] reloading gui %s.\n", guis[i]->GetSourceFile() );
+			//common->Printf( "[UIManager] reloading gui %s.\n", guis[i]->GetSourceFile() );
 			guis[i]->InitFromFile( guis[i]->GetSourceFile() );
 		}
 	}
@@ -328,8 +328,8 @@ static compressedGuiSource_t UI_NewCompressedGuiSource(const char *qpath) {
 	compressor->FinishCompress();
 	compressedGui.compressed_len = f->Length();
 
-	common->DPrintf( "[UIManager] Compress GUI definition: %s in=%d out=%d ratio=%f\n",
-		qpath, compressedGui.original_len, compressedGui.compressed_len, compressor->GetCompressionRatio() );
+	//common->DPrintf( "[UIManager] Compress GUI definition: %s in=%d out=%d ratio=%f\n",
+	//	qpath, compressedGui.original_len, compressedGui.compressed_len, compressor->GetCompressionRatio() );
 
 	// Deletes the compressor
 	delete compressor;

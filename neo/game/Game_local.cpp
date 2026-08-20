@@ -4485,6 +4485,7 @@ static void ActionScanCalls(const char *funcname,
 	}
 
 	if (!string2) {
+		/*
 		common->DPrintf(
 			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d)\n",
 			string1,
@@ -4493,9 +4494,9 @@ static void ActionScanCalls(const char *funcname,
 			funcname,
 			filename,
 			line
-		);
+		);*/
 	} else {
-		common->DPrintf(
+		/*common->DPrintf(
 			"INFO: Precaching '%s' found as argument for %s '%s' (in %s at %s:%d)\n",
 			string2,
 			optype,
@@ -4503,7 +4504,7 @@ static void ActionScanCalls(const char *funcname,
 			funcname,
 			filename,
 			line
-		);
+		);*/
 	}
 
 	if (!idStr::Icmp(eventname, "spawn")
@@ -4546,7 +4547,7 @@ void idGameLocal::PrecacheScriptReferencesForTypeDef(const char *typeName) {
 	}
 	idTypeDef const *type = program.FindType(typeName);
 	if (type) {
-		common->DPrintf("INFO: Precaching assets in script typedef \"%s\"\n", typeName);
+		//common->DPrintf("INFO: Precaching assets in script typedef \"%s\"\n", typeName);
 		program.ScanTypeDefForCalls(type, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
 	}
 }
@@ -4562,7 +4563,7 @@ void idGameLocal::PrecacheScriptReferencesForNamespace(const char *ns) {
 	}
 	idVarDef *namesp = program.GetDefList(ns);
 	if (namesp) {
-		common->DPrintf("INFO: Precaching assets in script namespace \"%s\"\n", ns);
+		//common->DPrintf("INFO: Precaching assets in script namespace \"%s\"\n", ns);
 		program.ScanNamespaceForCalls(namesp, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
 
 		if (gamestate == GAMESTATE_STARTUP) {
@@ -4582,7 +4583,7 @@ void idGameLocal::PrecacheScriptReferencesForFunction(const char *function) {
 	}
 	function_t const *func = program.FindFunction(function);
 	if (func) {
-		common->DPrintf("INFO: Precaching assets in script function \"%s\"\n", function);
+		//common->DPrintf("INFO: Precaching assets in script function \"%s\"\n", function);
 		program.ScanFunctionForCalls(func, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
 	}
 }
@@ -4596,7 +4597,7 @@ void idGameLocal::PrecacheScriptReferencesForFile(const char *file) {
 	if (program.ScriptNameAlreadyScanned(file)) {
 		return;
 	}
-	common->DPrintf("INFO: Precaching assets in script file \"%s\"\n", file);
+	//common->DPrintf("INFO: Precaching assets in script file \"%s\"\n", file);
 	program.ScanFileForCalls(file, FilterScanCalls, NumArgStringScanCalls, ActionScanCalls);
 
 	if (gamestate == GAMESTATE_STARTUP) {
